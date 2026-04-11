@@ -29,6 +29,9 @@
 </head>
 <body class="min-h-screen bg-base-100 text-base-content font-mono">
 
+    {{-- Boot sequence island (once per session) --}}
+    <div id="boot-sequence"></div>
+
     {{-- Atmospheric overlays --}}
     <div class="scanlines" aria-hidden="true"></div>
     <div class="rain-overlay" aria-hidden="true"></div>

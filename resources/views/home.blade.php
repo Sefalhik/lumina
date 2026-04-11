@@ -11,7 +11,7 @@
 
         <p class="text-secondary text-sm tracking-[0.3em] uppercase mb-6 font-mono">
             <span class="text-primary opacity-60">//</span>
-            <span class="cursor-blink"> Initializing connection</span>
+            <span class="cursor-blink"> Neuromatrix online — biocortex active</span>
         </p>
 
         <h1 class="font-display text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
