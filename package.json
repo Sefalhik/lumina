@@ -1,0 +1,48 @@
+{
+  "$schema": "https://www.schemastore.org/package.json",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "start": "concurrently --names 'frankenphp,vite' --prefix-colors 'green,cyan' 'LUMINA_CERT_FILE=storage/certs/cert.pem LUMINA_KEY_FILE=storage/certs/key.pem ./frankenphp run --config Caddyfile' 'vite'",
+    "lint:scss": "stylelint 'resources/css/**/*.scss'",
+    "lint:fix": "stylelint 'resources/css/**/*.scss' --fix",
+    "format": "prettier --write 'resources/**/*.{scss,vue,js}'",
+    "test:unit": "vitest",
+    "test:unit:run": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@playwright/test": "^1.59.1",
+    "@vue/test-utils": "^2.4.6",
+    "axios": "^1.15.0",
+    "chokidar": "^5.0.0",
+    "concurrently": "^9.0.1",
+    "happy-dom": "^20.8.9",
+    "husky": "^9.1.7",
+    "laravel-vite-plugin": "^3.0.0",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.2",
+    "stylelint": "^17.6.0",
+    "stylelint-config-prettier-scss": "^1.0.0",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "stylelint-order": "^8.1.1",
+    "vite": "^8.0.0",
+    "vite-plugin-mkcert": "^2.0.0",
+    "vitest": "^4.1.4"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "daisyui": "^5.5.19",
+    "pinia": "^3.0.4",
+    "sass": "^1.99.0",
+    "tailwindcss": "^4.2.2",
+    "vue": "^3.5.32",
+    "vue-router": "^5.0.4"
+  }
+}

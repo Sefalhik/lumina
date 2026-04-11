@@ -1,0 +1,333 @@
+// ============================================================
+// NEON PULSE — breathing glow
+// ============================================================
+
+.neon-pulse {
+    animation: neon-pulse 3s ease-in-out infinite;
+}
+
+.neon-pulse-slow {
+    animation: neon-pulse 5s ease-in-out infinite;
+}
+
+@keyframes neon-pulse {
+    0%,
+    100% {
+        text-shadow:
+            0 0 8px color-mix(in oklch, var(--color-primary) 100%, transparent),
+            0 0 20px color-mix(in oklch, var(--color-primary) 80%, transparent),
+            0 0 45px color-mix(in oklch, var(--color-primary) 50%, transparent),
+            0 0 80px color-mix(in oklch, var(--color-primary) 25%, transparent);
+    }
+
+    50% {
+        text-shadow:
+            0 0 4px color-mix(in oklch, var(--color-primary) 70%, transparent),
+            0 0 10px color-mix(in oklch, var(--color-primary) 40%, transparent),
+            0 0 22px color-mix(in oklch, var(--color-primary) 20%, transparent),
+            0 0 40px color-mix(in oklch, var(--color-primary) 8%, transparent);
+    }
+}
+
+// ============================================================
+// GLOW EFFECTS (static)
+// ============================================================
+
+.glow-primary {
+    text-shadow:
+        0 0 8px color-mix(in oklch, var(--color-primary) 100%, transparent),
+        0 0 20px color-mix(in oklch, var(--color-primary) 80%, transparent),
+        0 0 45px color-mix(in oklch, var(--color-primary) 50%, transparent),
+        0 0 80px color-mix(in oklch, var(--color-primary) 25%, transparent);
+}
+
+.glow-secondary {
+    text-shadow:
+        0 0 8px color-mix(in oklch, var(--color-secondary) 100%, transparent),
+        0 0 20px color-mix(in oklch, var(--color-secondary) 80%, transparent),
+        0 0 45px color-mix(in oklch, var(--color-secondary) 50%, transparent);
+}
+
+.glow-box {
+    box-shadow:
+        0 0 10px color-mix(in oklch, var(--color-primary) 80%, transparent),
+        0 0 25px color-mix(in oklch, var(--color-primary) 50%, transparent),
+        0 0 50px color-mix(in oklch, var(--color-primary) 20%, transparent),
+        inset 0 0 15px color-mix(in oklch, var(--color-primary) 10%, transparent);
+}
+
+// ============================================================
+// GLITCH — RGB channel split + random slices
+// Usage: <span class="glitch" data-text="Your text">Your text</span>
+// Active only on cyber themes (Sprawl & Neon Noir)
+// ============================================================
+
+:is([data-theme='sprawl'], [data-theme='neon-noir']) .glitch {
+    position: relative;
+
+    &::before,
+    &::after {
+        content: attr(data-text);
+        font: inherit;
+        inset: 0;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+    }
+
+    // Red channel — shifted left
+    &::before {
+        animation: glitch-red 7s step-end infinite;
+        color: oklch(70% 0.28 25deg); // red
+        text-shadow: none;
+    }
+
+    // Cyan channel — shifted right
+    &::after {
+        animation: glitch-cyan 7s step-end infinite;
+        color: oklch(80% 0.22 210deg); // cyan
+        text-shadow: none;
+    }
+}
+
+@keyframes glitch-red {
+    0%,
+    88%,
+    95%,
+    100% {
+        clip-path: none;
+        opacity: 0;
+        transform: none;
+    }
+
+    89% {
+        clip-path: polygon(0 15%, 100% 15%, 100% 35%, 0 35%);
+        opacity: 0.85;
+        transform: translateX(-4px);
+    }
+
+    90% {
+        clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
+        opacity: 0.85;
+        transform: translateX(-6px);
+    }
+
+    91% {
+        clip-path: polygon(0 80%, 100% 80%, 100% 100%, 0 100%);
+        opacity: 0.85;
+        transform: translateX(-3px) skewX(-2deg);
+    }
+
+    92% {
+        opacity: 0;
+    }
+}
+
+@keyframes glitch-cyan {
+    0%,
+    88%,
+    95%,
+    100% {
+        clip-path: none;
+        opacity: 0;
+        transform: none;
+    }
+
+    89% {
+        opacity: 0;
+    }
+
+    90% {
+        clip-path: polygon(0 0%, 100% 0%, 100% 20%, 0 20%);
+        opacity: 0.85;
+        transform: translateX(4px);
+    }
+
+    91% {
+        clip-path: polygon(0 45%, 100% 45%, 100% 60%, 0 60%);
+        opacity: 0.85;
+        transform: translateX(6px) skewX(1deg);
+    }
+
+    92% {
+        clip-path: polygon(0 70%, 100% 70%, 100% 85%, 0 85%);
+        opacity: 0.85;
+        transform: translateX(3px);
+    }
+
+    93% {
+        opacity: 0;
+    }
+}
+
+// Subtle glitch on the whole body (horizontal jitter)
+:is([data-theme='sprawl'], [data-theme='neon-noir']) .glitch-jitter {
+    animation: glitch-jitter 9s step-end infinite;
+}
+
+@keyframes glitch-jitter {
+    0%,
+    85%,
+    90%,
+    100% {
+        filter: none;
+        transform: none;
+    }
+
+    86% {
+        filter: brightness(1.15);
+        transform: translateX(-3px) skewX(-0.5deg);
+    }
+
+    87% {
+        filter: hue-rotate(15deg) brightness(1.3);
+        transform: translateX(4px);
+    }
+
+    88% {
+        filter: brightness(1.1);
+        transform: translateX(-2px) skewX(0.5deg);
+    }
+
+    89% {
+        filter: none;
+        transform: none;
+    }
+}
+
+// ============================================================
+// SCANLINES — primary color (visible on dark backgrounds)
+// ============================================================
+
+.scanlines {
+    inset: 0;
+    pointer-events: none;
+    position: fixed;
+    z-index: 9999;
+}
+
+[data-theme='sprawl'] .scanlines {
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 3px,
+        oklch(88% 0.28 142deg / 8%) 3px,
+        oklch(88% 0.28 142deg / 8%) 4px
+    );
+}
+
+[data-theme='neon-noir'] .scanlines {
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 3px,
+        oklch(82% 0.15 210deg / 8%) 3px,
+        oklch(82% 0.15 210deg / 8%) 4px
+    );
+}
+
+// ============================================================
+// RAIN OVERLAY — Neon Noir only
+// ============================================================
+
+.rain-overlay {
+    height: 200%;
+    inset: -50%;
+    opacity: var(--rain-opacity, 0);
+    pointer-events: none;
+    position: fixed;
+    transition: opacity 0.6s ease;
+    width: 200%;
+    z-index: 9998;
+}
+
+[data-theme='neon-noir'] .rain-overlay {
+    animation: rain-fall 1.6s linear infinite;
+    background-image: repeating-linear-gradient(
+        108deg,
+        transparent 0,
+        transparent 11px,
+        oklch(82% 0.15 210deg / 12%) 11px,
+        oklch(82% 0.15 210deg / 12%) 12px,
+        transparent 12px,
+        transparent 23px,
+        oklch(82% 0.15 210deg / 7%) 23px,
+        oklch(82% 0.15 210deg / 7%) 24px
+    );
+}
+
+@keyframes rain-fall {
+    from {
+        transform: translateY(-12%) translateX(-6%);
+    }
+
+    to {
+        transform: translateY(12%) translateX(6%);
+    }
+}
+
+// ============================================================
+// CRT FLICKER (Sprawl)
+// ============================================================
+
+[data-theme='sprawl'] body {
+    animation: crt-flicker 8s step-end infinite;
+}
+
+@keyframes crt-flicker {
+    0%,
+    93%,
+    96%,
+    100% {
+        opacity: 1;
+    }
+
+    94% {
+        opacity: 0.93;
+    }
+
+    95% {
+        opacity: 0.98;
+    }
+}
+
+// ============================================================
+// CURSOR BLINK
+// ============================================================
+
+.cursor-blink::after {
+    animation: cursor 1s step-end infinite;
+    color: var(--color-primary);
+    content: '█';
+}
+
+@keyframes cursor {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+// ============================================================
+// STEAMPUNK: GEAR SPIN
+// ============================================================
+
+.gear-spin {
+    animation: gear-rotate 8s linear infinite;
+    display: inline-block;
+}
+
+@keyframes gear-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,104 @@
+// ============================================================
+// CUSTOM DAISYUI THEMES
+// ============================================================
+
+// --- Sprawl (Gibson cyberpunk, terminal green) --------------
+[data-theme='sprawl'] {
+    color-scheme: dark;
+    --color-base-100: oklch(7% 0.015 265deg);
+    --color-base-200: oklch(11% 0.015 265deg);
+    --color-base-300: oklch(15% 0.015 265deg);
+    --color-base-content: oklch(82% 0.12 142deg);
+    --color-primary: oklch(88% 0.28 142deg);
+    --color-primary-content: oklch(8% 0.02 142deg);
+    --color-secondary: oklch(76% 0.17 65deg);
+    --color-secondary-content: oklch(8% 0.02 65deg);
+    --color-accent: oklch(70% 0.22 142deg);
+    --color-accent-content: oklch(8% 0.02 142deg);
+    --color-neutral: oklch(18% 0.02 265deg);
+    --color-neutral-content: oklch(68% 0.05 265deg);
+    --color-info: oklch(72% 0.14 220deg);
+    --color-success: oklch(80% 0.25 142deg);
+    --color-warning: oklch(76% 0.17 65deg);
+    --color-error: oklch(65% 0.24 25deg);
+
+    --font-display: 'Orbitron', monospace;
+    --font-body: 'Share Tech Mono', monospace;
+    --scanlines-opacity: 0.08;
+    --rain-opacity: 0;
+}
+
+// --- Steampunk (brass, copper, Victorian) -------------------
+[data-theme='steampunk'] {
+    color-scheme: dark;
+    --color-base-100: oklch(10% 0.025 45deg);
+    --color-base-200: oklch(14% 0.025 45deg);
+    --color-base-300: oklch(19% 0.025 45deg);
+    --color-base-content: oklch(86% 0.04 80deg);
+    --color-primary: oklch(75% 0.14 65deg);
+    --color-primary-content: oklch(8% 0.02 65deg);
+    --color-secondary: oklch(62% 0.08 165deg);
+    --color-secondary-content: oklch(8% 0.02 165deg);
+    --color-accent: oklch(72% 0.1 45deg);
+    --color-accent-content: oklch(8% 0.02 45deg);
+    --color-neutral: oklch(20% 0.02 45deg);
+    --color-neutral-content: oklch(70% 0.04 80deg);
+    --color-info: oklch(68% 0.1 210deg);
+    --color-success: oklch(68% 0.14 145deg);
+    --color-warning: oklch(74% 0.14 65deg);
+    --color-error: oklch(62% 0.22 25deg);
+
+    --font-display: 'Cinzel', serif;
+    --font-body: 'Share Tech Mono', monospace;
+    --scanlines-opacity: 0;
+    --rain-opacity: 0;
+}
+
+// --- Neon Noir (Blade Runner, rain & neon) ------------------
+[data-theme='neon-noir'] {
+    color-scheme: dark;
+    --color-base-100: oklch(6% 0.02 265deg);
+    --color-base-200: oklch(10% 0.025 265deg);
+    --color-base-300: oklch(14% 0.025 265deg);
+    --color-base-content: oklch(88% 0.06 200deg);
+    --color-primary: oklch(82% 0.15 210deg);
+    --color-primary-content: oklch(8% 0.02 210deg);
+    --color-secondary: oklch(65% 0.25 350deg);
+    --color-secondary-content: oklch(8% 0.02 350deg);
+    --color-accent: oklch(74% 0.18 280deg);
+    --color-accent-content: oklch(8% 0.02 280deg);
+    --color-neutral: oklch(16% 0.025 265deg);
+    --color-neutral-content: oklch(68% 0.05 265deg);
+    --color-info: oklch(78% 0.14 220deg);
+    --color-success: oklch(74% 0.18 145deg);
+    --color-warning: oklch(76% 0.17 65deg);
+    --color-error: oklch(65% 0.24 25deg);
+
+    --font-display: 'Orbitron', monospace;
+    --font-body: 'Share Tech Mono', monospace;
+    --scanlines-opacity: 0.08;
+    --rain-opacity: 1;
+}
+
+// Steampunk ornate borders
+[data-theme='steampunk'] .border-ornate {
+    border: 1px solid oklch(66% 0.14 65deg / 50%);
+    position: relative;
+
+    &::before,
+    &::after {
+        color: oklch(66% 0.14 65deg);
+        content: '✦';
+        font-size: 0.6rem;
+        position: absolute;
+        top: -0.5em;
+    }
+
+    &::before {
+        left: 0.5rem;
+    }
+
+    &::after {
+        right: 0.5rem;
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "resources/css/**/*.scss": [
+        "stylelint --fix",
+        "prettier --write"
+    ],
+    "resources/js/**/*.{js,vue}": [
+        "prettier --write"
+    ]
+}
