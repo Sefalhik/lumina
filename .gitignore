@@ -33,3 +33,4 @@ frankenphp-worker.php
 
 /playwright-report
 /test-results
+/coverage

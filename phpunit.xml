@@ -12,10 +12,24 @@
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <coverage>
+        <report>
+            <text outputFile="php://stdout" showUncoveredFiles="false"/>
+        </report>
+    </coverage>
+
     <source>
         <include>
             <directory>app</directory>
         </include>
+        <exclude>
+            <!-- Controllers: thin orchestrators tested via Feature (HTTP) tests -->
+            <directory>app/Http/Controllers</directory>
+            <!-- Providers: bootstrapping/registration code, not business logic -->
+            <directory>app/Providers</directory>
+            <!-- Models: tested via Feature tests against real DB, not unit tests -->
+            <directory>app/Models</directory>
+        </exclude>
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>

@@ -58,7 +58,8 @@ export function toGibsonLocation(data) {
     };
     if (!data || data.error) return fallback;
 
-    const { ip, city, country_code: cc, region_code: rc, org } = data;
+    // ip-api.com field names (server-side proxy normalises nothing — mapping lives here)
+    const { query: ip, city, countryCode: cc, region: rc, as: org } = data;
     const carrier = org
         ? org
               .replace(/^AS\d+\s+/i, '')
@@ -181,7 +182,7 @@ export async function fetchGeoData() {
     try {
         const controller = new AbortController();
         const tid = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+        const res = await fetch(route('api.geo'), { signal: controller.signal });
         clearTimeout(tid);
         const data = await res.json();
         if (data && !data.error) sessionStorage.setItem(GEO_CACHE_KEY, JSON.stringify(data));

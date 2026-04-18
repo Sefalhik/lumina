@@ -11,6 +11,7 @@
     "format": "prettier --write 'resources/**/*.{scss,vue,js}'",
     "test:unit": "vitest",
     "test:unit:run": "vitest run",
+    "test:unit:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "prepare": "husky"
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.59.1",
+    "@vitest/coverage-v8": "^4.1.4",
     "@vue/test-utils": "^2.4.6",
     "axios": "^1.15.0",
     "chokidar": "^5.0.0",

@@ -42,16 +42,17 @@ test.describe('Boot sequence', () => {
     test('[NET] Origin line contains a Gibson zone name', async ({ page }) => {
         // Mock geo API for determinism — avoids flakiness from rate-limiting or CI network restrictions.
         // page.route() must be registered before goto().
-        await page.route('**/ipapi.co/**', route =>
+        await page.route('**/api/geo**', route =>
             route.fulfill({
                 status: 200,
                 contentType: 'application/json',
                 body: JSON.stringify({
-                    ip: '1.2.3.4',
+                    status: 'success',
+                    query: '1.2.3.4',
                     city: 'Paris',
-                    country_code: 'FR',
-                    region_code: 'IDF',
-                    org: 'AS3215 Orange SA',
+                    countryCode: 'FR',
+                    region: 'IDF',
+                    as: 'AS3215 Orange SA',
                 }),
             })
         );
@@ -69,7 +70,7 @@ test.describe('Boot sequence', () => {
 
     test('[NET] Origin line shows fallback when geo fetch fails', async ({ page }) => {
         // Simulate a geo API failure — toGibsonLocation(null) returns the hardcoded fallback.
-        await page.route('**/ipapi.co/**', route => route.abort());
+        await page.route('**/api/geo**', route => route.abort());
 
         await page.goto('/');
 

@@ -83,102 +83,103 @@ describe('toGibsonLocation', () => {
         expect(toGibsonLocation({ error: true }).location).toBe('UNCHARTED GRID / ORIGIN MASKED');
     });
 
+    // ip-api.com field names: query, countryCode, region, as
     it('maps France to EUROPEAN SPRAWL / PARIS CONURB', () => {
         const { location } = toGibsonLocation({
-            ip: '1.2.3.4',
-            country_code: 'FR',
+            query: '1.2.3.4',
+            countryCode: 'FR',
             city: 'Paris',
-            org: 'AS12322 Free SAS',
+            as: 'AS12322 Free SAS',
         });
         expect(location).toBe('EUROPEAN SPRAWL / PARIS CONURB');
     });
 
     it('maps Japan to PACIFIC RIM / CHIBA CITY (Neuromancer reference)', () => {
-        const { location } = toGibsonLocation({ ip: '1.2.3.4', country_code: 'JP', city: 'Tokyo', org: '' });
+        const { location } = toGibsonLocation({ query: '1.2.3.4', countryCode: 'JP', city: 'Tokyo', as: '' });
         expect(location).toBe('PACIFIC RIM / CHIBA CITY');
     });
 
     it('maps Turkey to ISTANBUL RELAY / BOSPHORUS NODE (Neuromancer reference)', () => {
-        const { location } = toGibsonLocation({ ip: '1.2.3.4', country_code: 'TR', city: 'Istanbul', org: '' });
+        const { location } = toGibsonLocation({ query: '1.2.3.4', countryCode: 'TR', city: 'Istanbul', as: '' });
         expect(location).toBe('ISTANBUL RELAY / BOSPHORUS NODE');
     });
 
     it('maps US East Coast states to BAMA SPRAWL', () => {
         const { location } = toGibsonLocation({
-            ip: '1.2.3.4',
-            country_code: 'US',
-            region_code: 'NY',
+            query: '1.2.3.4',
+            countryCode: 'US',
+            region: 'NY',
             city: 'New York',
-            org: '',
+            as: '',
         });
         expect(location).toBe('BAMA SPRAWL / NEW YORK CONURB');
     });
 
     it('maps US West Coast states to PACIFIC SPRAWL', () => {
         const { location } = toGibsonLocation({
-            ip: '1.2.3.4',
-            country_code: 'US',
-            region_code: 'CA',
+            query: '1.2.3.4',
+            countryCode: 'US',
+            region: 'CA',
             city: 'Los Angeles',
-            org: '',
+            as: '',
         });
         expect(location).toBe('PACIFIC SPRAWL / LOS ANGELES GRID');
     });
 
     it('maps US Midwest states to MIDLANDS GRID', () => {
         const { location } = toGibsonLocation({
-            ip: '1.2.3.4',
-            country_code: 'US',
-            region_code: 'IL',
+            query: '1.2.3.4',
+            countryCode: 'US',
+            region: 'IL',
             city: 'Chicago',
-            org: '',
+            as: '',
         });
         expect(location).toBe('MIDLANDS GRID / CHICAGO NODE');
     });
 
     it('maps unmapped US states to AMERICAN SPRAWL', () => {
         const { location } = toGibsonLocation({
-            ip: '1.2.3.4',
-            country_code: 'US',
-            region_code: 'AK',
+            query: '1.2.3.4',
+            countryCode: 'US',
+            region: 'AK',
             city: 'Anchorage',
-            org: '',
+            as: '',
         });
         expect(location).toBe('AMERICAN SPRAWL / ANCHORAGE SECTOR');
     });
 
     it('falls back to UNCHARTED GRID for unknown country codes', () => {
-        const { location } = toGibsonLocation({ ip: '1.2.3.4', country_code: 'ZZ', city: 'Nowhere', org: '' });
+        const { location } = toGibsonLocation({ query: '1.2.3.4', countryCode: 'ZZ', city: 'Nowhere', as: '' });
         expect(location).toBe('UNCHARTED GRID / NOWHERE NODE');
     });
 
     it('strips the ASN prefix from the carrier name', () => {
         const { carrier } = toGibsonLocation({
-            ip: '1.2.3.4',
-            country_code: 'FR',
+            query: '1.2.3.4',
+            countryCode: 'FR',
             city: 'Paris',
-            org: 'AS12322 Free SAS',
+            as: 'AS12322 Free SAS',
         });
         expect(carrier).toBe('FREE SAS');
     });
 
     it('truncates carrier names longer than 28 characters', () => {
         const { carrier } = toGibsonLocation({
-            ip: '1.2.3.4',
-            country_code: 'FR',
+            query: '1.2.3.4',
+            countryCode: 'FR',
             city: 'Paris',
-            org: 'AS9999 A Very Long ISP Name That Goes On Forever',
+            as: 'AS9999 A Very Long ISP Name That Goes On Forever',
         });
         expect(carrier.length).toBeLessThanOrEqual(28);
     });
 
     it('uses UNKNOWN CARRIER when org is missing', () => {
-        const { carrier } = toGibsonLocation({ ip: '1.2.3.4', country_code: 'FR', city: 'Paris' });
+        const { carrier } = toGibsonLocation({ query: '1.2.3.4', countryCode: 'FR', city: 'Paris' });
         expect(carrier).toBe('UNKNOWN CARRIER');
     });
 
     it('masks the IP address', () => {
-        const { maskedIp } = toGibsonLocation({ ip: '82.64.12.34', country_code: 'FR', city: 'Paris', org: '' });
+        const { maskedIp } = toGibsonLocation({ query: '82.64.12.34', countryCode: 'FR', city: 'Paris', as: '' });
         expect(maskedIp).toBe('82.64.███.███');
     });
 });
@@ -188,6 +189,8 @@ describe('toGibsonLocation', () => {
 describe('fetchGeoData', () => {
     beforeEach(() => {
         vi.stubGlobal('fetch', vi.fn());
+        // Ziggy's route() helper is injected by Blade at runtime — stub it for unit tests
+        vi.stubGlobal('route', vi.fn().mockReturnValue('/api/geo'));
         sessionStorage.clear(); // prevent geo cache from leaking between tests
     });
 
@@ -202,10 +205,7 @@ describe('fetchGeoData', () => {
 
         const result = await fetchGeoData();
         expect(result).toEqual(payload);
-        expect(fetch).toHaveBeenCalledWith(
-            'https://ipapi.co/json/',
-            expect.objectContaining({ signal: expect.any(AbortSignal) }),
-        );
+        expect(fetch).toHaveBeenCalledWith('/api/geo', expect.objectContaining({ signal: expect.any(AbortSignal) }));
     });
 
     it('returns null on a network error', async () => {
