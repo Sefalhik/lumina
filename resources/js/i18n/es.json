@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Cambiar idioma",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Cambiar tema",
+        "current_aria": "Tema actual: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Terminal cyberpunk"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Cobre & victoriano"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Lluvia & neones"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ HAGA CLIC O PRESIONE UNA TECLA PARA OMITIR ]"
+    }
+}

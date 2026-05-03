@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Změnit jazyk",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Změnit motiv",
+        "current_aria": "Aktuální motiv: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Cyberpunkový terminál"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Měď a viktoriánský styl"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Déšť a neony"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ KLIKNĚTE NEBO STISKNUTÍM KLÁVESY POKRAČUJTE ]"
+    }
+}

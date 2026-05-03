@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Athraigh teanga",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Athraigh téama",
+        "current_aria": "Téama reatha: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Teirminéal cyberpunk"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Copar & Victorian"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Báisteach & neoin"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ CLICEÁIL NÓ BRÚIGH CNAIPE CHUN A SCIPEÁIL ]"
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Skift sprog",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Skift tema",
+        "current_aria": "Nuværende tema: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Cyberpunk terminal"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Kobber og viktoriansk"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Regn og neon"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ KLIK ELLER TRYK PÅ EN TAST FOR AT SPRINGE OVER ]"
+    }
+}

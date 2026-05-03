@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Nyelv módosítása",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Téma módosítása",
+        "current_aria": "Jelenlegi téma: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Cyberpunk terminál"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Réz & viktoriánus"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Eső & neonok"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ KATTINTSON VAGY NYOMJON MEG EGY BILLENTYŰT A KIHAGYÁSHOZ ]"
+    }
+}

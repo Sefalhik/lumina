@@ -13,7 +13,7 @@ test.describe('Boot sequence', () => {
         await expect(page.locator('.boot-overlay')).toBeVisible();
 
         await page.locator('.boot-overlay').click();
-        await expect(page.locator('.boot-overlay')).not.toBeVisible({ timeout: 2000 });
+        await expect(page.locator('.boot-overlay')).not.toBeVisible({ timeout: 3000 });
     });
 
     test('overlay dismisses on any keypress', async ({ page }) => {

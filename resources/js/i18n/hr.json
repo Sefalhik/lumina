@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Promjena jezika",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Promjena teme",
+        "current_aria": "Trenutna tema: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Cyberpunk terminal"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Bakar & viktorijanski"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Kiša & neonska svjetla"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ KLIKNITE ILI PRITISNITE TIPKU ZA PRESKAKANJE ]"
+    }
+}

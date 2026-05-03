@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Ibdel il-lingwa",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Ibdel it-tema",
+        "current_aria": "Tema attwali: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Terminal cyberpunk"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Ram & Vittorjan"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Xita & neon"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ IKKLIKKJA JEW AGĦFAS BUTTUNA BIEX TILEF ]"
+    }
+}

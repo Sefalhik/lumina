@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Keisti kalbą",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Keisti temą",
+        "current_aria": "Dabartinė tema: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Kibernetinio terminalio stilius"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Varis ir viktorinis stilius"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Lietus ir neoniniai žibintai"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ SPUSTELĖKITE ARBA PASPAUSKITE BET KURĮ KLAVIŠĄ, NORĖDAMI PRALEISTI ]"
+    }
+}

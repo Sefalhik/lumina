@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Zmeniť jazyk",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Zmeniť tému",
+        "current_aria": "Aktuálna téma: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Terminál cyberpunk"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Meď a viktoriánsky štýl"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Dážď a neóny"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ KLIKNITE ALEBO STLAČTE AKÚKOĽVEK KLÁVESU PRESKOČIŤ ]"
+    }
+}

@@ -18,7 +18,7 @@ foreach ($argv as $arg) {
 $cloverFile = sys_get_temp_dir().'/phpunit-coverage-'.getmypid().'.xml';
 
 passthru(
-    'php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=Unit --coverage-text --coverage-clover '.escapeshellarg($cloverFile),
+    'php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=Unit,Feature --coverage-text --coverage-clover '.escapeshellarg($cloverFile),
     $exitCode,
 );
 

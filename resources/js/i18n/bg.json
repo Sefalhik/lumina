@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Смяна на езика",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Смяна на темата",
+        "current_aria": "Текуща тема: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Киберпънк терминал"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Медни и викториански"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Дъжд и неонови светлини"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ КЛИКНЕТЕ ИЛИ НАТИСНЕТЕ КЛАВИШ ЗА ПРОПУСКАНЕ ]"
+    }
+}

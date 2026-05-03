@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Vaihda kieltä",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Vaihda teemaa",
+        "current_aria": "Nykyinen teema: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Cyberpunk-pääte"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Kupari & viktoriaaninen"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Sade & neonit"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ NAPSAUTA TAI PAINA NÄPPÄINTÄ OHITTAAKSESI ]"
+    }
+}

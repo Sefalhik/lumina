@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('ThemeSwitcher', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/');
+        await page.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
+        await page.goto('/fr/');
         await page.evaluate(() => localStorage.removeItem('theme'));
         await page.reload();
     });

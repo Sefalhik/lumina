@@ -1,4 +1,9 @@
 {
+    "language_switcher": {
+        "aria_label": "Changer de langue",
+        "filter_placeholder": "Filtrer…",
+        "no_results": "Aucun résultat"
+    },
     "theme_switcher": {
         "aria_label": "Changer de thème",
         "current_aria": "Thème actuel : {theme}",

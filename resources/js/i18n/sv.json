@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Byt språk",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Byt tema",
+        "current_aria": "Aktuellt tema: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Cyberpunk-terminal"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Koppar & viktoriansk"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Regn & neonljus"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ KLICKA ELLER TRYCK EN TANGENT FÖR ATT HOPPA ÖVER ]"
+    }
+}

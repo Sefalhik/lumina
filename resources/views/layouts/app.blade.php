@@ -46,14 +46,17 @@
 
         <nav class="navbar-center hidden md:flex" aria-label="Navigation principale">
             <ul class="menu menu-horizontal gap-1 text-sm tracking-widest uppercase">
-                <li><a href="{{ route('home') }}" class="hover:text-primary transition-colors">Accueil</a></li>
-                <li><a href="{{ route('cv') }}" class="hover:text-primary transition-colors">CV</a></li>
-                <li><a href="{{ route('projects') }}" class="hover:text-primary transition-colors">Projets</a></li>
-                <li><a href="{{ route('blog') }}" class="hover:text-primary transition-colors">Blog</a></li>
+                <li><a href="{{ route('home') }}" class="hover:text-primary transition-colors">{{ __('nav.home') }}</a></li>
+                <li><a href="{{ route('cv') }}" class="hover:text-primary transition-colors">{{ __('nav.cv') }}</a></li>
+                <li><a href="{{ route('projects') }}" class="hover:text-primary transition-colors">{{ __('nav.projects') }}</a></li>
+                <li><a href="{{ route('blog') }}" class="hover:text-primary transition-colors">{{ __('nav.blog') }}</a></li>
             </ul>
         </nav>
 
         <div class="navbar-end gap-2">
+            {{-- Language Switcher Vue island --}}
+            <div id="language-switcher"></div>
+
             {{-- Theme Switcher Vue island --}}
             <div id="theme-switcher"></div>
 
@@ -65,10 +68,10 @@
                     </svg>
                 </button>
                 <ul tabindex="0" class="dropdown-content menu bg-base-200 border border-primary/30 w-52 mt-2 text-sm tracking-widest uppercase">
-                    <li><a href="{{ route('home') }}">Accueil</a></li>
-                    <li><a href="{{ route('cv') }}">CV</a></li>
-                    <li><a href="{{ route('projects') }}">Projets</a></li>
-                    <li><a href="{{ route('blog') }}">Blog</a></li>
+                    <li><a href="{{ route('home') }}">{{ __('nav.home') }}</a></li>
+                    <li><a href="{{ route('cv') }}">{{ __('nav.cv') }}</a></li>
+                    <li><a href="{{ route('projects') }}">{{ __('nav.projects') }}</a></li>
+                    <li><a href="{{ route('blog') }}">{{ __('nav.blog') }}</a></li>
                 </ul>
             </div>
         </div>

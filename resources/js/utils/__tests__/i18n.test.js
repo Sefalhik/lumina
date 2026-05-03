@@ -24,9 +24,15 @@ describe('createI18n', () => {
     });
 
     it('falls back to fr for unsupported locales', () => {
-        document.documentElement.setAttribute('lang', 'de');
+        document.documentElement.setAttribute('lang', 'zh');
         const i18n = createI18n();
         expect(i18n.global.locale.value).toBe('fr');
+    });
+
+    it('uses a supported EU locale (de)', () => {
+        document.documentElement.setAttribute('lang', 'de');
+        const i18n = createI18n();
+        expect(i18n.global.locale.value).toBe('de');
     });
 
     it('exposes french translations', () => {

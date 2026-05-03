@@ -1,11 +1,25 @@
 {
+    "language_switcher": {
+        "aria_label": "Change language",
+        "filter_placeholder": "Filter…",
+        "no_results": "No results"
+    },
     "theme_switcher": {
         "aria_label": "Change theme",
         "current_aria": "Current theme: {theme}",
         "themes": {
-            "sprawl":    { "label": "Sprawl",    "hint": "Cyberpunk terminal" },
-            "steampunk": { "label": "Steam",     "hint": "Brass & Victorian" },
-            "neon-noir": { "label": "Neon Noir", "hint": "Rain & neon" }
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Cyberpunk terminal"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Brass & Victorian"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Rain & neons"
+            }
         }
     },
     "boot": {

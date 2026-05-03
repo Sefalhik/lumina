@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Schimbă limba",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Schimbă tema",
+        "current_aria": "Tema actuală: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Terminal cyberpunk"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Cupru & victorian"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Ploaie & neon"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ FACEȚI CLIC SAU APĂSAȚI O TASTĂ PENTRU A OMITE ]"
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Mainīt valodu",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Mainīt tēmu",
+        "current_aria": "Pašreizējā tēma: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Kiber-panka terminalis"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Varš & viktoiāņu stils"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Lietus & neoni"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ NOKLIKŠĶINIET VAI NOSPIEDIET JEBKURU TAUSTIŅU, LAI IZLAISTU ]"
+    }
+}

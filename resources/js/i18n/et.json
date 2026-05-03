@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Muuda keelt",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Muuda teemat",
+        "current_aria": "Praegune teema: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Terminal küberrpunk"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Vask & victoriuse ajastu"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Vihm & neonid"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ KLIKI VÕI VAJUTA NUPPU VAHELE JÄTMISEKS ]"
+    }
+}

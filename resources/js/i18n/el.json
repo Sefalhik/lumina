@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Αλλαγή γλώσσας",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Αλλαγή θέματος",
+        "current_aria": "Τρέχον θέμα: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Κυβερνοπανκ τερματικό"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Χαλκός & Βικτοριανό"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Βροχή & νέον"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ ΚΛΙΚ ΑΝ Ή ΠΑΤΗΣΤΕ ΟΠΟΙΟΔΗΠΟΤΕ ΠΛΗΚΤΡΟ ΓΙΑ ΠΑΡΑΛΕΙΨΗ ]"
+    }
+}

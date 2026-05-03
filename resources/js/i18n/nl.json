@@ -1,0 +1,30 @@
+{
+    "language_switcher": {
+        "aria_label": "Taal wijzigen",
+        "locales": {
+            "fr": "Français",
+            "en": "English"
+        }
+    },
+    "theme_switcher": {
+        "aria_label": "Thema wijzigen",
+        "current_aria": "Huidige thema: {theme}",
+        "themes": {
+            "sprawl": {
+                "label": "Sprawl",
+                "hint": "Cyberpunk terminal"
+            },
+            "steampunk": {
+                "label": "Steam",
+                "hint": "Koper & Victoriaans"
+            },
+            "neon-noir": {
+                "label": "Neon Noir",
+                "hint": "Regen & neons"
+            }
+        }
+    },
+    "boot": {
+        "skip": "[ KLIK OF DRUK OP EEN TOETS OM OVER TE SLAAN ]"
+    }
+}
