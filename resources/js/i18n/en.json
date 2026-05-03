@@ -1,0 +1,14 @@
+{
+    "theme_switcher": {
+        "aria_label": "Change theme",
+        "current_aria": "Current theme: {theme}",
+        "themes": {
+            "sprawl":    { "label": "Sprawl",    "hint": "Cyberpunk terminal" },
+            "steampunk": { "label": "Steam",     "hint": "Brass & Victorian" },
+            "neon-noir": { "label": "Neon Noir", "hint": "Rain & neon" }
+        }
+    },
+    "boot": {
+        "skip": "[ CLICK OR PRESS ANY KEY TO SKIP ]"
+    }
+}

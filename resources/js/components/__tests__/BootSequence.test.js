@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import BootSequence from '../BootSequence.vue';
+import { createI18n } from '../../utils/i18n.js';
+
+const mountWithI18n = (options = {}) => mount(BootSequence, { global: { plugins: [createI18n()] }, ...options });
 
 // Mock the utils module — isolates the component from real fetch and geo logic
 vi.mock('../../utils/boot', async (importOriginal) => {
@@ -31,7 +34,7 @@ describe('BootSequence', () => {
     // ── Visibility ────────────────────────────────────────────────────────────
 
     it('shows the overlay on first visit', async () => {
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         expect(wrapper.find('.boot-overlay').exists()).toBe(true);
@@ -40,7 +43,7 @@ describe('BootSequence', () => {
 
     it('does not show the overlay when the session key is already set', async () => {
         sessionStorage.setItem('boot_sequence_played', '1');
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         expect(wrapper.find('.boot-overlay').exists()).toBe(false);
@@ -50,7 +53,7 @@ describe('BootSequence', () => {
     // ── Dismiss — click ───────────────────────────────────────────────────────
 
     it('sets the session key immediately on click', async () => {
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         await wrapper.find('.boot-overlay').trigger('click');
@@ -60,7 +63,7 @@ describe('BootSequence', () => {
     });
 
     it('hides the overlay after the fade-out transition on click', async () => {
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         await wrapper.find('.boot-overlay').trigger('click');
@@ -71,7 +74,7 @@ describe('BootSequence', () => {
     });
 
     it('does not dismiss twice if clicked repeatedly', async () => {
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         await wrapper.find('.boot-overlay').trigger('click');
@@ -86,7 +89,7 @@ describe('BootSequence', () => {
     // ── Dismiss — keyboard ────────────────────────────────────────────────────
 
     it('sets the session key on any keydown event', async () => {
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -96,7 +99,7 @@ describe('BootSequence', () => {
     });
 
     it('hides the overlay after the fade-out transition on keydown', async () => {
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         document.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
@@ -112,7 +115,7 @@ describe('BootSequence', () => {
         const { fetchGeoData } = await import('../../utils/boot');
         fetchGeoData.mockResolvedValueOnce(null);
 
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         expect(wrapper.find('.boot-overlay').exists()).toBe(true);
@@ -122,7 +125,7 @@ describe('BootSequence', () => {
     // ── Cleanup ───────────────────────────────────────────────────────────────
 
     it('removes the keydown listener on unmount', async () => {
-        const wrapper = mount(BootSequence, { attachTo: document.body });
+        const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
         wrapper.unmount();
 

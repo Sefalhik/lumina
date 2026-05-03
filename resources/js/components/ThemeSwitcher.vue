@@ -1,10 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-const themes = [
-    { id: 'sprawl', label: 'Sprawl', icon: '⬡', hint: 'Cyberpunk terminal' },
-    { id: 'steampunk', label: 'Steam', icon: '⚙', hint: 'Brass & Victorian' },
-    { id: 'neon-noir', label: 'Neon Noir', icon: '◈', hint: 'Rain & neon' },
+const { t } = useI18n();
+
+const themeIds = [
+    { id: 'sprawl', icon: '⬡' },
+    { id: 'steampunk', icon: '⚙' },
+    { id: 'neon-noir', icon: '◈' },
 ];
 
 const current = ref('sprawl');
@@ -18,7 +21,7 @@ function apply(id) {
 
 onMounted(() => {
     const saved = localStorage.getItem('theme');
-    if (saved && themes.some((t) => t.id === saved)) {
+    if (saved && themeIds.some((t) => t.id === saved)) {
         current.value = saved;
     }
 });
@@ -29,10 +32,10 @@ onMounted(() => {
         <button
             tabindex="0"
             class="btn btn-ghost btn-sm gap-1 font-mono text-xs tracking-widest uppercase"
-            aria-label="Changer de thème"
+            :aria-label="t('theme_switcher.aria_label')"
             aria-haspopup="listbox"
         >
-            <span class="text-primary">{{ themes.find((t) => t.id === current)?.icon }}</span>
+            <span class="text-primary">{{ themeIds.find((t) => t.id === current)?.icon }}</span>
             <span class="hidden sm:inline text-base-content/70">Theme</span>
             <svg class="w-3 h-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -46,10 +49,10 @@ onMounted(() => {
         <ul
             tabindex="0"
             role="listbox"
-            :aria-label="`Thème actuel : ${current}`"
+            :aria-label="t('theme_switcher.current_aria', { theme: current })"
             class="dropdown-content menu bg-base-200 border border-primary/30 w-44 mt-2 p-1 gap-0.5"
         >
-            <li v-for="theme in themes" :key="theme.id" role="option" :aria-selected="current === theme.id">
+            <li v-for="theme in themeIds" :key="theme.id" role="option" :aria-selected="current === theme.id">
                 <button
                     class="flex items-center gap-3 w-full text-left font-mono text-xs tracking-wider px-3 py-2 transition-colors"
                     :class="
@@ -61,8 +64,10 @@ onMounted(() => {
                 >
                     <span class="text-base leading-none">{{ theme.icon }}</span>
                     <span class="flex flex-col">
-                        <span class="uppercase">{{ theme.label }}</span>
-                        <span class="opacity-50 normal-case text-[10px]">{{ theme.hint }}</span>
+                        <span class="uppercase">{{ t(`theme_switcher.themes.${theme.id}.label`) }}</span>
+                        <span class="opacity-50 normal-case text-[10px]">{{
+                            t(`theme_switcher.themes.${theme.id}.hint`)
+                        }}</span>
                     </span>
                     <span v-if="current === theme.id" class="ml-auto text-primary text-xs">✓</span>
                 </button>

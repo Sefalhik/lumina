@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import ThemeSwitcher from '../ThemeSwitcher.vue';
+import { createI18n } from '../../utils/i18n.js';
+
+const mountWithI18n = (options = {}) => mount(ThemeSwitcher, { global: { plugins: [createI18n()] }, ...options });
 
 describe('ThemeSwitcher', () => {
     let favicon;
@@ -20,12 +23,12 @@ describe('ThemeSwitcher', () => {
     });
 
     it('defaults to sprawl theme', () => {
-        const wrapper = mount(ThemeSwitcher);
+        const wrapper = mountWithI18n();
         expect(wrapper.vm.current).toBe('sprawl');
     });
 
     it('applies theme, updates data-theme attribute, localStorage and favicon on click', async () => {
-        const wrapper = mount(ThemeSwitcher);
+        const wrapper = mountWithI18n();
 
         await wrapper.findAll('[role="option"] button')[1].trigger('click'); // steampunk
 
@@ -36,7 +39,7 @@ describe('ThemeSwitcher', () => {
     });
 
     it('switches to each theme without error', async () => {
-        const wrapper = mount(ThemeSwitcher);
+        const wrapper = mountWithI18n();
         const buttons = wrapper.findAll('[role="option"] button');
 
         for (const [index, id] of ['sprawl', 'steampunk', 'neon-noir'].entries()) {
@@ -48,14 +51,14 @@ describe('ThemeSwitcher', () => {
 
     it('restores valid theme from localStorage on mount', async () => {
         localStorage.setItem('theme', 'neon-noir');
-        const wrapper = mount(ThemeSwitcher);
+        const wrapper = mountWithI18n();
         await flushPromises();
         expect(wrapper.vm.current).toBe('neon-noir');
     });
 
     it('ignores unknown theme stored in localStorage', async () => {
         localStorage.setItem('theme', 'invalid-theme');
-        const wrapper = mount(ThemeSwitcher);
+        const wrapper = mountWithI18n();
         await flushPromises();
         expect(wrapper.vm.current).toBe('sprawl');
     });

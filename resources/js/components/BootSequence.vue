@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { STORAGE_KEY, fetchGeoData, toGibsonLocation, getBrowserName, getOSName } from '../utils/boot';
+
+const { t } = useI18n();
 
 const visible = ref(false);
 const fadingOut = ref(false);
@@ -174,7 +177,7 @@ onUnmounted(() => {
                 </div>
                 <span class="boot-cursor">█</span>
             </div>
-            <div class="boot-skip">[ CLICK OR PRESS ANY KEY TO SKIP ]</div>
+            <div class="boot-skip">{{ t('boot.skip') }}</div>
         </div>
     </Transition>
 </template>

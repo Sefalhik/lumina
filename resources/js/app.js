@@ -1,9 +1,9 @@
 import './bootstrap';
 import { createApp } from 'vue';
+import { createI18n } from './utils/i18n.js';
 import BootSequence from './components/BootSequence.vue';
 import ThemeSwitcher from './components/ThemeSwitcher.vue';
 
-// Mount Vue islands individually — each component targets its own DOM node.
 const islands = {
     'boot-sequence': BootSequence,
     'theme-switcher': ThemeSwitcher,
@@ -11,5 +11,5 @@ const islands = {
 
 Object.entries(islands).forEach(([id, component]) => {
     const el = document.getElementById(id);
-    if (el) createApp(component).mount(el);
+    if (el) createApp(component).use(createI18n()).mount(el);
 });
