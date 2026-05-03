@@ -34,14 +34,14 @@ npm run build                   # Production asset build
 
 | Layer | Choice |
 |-------|--------|
-| Backend | Laravel 13 (v13.4+), PHP 8.4, MariaDB |
+| Backend | Laravel 13 (v13.7+), PHP 8.4 CLI / 8.5 (FrankenPHP), PostgreSQL |
 | Server | FrankenPHP via Laravel Octane (worker mode) |
 | Auth | Laravel Sanctum (session-based) + TOTP 2FA for admin (planned) |
 | Roles | `spatie/laravel-permission` — roles: `admin`, `maintainer`, `member`, public |
 | Frontend | Blade (structure/SEO) + Vue 3.5 islands (`<script setup>`) |
 | Assets | Vite 8 + SCSS + UnoCSS (presetWind3 + presetMini) |
 | Routes (JS) | `tightenco/ziggy` — `route('name')` helper available in all JS via `@routes` directive |
-| Testing (PHP) | PHPUnit 12, PCOV coverage driver |
+| Testing (PHP) | PHPUnit 13, PCOV coverage driver |
 | Testing (JS) | Vitest 4 + `@vitest/coverage-v8`, Playwright for E2E |
 | Blog | Database-backed, custom lightweight CMS (planned) |
 
@@ -85,6 +85,11 @@ Business logic lives in `app/Services/`. Services are framework-agnostic classes
 
 ## Testing conventions
 
+### PHP — database
+- Test database: **PostgreSQL**, dedicated `cardascia_it_test` database — **never** the `cardascia_it` schema
+- Connection overrides (host, port, database name) are in `phpunit.xml` — credentials come from `.env` and are never committed
+- Never use SQLite for tests — FK constraints and type behaviour diverge from PostgreSQL
+
 ### PHP — coverage scope (`phpunit.xml`)
 Only `app/Services/` is in scope for unit coverage. The following are deliberately excluded:
 - `app/Http/Controllers/` — thin orchestrators, tested via Feature (HTTP) tests
@@ -104,6 +109,35 @@ Runs automatically on `git commit`:
 1. `lint-staged` — format checks
 2. `npm run test:unit:coverage` — JS unit tests + coverage threshold
 3. `composer test:coverage` — PHP unit tests + coverage threshold
+
+## Internationalisation (i18n)
+
+Three separate layers, each with its own tool:
+
+| Couche | Outil | Fichiers |
+|--------|-------|----------|
+| Strings UI — Blade | Laravel `lang/` natif (`__()`) | `lang/fr/*.php`, `lang/en/*.php` |
+| Strings UI — Vue islands | `vue-i18n` v11 (`useI18n`) | `resources/js/i18n/fr.json`, `en.json` |
+| Contenu CMS (blog, projets…) | `spatie/laravel-translatable` | Colonnes JSON PostgreSQL |
+
+### Vue i18n — conventions
+- La locale est lue depuis `document.documentElement.lang` (posé par Laravel sur `<html>`)
+- Chaque island reçoit une instance fraîche via `createI18n()` (`resources/js/utils/i18n.js`)
+- `legacy: false` — Composition API uniquement, `useI18n()` dans `<script setup>`
+- Les clés sont en anglais, organisées par composant : `theme_switcher.*`, `boot.*`, `cv.*`…
+- Locales supportées : `fr` (défaut) et `en`. Fallback automatique vers `fr`
+
+### Ajouter une island avec i18n
+```js
+// app.js
+import { createI18n } from './utils/i18n.js';
+createApp(MonComposant).use(createI18n()).mount(el);
+```
+```js
+// MonComposant.vue
+const { t } = useI18n();
+```
+Ajouter les clés dans `resources/js/i18n/fr.json` **et** `en.json`.
 
 ## Logging conventions
 See `docs/logging-conventions.md` for the full reference.

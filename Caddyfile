@@ -1,29 +1,33 @@
 {
-    frankenphp
-    auto_https off
-    admin 127.0.0.1:2019
+	frankenphp
+	auto_https off
+	admin 127.0.0.1:2019
+
+	servers :80 {
+		protocols h1
+	}
 }
 
 https://dev.cardascia-it.org:443 {
-    tls {$LUMINA_CERT_FILE} {$LUMINA_KEY_FILE}
+	tls {$LUMINA_CERT_FILE} {$LUMINA_KEY_FILE}
 
-    root * public/
-    encode zstd br gzip
+	root * public/
+	encode zstd br gzip
 
-    # Serve Vite build assets directly (no PHP)
-    @assets path /build/*
-    file_server @assets
+	# Serve Vite build assets directly (no PHP)
+	@assets path /build/*
+	file_server @assets
 
-    # Everything else goes through the Laravel worker
-    php_server {
-        worker {
-            file public/frankenphp-worker.php
-            num 4
-        }
-    }
+	# Everything else goes through the Laravel worker
+	php_server {
+		worker {
+			file public/frankenphp-worker.php
+			num 4
+		}
+	}
 }
 
 # HTTP → HTTPS redirect
 http://dev.cardascia-it.org:80 {
-    redir https://{host}{uri} permanent
+	redir https://{host}{uri} permanent
 }
