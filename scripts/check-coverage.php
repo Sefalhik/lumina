@@ -2,9 +2,13 @@
 <?php
 
 /**
- * Runs the Unit test suite with PCOV coverage and enforces a minimum line
- * coverage threshold. Exits with a non-zero code if the threshold is not met,
- * which blocks the pre-commit hook.
+ * Runs the Unit+Feature test suites via `php artisan test` with PCOV coverage
+ * and enforces a minimum line coverage threshold. Exits with a non-zero code
+ * if the threshold is not met, which blocks the pre-commit hook.
+ *
+ * Using `artisan test` instead of `vendor/bin/phpunit` directly is intentional:
+ * artisan bootstraps the full Laravel testing environment (session driver, CSRF
+ * handling, etc.) which is required for Feature (HTTP) tests to run correctly.
  *
  * Usage: php -d pcov.enabled=1 scripts/check-coverage.php [--min=80]
  */
@@ -17,8 +21,11 @@ foreach ($argv as $arg) {
 
 $cloverFile = sys_get_temp_dir().'/phpunit-coverage-'.getmypid().'.xml';
 
+// APP_ENV=testing must be set before artisan bootstraps so VerifyCsrfToken::runningUnitTests()
+// returns true and CSRF verification is skipped for POST tests. Without this prefix, artisan
+// reads APP_ENV=local from .env first and the check fails — causing 419s on all POST routes.
 passthru(
-    'php -d pcov.enabled=1 vendor/bin/phpunit --testsuite=Unit,Feature --coverage-text --coverage-clover '.escapeshellarg($cloverFile),
+    'APP_ENV=testing php -d pcov.enabled=1 artisan test --testsuite=Unit,Feature --coverage-clover '.escapeshellarg($cloverFile),
     $exitCode,
 );
 

@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Schimbă limba",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Filtrare…",
+        "no_results": "Niciun rezultat"
     },
     "theme_switcher": {
         "aria_label": "Schimbă tema",

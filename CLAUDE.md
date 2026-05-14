@@ -37,7 +37,7 @@ npm run build                   # Production asset build
 |-------|--------|
 | Backend | Laravel 13 (v13.9+), PHP 8.5 CLI + FrankenPHP, PostgreSQL |
 | Server | FrankenPHP via Laravel Octane (worker mode) |
-| Auth | Laravel Sanctum (session-based) + TOTP 2FA for admin (planned) |
+| Auth | Laravel Sanctum (session-based) + TOTP 2FA enforced for admin |
 | Roles | `spatie/laravel-permission` — roles: `admin`, `maintainer`, `member`, public |
 | Frontend | Blade (structure/SEO) + Vue 3.5 islands (`<script setup>`) |
 | Assets | Vite 8 + SCSS + UnoCSS (presetWind3 + presetMini) |
@@ -57,6 +57,30 @@ A dedicated `routes/api.php` file handles JSON endpoints, registered under the `
 ### Services
 Business logic lives in `app/Services/`. Services are framework-agnostic classes, fully unit-testable without HTTP context.
 
+### Authentication & 2FA flow
+All auth routes are under the `/{lang}/` prefix so locale is always set when these pages render.
+
+The admin access chain enforces three middleware layers in order:
+
+```
+auth → role:admin → two_factor_verified
+```
+
+`EnsureTwoFactorVerified` (`app/Http/Middleware/`) implements a three-state gate:
+1. No `two_factor_confirmed_at` on the user → redirect to `/{lang}/two-factor/setup`
+2. Flag present but `auth.two_factor_verified` absent from session → store `url.intended`, redirect to `/{lang}/two-factor/challenge`
+3. Session flag present → pass through
+
+Session keys used by the 2FA flow:
+- `auth.two_factor_setup_secret` — temporary secret stored during setup, cleared on confirm
+- `auth.two_factor_verified` — boolean flag set after a successful challenge, lasts the session
+
+The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`, `ADMIN_NAME`, `ADMIN_PASSWORD`). Run once after `migrate`: `php artisan db:seed --class=AdminSeeder`.
+
+`bootstrap/app.php` configures both redirect callbacks:
+- `redirectUsersTo` — authenticated users hitting guest routes → `/{lang}/home`
+- `redirectGuestsTo` — unauthenticated users hitting auth routes → `/{lang}/login`
+
 ### Roles & access
 | Role | Access |
 |------|--------|
@@ -68,11 +92,16 @@ Business logic lives in `app/Services/`. Services are framework-agnostic classes
 ### Key directories
 | Path | Role |
 |------|------|
+| `app/Http/Controllers/Auth/` | Login, logout, 2FA setup + challenge |
 | `app/Http/Controllers/Public/` | Public-facing controllers |
 | `app/Http/Controllers/Dashboard/` | Private sections (auth required) |
 | `app/Http/Controllers/Admin/` | CMS and user management |
-| `app/Services/` | Business logic — unit-tested, no HTTP dependency |
+| `app/Http/Requests/Auth/` | `LoginRequest`, `TwoFactorCodeRequest` — validation isolated from controllers |
 | `app/Http/Middleware/SetLocale.php` | Sets `App::setLocale()` from `{lang}` route param |
+| `app/Http/Middleware/EnsureTwoFactorVerified.php` | 2FA gate — three-state redirect logic |
+| `app/Services/` | Business logic — unit-tested, no HTTP dependency |
+| `app/Services/Auth/LoginService.php` | Post-login redirect resolution (role-based) |
+| `app/Services/Auth/TwoFactorService.php` | Secret generation, QR SVG, TOTP verify, DB confirm |
 | `resources/views/` | Blade templates |
 | `resources/js/` | Vue island components + utilities |
 | `resources/js/utils/` | Pure JS utility modules (unit-tested) |
@@ -206,3 +235,6 @@ Key rules:
 | `GEO_FAILURE_CACHE_TTL` | `60` | Failure/rate-limit retry window (seconds) |
 | `GEO_DEV_FALLBACK_IP` | _(empty)_ | Public IP substitute for local dev (127.0.0.1 → this value) |
 | `ANTHROPIC_API_KEY` | _(empty)_ | API key for `i18n:translate` command |
+| `ADMIN_EMAIL` | _(empty)_ | Admin account email — used by `AdminSeeder` |
+| `ADMIN_NAME` | _(empty)_ | Admin account display name — used by `AdminSeeder` |
+| `ADMIN_PASSWORD` | _(empty)_ | Admin account password — used by `AdminSeeder` (never commit a value) |

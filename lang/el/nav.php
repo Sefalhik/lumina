@@ -5,4 +5,6 @@ return [
     'cv' => 'CV',
     'projects' => 'Έργα',
     'blog' => 'Blog',
+    'admin_panel' => 'Πίνακας διαχείρισης',
+    'logout' => 'Αποσύνδεση',
 ];

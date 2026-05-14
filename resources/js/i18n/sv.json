@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Byt språk",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Filtrera…",
+        "no_results": "Inga resultat"
     },
     "theme_switcher": {
         "aria_label": "Byt tema",

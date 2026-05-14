@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Nyelv módosítása",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Szűrés…",
+        "no_results": "Nincs találat"
     },
     "theme_switcher": {
         "aria_label": "Téma módosítása",

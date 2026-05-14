@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Middleware\EnsureTwoFactorVerified;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,8 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // RedirectIfAuthenticated (guest middleware) — send authenticated users to home
+        $middleware->redirectUsersTo(fn () => route('home', ['lang' => app()->getLocale()]));
+        // Authenticate (auth middleware) — send unauthenticated users to the localised login page
+        $middleware->redirectGuestsTo(fn () => route('login', ['lang' => app()->getLocale()]));
+
         $middleware->alias([
             'locale' => SetLocale::class,
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'two_factor_verified' => EnsureTwoFactorVerified::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

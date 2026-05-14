@@ -6,9 +6,9 @@ Personal website and portfolio of **Laurent Bernard-Cardascia** — Lead Develop
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Laravel 13, PHP 8.4, PostgreSQL 16, Redis 7 |
+| Backend | Laravel 13, PHP 8.5, PostgreSQL 16, Redis 7 |
 | Server | FrankenPHP via Laravel Octane (worker mode) |
-| Auth | Laravel Sanctum (session-based) + TOTP 2FA for admin (planned) |
+| Auth | Laravel Sanctum (session-based) + TOTP 2FA enforced for admin |
 | Roles | `spatie/laravel-permission` — `admin`, `maintainer`, `member`, `public` |
 | Frontend | Blade (SSR/SEO) + Vue 3.5 islands (`<script setup>`) |
 | Assets | Vite 8, Tailwind CSS v4, DaisyUI v5, SCSS |
@@ -17,7 +17,7 @@ Personal website and portfolio of **Laurent Bernard-Cardascia** — Lead Develop
 
 ## Requirements
 
-- PHP 8.4+ with `phpredis` extension
+- PHP 8.5+ with `phpredis` extension
 - PostgreSQL 16 (local port: 5433)
 - Redis 7+
 - Node.js 20+
@@ -29,8 +29,9 @@ Personal website and portfolio of **Laurent Bernard-Cardascia** — Lead Develop
 composer install
 cp .env.example .env
 php artisan key:generate
-# Configure DB_* in .env
+# Configure DB_* and ADMIN_* in .env (see Environment variables section below)
 php artisan migrate
+php artisan db:seed --class=AdminSeeder   # creates the admin role + account
 npm install
 ```
 
@@ -64,6 +65,27 @@ Relevant `.env` keys:
 | `GEO_CACHE_TTL` | `86400` | Success cache TTL (seconds) |
 | `GEO_FAILURE_CACHE_TTL` | `60` | Negative cache TTL (seconds) |
 | `GEO_DEV_FALLBACK_IP` | _(empty)_ | Public IP substituted for private addresses in dev |
+
+## Authentication
+
+All auth routes (`/login`, `/logout`, `/two-factor/*`) are under the `/{lang}/` prefix and fully localised.
+
+The admin access chain enforces three middleware in order: `auth` → `role:admin` → `two_factor_verified`.
+
+| Step | Route | Description |
+|------|-------|-------------|
+| Login | `GET/POST /{lang}/login` | Credential check — session-based |
+| 2FA setup | `GET/POST /{lang}/two-factor/setup` | First-time TOTP enrolment (QR + manual key) |
+| 2FA challenge | `GET/POST /{lang}/two-factor/challenge` | Per-session TOTP verification |
+| Admin | `GET /{lang}/admin` | Accessible only after all three steps |
+
+Admin credentials are seeded from `.env`:
+
+| Variable | Description |
+|----------|-------------|
+| `ADMIN_EMAIL` | Admin account email |
+| `ADMIN_NAME` | Admin account display name |
+| `ADMIN_PASSWORD` | Admin account password (min. 12 chars recommended) |
 
 ## Themes
 

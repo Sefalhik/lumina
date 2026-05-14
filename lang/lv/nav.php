@@ -5,4 +5,6 @@ return [
     'cv' => 'CV',
     'projects' => 'Projekti',
     'blog' => 'Blogs',
+    'admin_panel' => 'Administrēšanas panelis',
+    'logout' => 'Izlogoties',
 ];

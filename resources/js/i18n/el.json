@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Αλλαγή γλώσσας",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Φιλτράρισμα…",
+        "no_results": "Κανένα αποτέλεσμα"
     },
     "theme_switcher": {
         "aria_label": "Αλλαγή θέματος",

@@ -5,4 +5,6 @@ return [
     'cv' => 'CV',
     'projects' => 'Projektai',
     'blog' => 'Blogas',
+    'admin_panel' => 'Administravimo skydelis',
+    'logout' => 'Atsijungti',
 ];

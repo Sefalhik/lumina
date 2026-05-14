@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Zmień język",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Filtruj…",
+        "no_results": "Brak wyników"
     },
     "theme_switcher": {
         "aria_label": "Zmień motyw",

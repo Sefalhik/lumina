@@ -7,10 +7,12 @@
     "license": "proprietary",
     "require": {
         "php": "^8.5",
+        "bacon/bacon-qr-code": "^3.1",
         "laravel/framework": "^13.0",
         "laravel/octane": "^2.17",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
+        "pragmarx/google2fa-laravel": "^3.0",
         "spatie/laravel-permission": "^7.3",
         "tightenco/ziggy": "^2.6"
     },

@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Смяна на езика",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Филтриране…",
+        "no_results": "Няма резултати"
     },
     "theme_switcher": {
         "aria_label": "Смяна на темата",

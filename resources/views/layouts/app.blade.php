@@ -60,6 +60,35 @@
             {{-- Theme Switcher Vue island --}}
             <div id="theme-switcher"></div>
 
+            {{-- Authenticated user menu (desktop) --}}
+            @auth
+            <div class="dropdown dropdown-end hidden md:block">
+                <button tabindex="0"
+                        class="btn btn-ghost btn-sm font-mono text-xs tracking-wider border border-primary/20 hover:border-primary/60 gap-2">
+                    ⬡ {{ auth()->user()->name }}
+                </button>
+                <ul tabindex="0"
+                    class="dropdown-content menu bg-base-200 border border-primary/30 w-52 mt-2 text-xs tracking-wider">
+                    @role('admin')
+                    <li>
+                        <a href="{{ route('admin.dashboard', ['lang' => app()->getLocale()]) }}"
+                           class="hover:text-primary uppercase">
+                            {{ __('nav.admin_panel') }}
+                        </a>
+                    </li>
+                    @endrole
+                    <li>
+                        <form method="POST" action="{{ route('logout', ['lang' => app()->getLocale()]) }}">
+                            @csrf
+                            <button type="submit" class="hover:text-primary uppercase w-full text-left">
+                                {{ __('nav.logout') }}
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            @endauth
+
             {{-- Mobile menu --}}
             <div class="dropdown dropdown-end md:hidden">
                 <button tabindex="0" class="btn btn-ghost btn-sm" aria-label="Menu">
@@ -72,6 +101,27 @@
                     <li><a href="{{ route('cv') }}">{{ __('nav.cv') }}</a></li>
                     <li><a href="{{ route('projects') }}">{{ __('nav.projects') }}</a></li>
                     <li><a href="{{ route('blog') }}">{{ __('nav.blog') }}</a></li>
+                    @auth
+                    <li class="border-t border-primary/20 mt-1 pt-1">
+                        <span class="text-base-content/40 text-[10px] px-3">⬡ {{ auth()->user()->name }}</span>
+                    </li>
+                    @role('admin')
+                    <li>
+                        <a href="{{ route('admin.dashboard', ['lang' => app()->getLocale()]) }}"
+                           class="hover:text-primary">
+                            {{ __('nav.admin_panel') }}
+                        </a>
+                    </li>
+                    @endrole
+                    <li>
+                        <form method="POST" action="{{ route('logout', ['lang' => app()->getLocale()]) }}">
+                            @csrf
+                            <button type="submit" class="hover:text-primary w-full text-left">
+                                {{ __('nav.logout') }}
+                            </button>
+                        </form>
+                    </li>
+                    @endauth
                 </ul>
             </div>
         </div>

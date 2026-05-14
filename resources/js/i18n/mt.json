@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Ibdel il-lingwa",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Iffiltra…",
+        "no_results": "L-ebda riżultat"
     },
     "theme_switcher": {
         "aria_label": "Ibdel it-tema",

@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Vaihda kieltä",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Suodata…",
+        "no_results": "Ei tuloksia"
     },
     "theme_switcher": {
         "aria_label": "Vaihda teemaa",

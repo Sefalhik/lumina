@@ -5,4 +5,6 @@ return [
     'cv' => 'CV',
     'projects' => 'Progetti',
     'blog' => 'Blog',
+    'admin_panel' => 'Pannello di amministrazione',
+    'logout' => 'Disconnessione',
 ];

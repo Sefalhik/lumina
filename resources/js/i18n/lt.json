@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Keisti kalbą",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Filtruoti…",
+        "no_results": "Nėra rezultatų"
     },
     "theme_switcher": {
         "aria_label": "Keisti temą",

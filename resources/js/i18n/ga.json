@@ -1,10 +1,8 @@
 {
     "language_switcher": {
         "aria_label": "Athraigh teanga",
-        "locales": {
-            "fr": "Français",
-            "en": "English"
-        }
+        "filter_placeholder": "Scagaire…",
+        "no_results": "Gan torthaí"
     },
     "theme_switcher": {
         "aria_label": "Athraigh téama",

@@ -5,4 +5,6 @@ return [
     'cv' => 'Lebenslauf',
     'projects' => 'Projekte',
     'blog' => 'Blog',
+    'admin_panel' => 'Verwaltungsbereich',
+    'logout' => 'Abmelden',
 ];
