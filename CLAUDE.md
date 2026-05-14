@@ -35,7 +35,7 @@ npm run build                   # Production asset build
 
 | Layer | Choice |
 |-------|--------|
-| Backend | Laravel 13 (v13.7+), PHP 8.4 CLI / 8.5 (FrankenPHP), PostgreSQL |
+| Backend | Laravel 13 (v13.9+), PHP 8.5 CLI + FrankenPHP, PostgreSQL |
 | Server | FrankenPHP via Laravel Octane (worker mode) |
 | Auth | Laravel Sanctum (session-based) + TOTP 2FA for admin (planned) |
 | Roles | `spatie/laravel-permission` — roles: `admin`, `maintainer`, `member`, public |
