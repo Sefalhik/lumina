@@ -144,6 +144,31 @@ class I18nTranslateTest extends TestCase
         $this->assertSame('Lebenslauf', $translated['cv']);
     }
 
+    public function test_translates_php_file_with_nested_arrays(): void
+    {
+        file_put_contents(
+            $this->langDir.'/fr/validation.php',
+            "<?php\nreturn ['required' => 'Le champ est obligatoire.', 'attributes' => ['email' => 'adresse e-mail', 'name' => 'nom']];\n",
+        );
+
+        Http::fake([
+            'https://api.anthropic.com/v1/messages' => Http::sequence()
+                ->push($this->apiResponse(['home' => 'Startseite', 'cv' => 'Lebenslauf']), 200)
+                ->push($this->apiResponse(['required' => 'Das Feld ist erforderlich.', 'attributes.email' => 'E-Mail-Adresse', 'attributes.name' => 'Name']), 200)
+                ->push($this->apiResponse(['boot.skip' => 'Überspringen']), 200),
+        ]);
+
+        $this->artisan('i18n:translate', ['--locale' => 'de', '--force' => true])
+            ->assertSuccessful();
+
+        $this->assertFileExists($this->langDir.'/de/validation.php');
+        $translated = include $this->langDir.'/de/validation.php';
+        $this->assertSame('Das Feld ist erforderlich.', $translated['required']);
+        $this->assertIsArray($translated['attributes']);
+        $this->assertSame('E-Mail-Adresse', $translated['attributes']['email']);
+        $this->assertSame('Name', $translated['attributes']['name']);
+    }
+
     public function test_translates_js_i18n_file(): void
     {
         Http::fake([

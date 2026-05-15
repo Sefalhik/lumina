@@ -121,7 +121,7 @@ npm run test:unit:run           # Vitest — single run
 npm run test:unit:coverage      # Vitest — single run + coverage (80% threshold enforced)
 
 # Tests — E2E (Playwright)
-npm run test:e2e                # Playwright — headless (requires dev server)
+npm run test:e2e                # Playwright — headless (starts its own server on :8001)
 npm run test:e2e:ui             # Playwright — interactive UI mode
 
 # Tests — PHP (PHPUnit + PCOV)
@@ -133,4 +133,10 @@ composer test:coverage          # Unit suite + line coverage enforcement (≥ 80
 The pre-commit hook (Husky + lint-staged) runs lint-staged, JS coverage, and PHP coverage
 automatically on each `git commit`. Coverage gates block the commit if thresholds are not met.
 
-> E2E tests require the dev server to be running: `npm start`
+### E2E prerequisite (one-time setup)
+
+E2E tests use a dedicated database and start their own server on port 8001 — the dev server does not need to be running.
+
+```bash
+createdb -h 127.0.0.1 -p 5433 -U <your_pg_user> cardascia_it_e2e
+```

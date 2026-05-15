@@ -104,7 +104,7 @@
                     <li><a href="{{ route('blog') }}">{{ __('nav.blog') }}</a></li>
                     @auth
                     <li class="border-t border-primary/20 mt-1 pt-1">
-                        <span class="text-base-content/40 text-[10px] px-3">⬡ {{ auth()->user()->name }}</span>
+                        <span class="text-base-content/60 text-[10px] px-3">⬡ {{ auth()->user()->name }}</span>
                     </li>
                     @role('admin')
                     <li>

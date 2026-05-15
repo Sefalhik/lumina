@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Services\TranslationCache;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class I18nTranslate extends Command
 {
@@ -119,8 +120,7 @@ class I18nTranslate extends Command
                 continue;
             }
 
-            /** @var array<string, string> $flatSource */
-            $flatSource = array_map('strval', $source);
+            $flatSource = $this->flattenJson($source);
 
             if (! $this->option('force') && $this->cache->isFileUnchanged($sourceFile)) {
                 $this->line("  <fg=cyan>{$filename}</> — unchanged, skipping");
@@ -305,9 +305,9 @@ PROMPT;
         $response = Http::withHeaders([
             'x-api-key' => $apiKey,
             'anthropic-version' => '2023-06-01',
-        ])->timeout(30)->post('https://api.anthropic.com/v1/messages', [
+        ])->timeout(60)->post('https://api.anthropic.com/v1/messages', [
             'model' => config('services.anthropic.model', 'claude-haiku-4-5-20251001'),
-            'max_tokens' => 2048,
+            'max_tokens' => 8192,
             'messages' => [['role' => 'user', 'content' => $prompt]],
         ]);
 
@@ -315,6 +315,14 @@ PROMPT;
             $body = $response->json();
             $message = $body['error']['message'] ?? $response->body();
             $this->error("    API error for locale {$locale} (HTTP {$response->status()}): {$message}");
+            Log::error('i18n:translate API request failed', [
+                'service' => 'I18nTranslate',
+                'method' => 'callApi',
+                'step' => 'http_request',
+                'locale' => $locale,
+                'http_status' => $response->status(),
+                'api_message' => $message,
+            ]);
 
             return null;
         }
@@ -324,6 +332,13 @@ PROMPT;
 
         if (! is_string($content) || empty($content)) {
             $this->error("    Empty response from API for locale {$locale}");
+            Log::error('i18n:translate API returned empty content', [
+                'service' => 'I18nTranslate',
+                'method' => 'callApi',
+                'step' => 'parse_response',
+                'locale' => $locale,
+                'stop_reason' => $body['stop_reason'] ?? null,
+            ]);
 
             return null;
         }
@@ -335,6 +350,14 @@ PROMPT;
 
         if (! is_array($decoded)) {
             $this->error("    Invalid JSON in API response for locale {$locale}");
+            Log::error('i18n:translate API response is not valid JSON', [
+                'service' => 'I18nTranslate',
+                'method' => 'callApi',
+                'step' => 'json_decode',
+                'locale' => $locale,
+                'stop_reason' => $body['stop_reason'] ?? null,
+                'raw_excerpt' => mb_substr(trim($content), 0, 200),
+            ]);
 
             return null;
         }
@@ -400,14 +423,33 @@ PROMPT;
             mkdir($dir, 0755, true);
         }
 
-        $lines = ["<?php\n", "\nreturn [\n"];
-        foreach ($data as $key => $value) {
-            $escapedKey = str_replace("'", "\\'", (string) $key);
-            $escapedValue = str_replace("'", "\\'", (string) $value);
-            $lines[] = "    '{$escapedKey}' => '{$escapedValue}',\n";
-        }
-        $lines[] = "];\n";
+        $nested = $this->unflattenJson($data);
+        $content = "<?php\n\nreturn ".$this->exportPhpArray($nested, 0).";\n";
 
-        file_put_contents($path, implode('', $lines));
+        file_put_contents($path, $content);
+    }
+
+    /**
+     * @param  array<string, mixed>  $array
+     */
+    private function exportPhpArray(array $array, int $depth): string
+    {
+        $indent = str_repeat('    ', $depth + 1);
+        $closing = str_repeat('    ', $depth);
+        $lines = ['['];
+
+        foreach ($array as $key => $value) {
+            $escapedKey = str_replace("'", "\\'", (string) $key);
+            if (is_array($value)) {
+                $lines[] = $indent."'{$escapedKey}' => ".$this->exportPhpArray($value, $depth + 1).',';
+            } else {
+                $escapedValue = str_replace("'", "\\'", (string) $value);
+                $lines[] = $indent."'{$escapedKey}' => '{$escapedValue}',";
+            }
+        }
+
+        $lines[] = $closing.']';
+
+        return implode("\n", $lines);
     }
 }

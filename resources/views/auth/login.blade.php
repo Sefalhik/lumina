@@ -24,7 +24,7 @@
             </label>
             <input type="email" id="email" name="email"
                    value="{{ old('email') }}"
-                   class="input input-bordered input-sm font-mono bg-base-300 border-primary/30 focus:border-primary w-full {{ $errors->has('email') ? 'input-error' : '' }}"
+                   class="input input-bordered input-sm font-mono bg-base-300 w-full {{ $errors->has('email') ? 'border-error' : 'border-primary/30 focus:border-primary' }}"
                    autocomplete="email"
                    required
                    autofocus>
@@ -40,7 +40,7 @@
                 </span>
             </label>
             <input type="password" id="password" name="password"
-                   class="input input-bordered input-sm font-mono bg-base-300 border-primary/30 focus:border-primary w-full {{ $errors->has('password') ? 'input-error' : '' }}"
+                   class="input input-bordered input-sm font-mono bg-base-300 w-full {{ $errors->has('password') ? 'border-error' : 'border-primary/30 focus:border-primary' }}"
                    autocomplete="current-password"
                    required>
             @error('password')
@@ -51,7 +51,7 @@
         <div class="form-control mb-6">
             <label class="label cursor-pointer justify-start gap-3">
                 <input type="checkbox" name="remember" class="checkbox checkbox-primary checkbox-xs">
-                <span class="label-text font-mono text-xs tracking-wider text-base-content/50">
+                <span class="label-text font-mono text-xs tracking-wider text-base-content/70">
                     {{ __('auth.login_remember') }}
                 </span>
             </label>

@@ -11,7 +11,7 @@
         <h1 class="font-display text-2xl font-bold tracking-wider">
             {{ __('auth.challenge_heading') }}
         </h1>
-        <p class="text-base-content/50 text-sm font-mono mt-2 leading-relaxed">
+        <p class="text-base-content/70 text-sm font-mono mt-2 leading-relaxed">
             {{ __('auth.challenge_hint') }}
         </p>
     </div>
@@ -26,7 +26,7 @@
                 </span>
             </label>
             <input type="text" id="code" name="code"
-                   class="input input-bordered font-mono bg-base-300 border-primary/30 focus:border-primary w-full text-center text-2xl tracking-[0.5em] {{ $errors->has('code') ? 'input-error' : '' }}"
+                   class="input input-bordered font-mono bg-base-300 w-full text-center text-2xl tracking-[0.5em] {{ $errors->has('code') ? 'border-error' : 'border-primary/30 focus:border-primary' }}"
                    autocomplete="one-time-code"
                    inputmode="numeric"
                    pattern="[0-9]{6}"

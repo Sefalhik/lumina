@@ -35,14 +35,14 @@
             <a href="{{ route('admin.dashboard', ['lang' => app()->getLocale()]) }}"
                class="font-display text-primary tracking-widest hover:glow-primary transition-all">
                 CARDASCIA<span class="text-secondary">::</span>IT
-                <span class="text-xs text-secondary/50 ml-2 tracking-wider uppercase">{{ __('admin.brand_suffix') }}</span>
+                <span class="text-xs text-secondary ml-2 tracking-wider uppercase">{{ __('admin.brand_suffix') }}</span>
             </a>
         </div>
 
         <div class="navbar-end gap-4">
             <div id="language-switcher"></div>
             <div id="theme-switcher"></div>
-            <span class="text-xs text-base-content/50 hidden md:block font-mono tracking-wider">
+            <span class="text-xs text-base-content/70 hidden md:block font-mono tracking-wider">
                 ⬡ {{ auth()->user()->name }}
             </span>
             <a href="{{ route('home', ['lang' => app()->getLocale()]) }}"

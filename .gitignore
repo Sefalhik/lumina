@@ -35,3 +35,4 @@ frankenphp-worker.php
 /playwright-report
 /test-results
 /coverage
+/tests/e2e/.auth

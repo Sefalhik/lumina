@@ -11,7 +11,7 @@
         <h1 class="font-display text-2xl font-bold tracking-wider">
             {{ __('auth.setup_heading') }}
         </h1>
-        <p class="text-base-content/50 text-sm font-mono mt-2 leading-relaxed">
+        <p class="text-base-content/70 text-sm font-mono mt-2 leading-relaxed">
             {{ __('auth.setup_hint') }}
         </p>
     </div>
@@ -23,7 +23,7 @@
 
     {{-- Manual key fallback --}}
     <div class="mb-6 p-3 bg-base-300 border border-primary/20">
-        <p class="text-[10px] tracking-[0.3em] uppercase text-base-content/40 font-mono mb-1">
+        <p class="text-[10px] tracking-[0.3em] uppercase text-base-content/60 font-mono mb-1">
             {{ __('auth.setup_manual_key') }}
         </p>
         <p class="font-mono text-sm text-primary break-all tracking-widest select-all">
@@ -41,7 +41,7 @@
                 </span>
             </label>
             <input type="text" id="code" name="code"
-                   class="input input-bordered font-mono bg-base-300 border-primary/30 focus:border-primary w-full text-center text-2xl tracking-[0.5em] {{ $errors->has('code') ? 'input-error' : '' }}"
+                   class="input input-bordered font-mono bg-base-300 w-full text-center text-2xl tracking-[0.5em] {{ $errors->has('code') ? 'border-error' : 'border-primary/30 focus:border-primary' }}"
                    autocomplete="one-time-code"
                    inputmode="numeric"
                    pattern="[0-9]{6}"

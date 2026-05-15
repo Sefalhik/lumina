@@ -54,8 +54,14 @@ Public pages are Blade templates rendered server-side (SEO-first). Vue 3 compone
 ### API routes
 A dedicated `routes/api.php` file handles JSON endpoints, registered under the `/api` prefix. JS code must reference routes by name via Ziggy's `route()` helper — never hardcode URLs.
 
-### Services
-Business logic lives in `app/Services/`. Services are framework-agnostic classes, fully unit-testable without HTTP context.
+### Service layer — hard rule
+**No business logic in controllers, Eloquent models, or Vue components.**
+
+- PHP: all non-trivial logic lives in `app/Services/` — framework-agnostic, fully unit-testable without HTTP context
+- JS: all non-trivial logic lives in `resources/js/utils/` — pure functions, testable with Vitest
+- Controllers are thin orchestrators: validate → call service → return response
+- Vue components wire Vue primitives (refs, lifecycle, template) around utils; they never contain domain logic
+- Extraction can be deferred when only one caller exists, but must be noted as a known debt item
 
 ### Authentication & 2FA flow
 All auth routes are under the `/{lang}/` prefix so locale is always set when these pages render.
@@ -148,6 +154,53 @@ Runs automatically on `git commit`:
 2. `npm run test:unit:coverage` — JS unit tests + coverage threshold
 3. `composer test:coverage` — PHP unit + feature tests + coverage threshold
 
+### Playwright — dedicated E2E database
+E2E tests run against a **dedicated PostgreSQL database** (`cardascia_it_e2e`) and a **dedicated server** (`php artisan serve --port=8001`) — never the dev database or dev server.
+
+Prerequisite (one-time):
+```bash
+createdb -h 127.0.0.1 -p 5433 -U <user> cardascia_it_e2e
+```
+
+The Playwright `webServer` starts the server automatically with env overrides from `tests/e2e/helpers/e2e-env.js`:
+- `DB_DATABASE=cardascia_it_e2e`
+- `APP_URL=http://localhost:8001`
+- `SESSION_DOMAIN=localhost`
+- `SESSION_SECURE_COOKIE=false` (HTTP — not HTTPS like the dev server)
+
+`globalSetup` (`tests/e2e/global-setup.js`) runs `migrate:fresh --force` before each test run — every run starts from a clean schema.
+
+### Playwright — authentication
+Admin tests use `storageState` to authenticate once and reuse the session — **never** call the auth helper in `beforeEach` (causes race conditions under `fullyParallel: true`).
+
+```js
+test.use({ storageState: ADMIN_AUTH_FILE }); // tests/e2e/.auth/admin.json — gitignored
+```
+
+The session is created once by `tests/e2e/auth.setup.js` via `GET /e2e/admin-auth` (non-production helper route in `routes/e2e.php`).
+
+The e2e routes require `session()->save()` after setting session data — with `SESSION_DRIVER=redis`, `StartSession::terminate()` writes Redis *after* the response is sent. The browser can follow a redirect before Redis is written, resulting in an empty session on the next request.
+
+Form-submission tests must run in serial mode to prevent session flash interference between parallel workers:
+```js
+test.describe.configure({ mode: 'serial' });
+```
+
+### Playwright — e2e helper routes (`routes/e2e.php`)
+Loaded only in non-production environments (guarded in `bootstrap/app.php`).
+
+| Route | Purpose |
+|-------|---------|
+| `GET /e2e/admin-auth` | Creates `e2e-admin@test.local`, assigns admin role, logs in, sets 2FA session flag |
+| `GET /e2e/homepage-content` | Returns current FR homepage content as JSON (for test snapshot) |
+| `POST /e2e/homepage-content` | Restores FR homepage content from JSON body (for test teardown) |
+
+Note: `two_factor_confirmed_at` is not in `User::$fillable` — assign it directly on the model instance to bypass the guard.
+
+### Playwright — misc patterns
+- `fill()` respects HTML `maxlength` — use `locator.evaluate((el) => { el.value = '...' })` to bypass it in tests that check server-side max-length validation
+- `context.addInitScript()` applies to all pages created after the call; `page.addInitScript()` applies only to that page
+
 ### Playwright — boot overlay
 Most E2E tests need to skip the boot sequence overlay. Use `page.addInitScript()` **before** `page.goto()`:
 ```js
@@ -216,6 +269,23 @@ Options: `--locale=de` (single locale), `--force` (bypass checksum), `--dry-run`
 The cache is JSON files in `storage/app/i18n/` — not Redis (volatile) and not a DB table (needs migration). Persistent, diffable, zero dependencies.
 
 Requires `ANTHROPIC_API_KEY` in `.env`. Skipped automatically with `--dry-run`.
+
+## Accessibility (WCAG 2.1 AA)
+
+All views are axe-scanned against WCAG 2.1 AA via `@axe-core/playwright` in `tests/e2e/accessibility.spec.js` (3 themes × N pages).
+
+### Color contrast — safe opacity thresholds
+Dark-themed UIs with near-black backgrounds require higher opacity than typical designs.
+
+| Text size | Utility opacity | Status |
+|-----------|----------------|--------|
+| 10px (`text-[10px]`) | `/40` | ❌ fails (~2.6:1) |
+| 10px | `/60` | ✅ passes (~4.8:1) |
+| 12–14px (`text-xs`, `text-sm`) | `/50` | ❌ fails (~3.5–4.1:1) |
+| 12–14px | `/70` | ✅ passes (~5:1) |
+| Any | `text-secondary/50` | ❌ fails — use `text-secondary` (full opacity) |
+
+These thresholds were validated across the three themes (sprawl, steampunk, neon-noir). When in doubt, prefer higher opacity — the design intent of "muted" labels is preserved at `/60`–`/70`.
 
 ## Logging conventions
 See `docs/logging-conventions.md` for the full reference.

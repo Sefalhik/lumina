@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\HomepageContentController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Dashboard\AdminController;
+use App\Http\Controllers\Public\HomeController;
 use App\Services\LocaleResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -34,7 +36,7 @@ Route::prefix('{lang}')
         });
 
         // Public
-        Route::get('/', fn () => view('home'))->name('home');
+        Route::get('/', [HomeController::class, 'index'])->name('home');
         Route::get('/cv', fn () => view('cv'))->name('cv');
         Route::get('/projects', fn () => view('projects'))->name('projects');
         Route::get('/blog', fn () => view('blog.index'))->name('blog');
@@ -46,5 +48,7 @@ Route::prefix('{lang}')
             ->name('admin.')
             ->group(function () {
                 Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+                Route::get('/homepage', [HomepageContentController::class, 'edit'])->name('homepage.edit');
+                Route::put('/homepage', [HomepageContentController::class, 'update'])->name('homepage.update');
             });
     });

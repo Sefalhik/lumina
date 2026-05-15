@@ -11,7 +11,7 @@
 
         <p class="text-secondary text-sm tracking-[0.3em] uppercase mb-6 font-mono">
             <span class="text-primary opacity-60">//</span>
-            <span class="cursor-blink"> Neuromatrix online — biocortex active</span>
+            <span class="cursor-blink"> {{ $content?->getTranslation('tagline', app()->getLocale(), true) ?? 'Neuromatrix online — biocortex active' }}</span>
         </p>
 
         <h1 class="font-display text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
@@ -20,12 +20,11 @@
         </h1>
 
         <h2 class="font-display text-base md:text-xl text-primary neon-pulse-slow tracking-widest uppercase mb-10">
-            Lead Developer <span class="text-primary opacity-40 mx-2">//</span> Software Engineer
+            {{ $content?->getTranslation('subtitle', app()->getLocale(), true) ?? 'Lead Developer // Software Engineer' }}
         </h2>
 
         <p class="text-base-content/70 text-base md:text-lg leading-relaxed max-w-xl mb-12 font-body">
-            Architecte de systèmes, artisan du code propre. Je construis des applications
-            robustes et des équipes qui durent — quelque part entre la console et les étoiles.
+            {{ $content?->getTranslation('bio', app()->getLocale(), true) ?? 'Architecte de systèmes, artisan du code propre. Je construis des applications robustes et des équipes qui durent — quelque part entre la console et les étoiles.' }}
         </p>
 
         <div class="flex flex-wrap gap-4">
