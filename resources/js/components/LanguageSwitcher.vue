@@ -1,7 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { urlFor } from '../utils/language-switcher.js';
+import { urlFor, writeLocaleToStorage } from '../utils/language-switcher.js';
 
 const { t, locale } = useI18n();
 
@@ -46,6 +46,24 @@ const currentLocale = computed(() => locales.find((l) => l.code === current.valu
 function hrefFor(lang) {
     return urlFor(window.location.pathname, lang, window.location.search);
 }
+
+function onLocaleClick(code) {
+    writeLocaleToStorage(code);
+}
+
+function onStorageChange(event) {
+    if (event.key === 'locale' && event.newValue && locales.some((l) => l.code === event.newValue)) {
+        window.location.href = hrefFor(event.newValue);
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('storage', onStorageChange);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('storage', onStorageChange);
+});
 </script>
 
 <template>
@@ -85,6 +103,7 @@ function hrefFor(lang) {
                         :href="hrefFor(lang.code)"
                         :hreflang="lang.code"
                         :lang="lang.code"
+                        @click="onLocaleClick(lang.code)"
                         class="flex items-center gap-2 px-2 py-1.5 rounded-sm text-xs font-mono tracking-wide transition-colors"
                         :class="
                             lang.code === current

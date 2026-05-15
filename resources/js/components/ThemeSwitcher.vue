@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { applyTheme, isValidTheme } from '../utils/theme.js';
 
 const { t } = useI18n();
 
@@ -13,17 +14,28 @@ const themeIds = [
 const current = ref('sprawl');
 
 function apply(id) {
-    current.value = id;
-    document.documentElement.setAttribute('data-theme', id);
+    applyTheme(id);
     localStorage.setItem('theme', id);
-    document.getElementById('favicon').href = `/favicons/favicon-${id}.svg`;
+    current.value = id;
+}
+
+function onStorageChange(event) {
+    if (event.key === 'theme' && event.newValue && isValidTheme(event.newValue)) {
+        applyTheme(event.newValue);
+        current.value = event.newValue;
+    }
 }
 
 onMounted(() => {
     const saved = localStorage.getItem('theme');
-    if (saved && themeIds.some((t) => t.id === saved)) {
+    if (saved && isValidTheme(saved)) {
         current.value = saved;
     }
+    window.addEventListener('storage', onStorageChange);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('storage', onStorageChange);
 });
 </script>
 

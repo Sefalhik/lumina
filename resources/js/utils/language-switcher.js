@@ -12,3 +12,11 @@ export function urlFor(pathname, lang, search = '') {
     parts[1] = lang;
     return parts.join('/') + search;
 }
+
+/**
+ * Persist the chosen locale to localStorage so other tabs can react via the
+ * `storage` event and navigate to the equivalent URL in the new locale.
+ */
+export function writeLocaleToStorage(code) {
+    localStorage.setItem('locale', code);
+}

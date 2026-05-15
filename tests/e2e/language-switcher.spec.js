@@ -51,3 +51,37 @@ test.describe('LanguageSwitcher', () => {
         await expect(page).toHaveURL(/\/en\/cv/);
     });
 });
+
+test.describe('LanguageSwitcher — cross-tab sync', () => {
+    test('locale change propagates to another open tab', async ({ context }) => {
+        await context.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
+
+        const page1 = await context.newPage();
+        const page2 = await context.newPage();
+
+        await page1.goto('/fr/');
+        await page2.goto('/fr/');
+
+        await page1.getByRole('button', { name: 'Changer de langue' }).click();
+        await page1.getByRole('option', { name: /Deutsch/ }).locator('a').click();
+
+        await expect(page2).toHaveURL(/\/de\//);
+        await expect(page2.locator('html')).toHaveAttribute('lang', 'de');
+    });
+
+    test('other tab navigates to the equivalent sub-path in the new locale', async ({ context }) => {
+        await context.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
+
+        const page1 = await context.newPage();
+        const page2 = await context.newPage();
+
+        await page1.goto('/fr/');
+        await page2.goto('/fr/cv');
+
+        await page1.getByRole('button', { name: 'Changer de langue' }).click();
+        await page1.getByRole('option', { name: /English/ }).locator('a').click();
+
+        await expect(page2).toHaveURL(/\/en\/cv/);
+        await expect(page2.locator('html')).toHaveAttribute('lang', 'en');
+    });
+});

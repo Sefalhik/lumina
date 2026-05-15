@@ -72,6 +72,7 @@
                     @role('admin')
                     <li>
                         <a href="{{ route('admin.dashboard', ['lang' => app()->getLocale()]) }}"
+                           target="_blank" rel="noopener noreferrer"
                            class="hover:text-primary uppercase">
                             {{ __('nav.admin_panel') }}
                         </a>
@@ -108,6 +109,7 @@
                     @role('admin')
                     <li>
                         <a href="{{ route('admin.dashboard', ['lang' => app()->getLocale()]) }}"
+                           target="_blank" rel="noopener noreferrer"
                            class="hover:text-primary">
                             {{ __('nav.admin_panel') }}
                         </a>

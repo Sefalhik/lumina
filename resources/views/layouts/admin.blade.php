@@ -4,14 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', __('admin.title_default')) | cardascia-it</title>
+    <link rel="icon" id="favicon" type="image/svg+xml" href="/favicons/favicon-sprawl.svg">
 
-    {{-- Anti-FOUC: restore theme before first paint --}}
+    {{-- Anti-FOUC: restore theme and matching favicon from localStorage before first paint --}}
     <script>
         (function () {
             const saved = localStorage.getItem('theme');
             const valid = ['sprawl', 'steampunk', 'neon-noir'];
             if (saved && valid.includes(saved)) {
                 document.documentElement.setAttribute('data-theme', saved);
+                document.getElementById('favicon').href = '/favicons/favicon-' + saved + '.svg';
             }
         })();
     </script>
@@ -21,7 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
 
     @routes
-    @vite(['resources/css/app.css', 'resources/css/scss/main.scss'])
+    @vite(['resources/css/app.css', 'resources/css/scss/main.scss', 'resources/js/app.js'])
     @stack('head')
 </head>
 <body class="min-h-screen bg-base-100 text-base-content font-mono">
@@ -38,9 +40,16 @@
         </div>
 
         <div class="navbar-end gap-4">
+            <div id="language-switcher"></div>
+            <div id="theme-switcher"></div>
             <span class="text-xs text-base-content/50 hidden md:block font-mono tracking-wider">
                 ⬡ {{ auth()->user()->name }}
             </span>
+            <a href="{{ route('home', ['lang' => app()->getLocale()]) }}"
+               target="_blank" rel="noopener noreferrer"
+               class="btn btn-ghost btn-xs font-display tracking-widest uppercase text-xs border border-primary/20 hover:border-primary/60">
+                {{ __('admin.view_site') }}
+            </a>
             <form method="POST" action="{{ route('logout', ['lang' => app()->getLocale()]) }}">
                 @csrf
                 <button type="submit"

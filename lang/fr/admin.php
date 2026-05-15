@@ -4,6 +4,7 @@ return [
     // Layout
     'title_default' => 'Admin',
     'brand_suffix' => 'Admin',
+    'view_site' => '‹ Voir le site',
     'logout' => 'Déconnexion',
 
     // Dashboard view

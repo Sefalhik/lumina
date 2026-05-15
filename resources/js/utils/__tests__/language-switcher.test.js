@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { urlFor } from '../language-switcher.js';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { urlFor, writeLocaleToStorage } from '../language-switcher.js';
 
 describe('urlFor', () => {
     it('replaces the locale segment in a simple path', () => {
@@ -24,5 +24,27 @@ describe('urlFor', () => {
 
     it('uses an empty search by default', () => {
         expect(urlFor('/fr/', 'it')).not.toContain('?');
+    });
+});
+
+describe('writeLocaleToStorage', () => {
+    beforeEach(() => localStorage.clear());
+    afterEach(() => localStorage.clear());
+
+    it('writes the locale code under the "locale" key', () => {
+        writeLocaleToStorage('de');
+        expect(localStorage.getItem('locale')).toBe('de');
+    });
+
+    it('overwrites a previously stored locale', () => {
+        writeLocaleToStorage('fr');
+        writeLocaleToStorage('en');
+        expect(localStorage.getItem('locale')).toBe('en');
+    });
+
+    it('does not affect other localStorage keys', () => {
+        localStorage.setItem('theme', 'steampunk');
+        writeLocaleToStorage('es');
+        expect(localStorage.getItem('theme')).toBe('steampunk');
     });
 });
