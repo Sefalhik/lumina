@@ -450,7 +450,10 @@ class I18nTranslateTest extends TestCase
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /** @param array<string, mixed> $data */
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     private function apiResponse(array $data): array
     {
         return [

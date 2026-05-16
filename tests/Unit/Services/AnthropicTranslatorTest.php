@@ -153,7 +153,7 @@ class AnthropicTranslatorTest extends TestCase
 
     public function test_flatten_casts_non_string_scalar_to_string(): void
     {
-        $result = $this->translator->flattenJson(['count' => 42]); // @phpstan-ignore-line
+        $result = $this->translator->flattenJson(['count' => 42]);
 
         $this->assertSame(['count' => '42'], $result);
     }
@@ -187,7 +187,10 @@ class AnthropicTranslatorTest extends TestCase
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /** @param array<string, mixed> $data */
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     private function apiResponse(array $data): array
     {
         return [

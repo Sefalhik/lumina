@@ -9,6 +9,7 @@ class HomepageContent extends Model
 {
     use HasTranslations;
 
+    /** @var list<string> */
     public array $translatable = ['tagline', 'subtitle', 'bio'];
 
     protected $fillable = ['tagline', 'subtitle', 'bio'];

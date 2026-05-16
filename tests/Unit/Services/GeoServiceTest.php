@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\GeoService;
+use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -153,24 +154,39 @@ class GeoServiceTest extends TestCase
 
     public function test_locate_logs_warning_on_api_failure(): void
     {
-        Log::spy();
+        /** @var list<MessageLogged> $captured */
+        $captured = [];
+        Log::listen(function (MessageLogged $event) use (&$captured): void {
+            $captured[] = $event;
+        });
         Http::fake(['*' => Http::response(null, 503)]);
 
         $this->service->locate(self::PUBLIC_IP);
 
-        Log::shouldHaveReceived('warning')
-            ->with('Geo API returned a non-2xx response', \Mockery::subset(['ip' => self::PUBLIC_IP, 'status' => 503]));
+        $match = array_filter($captured, fn ($e) => $e->level === 'warning'
+            && $e->message === 'Geo API returned a non-2xx response'
+            && ($e->context['ip'] ?? null) === self::PUBLIC_IP
+            && ($e->context['status'] ?? null) === 503
+        );
+        $this->assertNotEmpty($match, 'Expected warning log was not emitted');
     }
 
     public function test_locate_logs_error_with_exception_on_network_failure(): void
     {
-        Log::spy();
+        /** @var list<MessageLogged> $captured */
+        $captured = [];
+        Log::listen(function (MessageLogged $event) use (&$captured): void {
+            $captured[] = $event;
+        });
         $exception = new \RuntimeException('timeout');
         Http::fake(['*' => fn () => throw $exception]);
 
         $this->service->locate(self::PUBLIC_IP);
 
-        Log::shouldHaveReceived('error')
-            ->with('Geo API fetch threw an exception', \Mockery::subset(['exception' => $exception]));
+        $match = array_filter($captured, fn ($e) => $e->level === 'error'
+            && $e->message === 'Geo API fetch threw an exception'
+            && ($e->context['exception'] ?? null) === $exception
+        );
+        $this->assertNotEmpty($match, 'Expected error log was not emitted');
     }
 }

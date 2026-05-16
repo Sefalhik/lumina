@@ -17,6 +17,9 @@ php artisan migrate             # Run migrations — requires explicit confirmat
 php artisan i18n:translate      # Translate lang/fr/*.php + resources/js/i18n/fr.json via Anthropic API
 php artisan cms:translate       # Translate CMS DB content from French to EU locales via Anthropic API
 
+# Static analysis — PHPStan
+composer analyse                # Run both configs: app/ (level 8) then tests/ (level 5)
+
 # Testing — PHP
 php artisan test                # Full PHPUnit suite (no coverage)
 composer test:unit              # Unit suite only (no coverage)
@@ -216,6 +219,32 @@ When asserting on `[role="option"]`, always scope to the target listbox to avoid
 ```js
 page.getByRole('listbox', { name: 'Changer de langue' }).getByRole('option')
 ```
+
+## Static analysis (PHPStan)
+
+### Dual-config setup
+Two separate configs run in sequence via `composer analyse`:
+
+| Config | File | Scope | Level |
+|--------|------|-------|-------|
+| App | `phpstan.neon` | `app/` (excl. `app/Providers/`) | 8 |
+| Tests | `phpstan-tests.neon` | `tests/` | 5 |
+
+Controllers and models are **included** in the app analysis (no `excludePaths` shortcut).
+
+### Stub file
+`phpstan-stubs.php` overrides `artisan()` to return `PendingCommand` (not `PendingCommand|int`) — the framework annotation is misleading; the implementation always wraps in `PendingCommand`.
+
+### Type-narrowing conventions
+- `$request->user()` returns `Authenticatable|null` — always narrow with `assert($user instanceof User)` in methods guaranteed by auth middleware
+- Annotate `public array $translatable` on translatable models with `/** @var list<string> */`
+- Never use `@phpstan-ignore` without a written justification comment
+
+### PHP_INI_SCAN_DIR
+PHPStan's ReactPHP worker processes don't inherit the conf.d scan path from the parent process.
+The `analyse` script in `composer.json` always exports `PHP_INI_SCAN_DIR=/etc/php/8.5/cli/conf.d`
+so that `phar.so` (and other extensions) are loaded in child processes too.
+Without this, child workers fail with `Class "Phar" not found`.
 
 ## Internationalisation (i18n)
 

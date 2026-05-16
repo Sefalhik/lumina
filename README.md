@@ -137,6 +137,9 @@ npm run lint:fix       # Stylelint — auto-fix SCSS
 npm run format         # Prettier — format SCSS, Vue, JS
 ./vendor/bin/pint      # Laravel Pint — format PHP (PSR-12)
 
+# Static analysis — PHPStan (Larastan)
+composer analyse       # app/ at level 8, then tests/ at level 5 (two configs in sequence)
+
 # Tests — JS (Vitest)
 npm run test:unit               # Vitest — watch mode
 npm run test:unit:run           # Vitest — single run

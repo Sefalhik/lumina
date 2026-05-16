@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Services\AnthropicTranslator;
 use App\Services\TranslationCache;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -142,6 +143,7 @@ class CmsTranslate extends Command
         }
 
         $shortName = class_basename($modelClass);
+        /** @var Collection<int, Model&object{translatable: array<int, string>}> $records */
         $records = $modelClass::all();
 
         if ($records->isEmpty()) {
@@ -173,7 +175,7 @@ class CmsTranslate extends Command
     private function translateRecord(Model $record, string $shortName): int
     {
         /** @var array<int, string> $translatableFields */
-        $translatableFields = $record->translatable ?? []; // @phpstan-ignore-line
+        $translatableFields = $record->translatable ?? [];
         $id = $record->getKey();
         $cacheKey = 'cms_'.$shortName.'_'.$id;
 
@@ -181,7 +183,7 @@ class CmsTranslate extends Command
         foreach ($translatableFields as $field) {
             /** @var mixed $val */
             $val = method_exists($record, 'getTranslation')
-                ? $record->getTranslation($field, 'fr', false) // @phpstan-ignore-line
+                ? $record->getTranslation($field, 'fr', false)
                 : $record->getAttribute($field);
             $frValues[$field] = is_string($val) ? $val : '';
         }
@@ -268,7 +270,7 @@ class CmsTranslate extends Command
 
         foreach ($cached as $field => $value) {
             if (method_exists($record, 'setTranslation')) {
-                $record->setTranslation($field, $locale, $value); // @phpstan-ignore-line
+                $record->setTranslation($field, $locale, $value);
             }
         }
         $record->save();

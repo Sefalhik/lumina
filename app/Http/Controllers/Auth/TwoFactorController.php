@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\TwoFactorCodeRequest;
+use App\Models\User;
 use App\Services\Auth\TwoFactorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,10 @@ class TwoFactorController extends Controller
      */
     public function showSetup(Request $request): View|RedirectResponse
     {
-        if ($request->user()->two_factor_confirmed_at) {
+        $user = $request->user();
+        assert($user instanceof User); // guaranteed by auth middleware
+
+        if ($user->two_factor_confirmed_at) {
             return redirect()->route('two-factor.challenge', ['lang' => app()->getLocale()]);
         }
 
@@ -41,7 +45,7 @@ class TwoFactorController extends Controller
         }
 
         return view('auth.two-factor-setup', [
-            'qrSvg' => $this->twoFactorService->generateQrSvg($request->user()->email, $secret),
+            'qrSvg' => $this->twoFactorService->generateQrSvg($user->email, $secret),
             'secret' => $secret,
         ]);
     }
@@ -55,6 +59,9 @@ class TwoFactorController extends Controller
      */
     public function storeSetup(TwoFactorCodeRequest $request): RedirectResponse
     {
+        $user = $request->user();
+        assert($user instanceof User); // guaranteed by auth middleware
+
         $secret = $request->session()->get('auth.two_factor_setup_secret');
         if (! $secret) {
             Log::warning('Two-factor setup submission with no pending secret in session', [
@@ -76,7 +83,7 @@ class TwoFactorController extends Controller
             return back()->withErrors(['code' => __('auth.two_factor_invalid_code')]);
         }
 
-        $this->twoFactorService->confirm($request->user(), $secret);
+        $this->twoFactorService->confirm($user, $secret);
 
         // Discard the temporary setup secret and mark 2FA as verified for this session.
         $request->session()->forget('auth.two_factor_setup_secret');
@@ -94,7 +101,10 @@ class TwoFactorController extends Controller
     /** Display the TOTP challenge prompt for an already-enrolled user. */
     public function showChallenge(Request $request): View|RedirectResponse
     {
-        if (! $request->user()->two_factor_confirmed_at) {
+        $user = $request->user();
+        assert($user instanceof User); // guaranteed by auth middleware
+
+        if (! $user->two_factor_confirmed_at) {
             return redirect()->route('two-factor.setup', ['lang' => app()->getLocale()]);
         }
 
@@ -114,7 +124,15 @@ class TwoFactorController extends Controller
      */
     public function verifyChallenge(TwoFactorCodeRequest $request): RedirectResponse
     {
-        if (! $this->twoFactorService->verify($request->user()->two_factor_secret, $request->input('code'))) {
+        $user = $request->user();
+        assert($user instanceof User); // guaranteed by auth middleware
+
+        $secret = $user->two_factor_secret;
+        if ($secret === null) {
+            return redirect()->route('two-factor.setup', ['lang' => app()->getLocale()]);
+        }
+
+        if (! $this->twoFactorService->verify($secret, $request->input('code'))) {
             Log::warning('Two-factor challenge failed — invalid TOTP code submitted', [
                 'service' => self::class,
                 'method' => __FUNCTION__,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use App\Services\Auth\LoginService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -44,6 +45,9 @@ class LoginController extends Controller
             'step' => 'login_success',
         ]);
 
-        return redirect()->intended($this->loginService->resolvePostLoginRedirect(Auth::user()));
+        $user = Auth::user();
+        assert($user instanceof User); // guaranteed: Auth::attempt() succeeded above
+
+        return redirect()->intended($this->loginService->resolvePostLoginRedirect($user));
     }
 }

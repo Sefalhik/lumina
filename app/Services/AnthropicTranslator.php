@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Log;
 
 class AnthropicTranslator
 {
+    /**
+     * @param  array<string, string>  $nativeNames
+     */
     public function __construct(
         private readonly string $apiKey,
         private readonly string $model,
@@ -130,17 +133,38 @@ PROMPT;
     {
         $result = [];
         foreach ($flat as $key => $value) {
-            $parts = explode('.', $key);
-            $ref = &$result;
-            foreach ($parts as $part) {
-                if (! isset($ref[$part]) || ! is_array($ref[$part])) {
-                    $ref[$part] = [];
-                }
-                $ref = &$ref[$part];
-            }
-            $ref = $value;
+            $result = $this->mergeDeep($result, $this->expandKey(explode('.', $key), $value));
         }
 
         return $result;
+    }
+
+    /**
+     * @param  non-empty-list<string>  $keys
+     * @return array<string, mixed>
+     */
+    private function expandKey(array $keys, string $value): array
+    {
+        $head = array_shift($keys);
+
+        return $keys === [] ? [$head => $value] : [$head => $this->expandKey($keys, $value)];
+    }
+
+    /**
+     * @param  array<string, mixed>  $base
+     * @param  array<string, mixed>  $overlay
+     * @return array<string, mixed>
+     */
+    private function mergeDeep(array $base, array $overlay): array
+    {
+        foreach ($overlay as $k => $v) {
+            if (is_array($v) && isset($base[$k]) && is_array($base[$k])) {
+                $base[$k] = $this->mergeDeep($base[$k], $v);
+            } else {
+                $base[$k] = $v;
+            }
+        }
+
+        return $base;
     }
 }

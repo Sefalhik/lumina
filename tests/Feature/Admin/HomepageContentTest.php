@@ -90,8 +90,7 @@ class HomepageContentTest extends TestCase
             ->put('/fr/admin/homepage', $this->validPayload())
             ->assertRedirect(route('admin.homepage.edit', ['lang' => 'fr']));
 
-        $content = HomepageContent::first();
-        $this->assertNotNull($content);
+        $content = HomepageContent::firstOrFail();
         $this->assertSame('Nouvelle accroche', $content->getTranslation('tagline', 'fr'));
     }
 
@@ -99,7 +98,7 @@ class HomepageContentTest extends TestCase
     {
         $this->actingAs($this->admin)->put('/fr/admin/homepage', $this->validPayload());
 
-        $content = HomepageContent::first();
+        $content = HomepageContent::firstOrFail();
         $this->assertSame('Nouveau sous-titre', $content->getTranslation('subtitle', 'fr'));
         $this->assertSame('Nouvelle bio.', $content->getTranslation('bio', 'fr'));
     }
@@ -115,7 +114,7 @@ class HomepageContentTest extends TestCase
         $this->actingAs($this->admin)->put('/fr/admin/homepage', $this->validPayload());
 
         $this->assertSame(1, HomepageContent::count());
-        $this->assertSame('Nouvelle accroche', HomepageContent::first()->getTranslation('tagline', 'fr'));
+        $this->assertSame('Nouvelle accroche', HomepageContent::firstOrFail()->getTranslation('tagline', 'fr'));
     }
 
     public function test_update_does_not_erase_other_locale_translations(): void
@@ -128,7 +127,7 @@ class HomepageContentTest extends TestCase
 
         $this->actingAs($this->admin)->put('/fr/admin/homepage', $this->validPayload());
 
-        $content = HomepageContent::first();
+        $content = HomepageContent::firstOrFail();
         $this->assertSame('Old EN', $content->getTranslation('tagline', 'en'));
         $this->assertSame('Alt DE', $content->getTranslation('tagline', 'de'));
     }
@@ -176,6 +175,7 @@ class HomepageContentTest extends TestCase
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    /** @return array<string, array<string, string>> */
     private function validPayload(): array
     {
         return [

@@ -77,6 +77,6 @@ class TwoFactorServiceTest extends TestCase
 
         $this->service->confirm($user, $secret);
 
-        $this->assertSame($secret, User::find($user->id)->two_factor_secret);
+        $this->assertSame($secret, User::findOrFail($user->id)->two_factor_secret);
     }
 }

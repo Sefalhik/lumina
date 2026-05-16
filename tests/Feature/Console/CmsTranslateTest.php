@@ -159,7 +159,7 @@ class CmsTranslateTest extends TestCase
         $this->artisan('cms:translate', ['--locale' => 'de', '--force' => true])
             ->assertSuccessful();
 
-        $content = HomepageContent::first();
+        $content = HomepageContent::firstOrFail();
         $this->assertSame('Mein Slogan', $content->getTranslation('tagline', 'de', false));
         $this->assertSame('Mein Untertitel', $content->getTranslation('subtitle', 'de', false));
         $this->assertSame('Meine Bio', $content->getTranslation('bio', 'de', false));
@@ -184,7 +184,7 @@ class CmsTranslateTest extends TestCase
 
         Http::assertSentCount(2);
 
-        $content = HomepageContent::first();
+        $content = HomepageContent::firstOrFail();
         $this->assertSame('DE Slogan', $content->getTranslation('tagline', 'de', false));
         $this->assertSame('EN tagline', $content->getTranslation('tagline', 'en', false));
     }
@@ -319,7 +319,10 @@ class CmsTranslateTest extends TestCase
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /** @param array<string, mixed> $data */
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     private function apiResponse(array $data): array
     {
         return [

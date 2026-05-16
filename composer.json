@@ -24,6 +24,7 @@
         "laravel/telescope": "^5.20",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
+        "nunomaduro/larastan": "^3.9",
         "phpunit/phpunit": "^13.0"
     },
     "autoload": {
@@ -62,6 +63,10 @@
         "test:coverage": [
             "@php artisan config:clear --ansi",
             "@php -d pcov.enabled=1 scripts/check-coverage.php --min=80"
+        ],
+        "analyse": [
+            "PHP_INI_SCAN_DIR=/etc/php/8.5/cli/conf.d ./vendor/bin/phpstan analyse",
+            "PHP_INI_SCAN_DIR=/etc/php/8.5/cli/conf.d ./vendor/bin/phpstan analyse -c phpstan-tests.neon"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

@@ -1,0 +1,13 @@
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - app
+    excludePaths:
+        - app/Providers
+    stubFiles:
+        - phpstan-stubs.php
+    parallel:
+        maximumNumberOfProcesses: 1

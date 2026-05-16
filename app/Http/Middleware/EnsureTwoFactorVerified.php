@@ -24,7 +24,7 @@ class EnsureTwoFactorVerified
     {
         $user = $request->user();
 
-        if (! $user->two_factor_confirmed_at) {
+        if ($user === null || ! $user->two_factor_confirmed_at) {
             Log::info('Two-factor setup required — redirecting unenrolled user', [
                 'service' => self::class,
                 'method' => __FUNCTION__,

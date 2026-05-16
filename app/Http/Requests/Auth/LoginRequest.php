@@ -11,6 +11,7 @@ class LoginRequest extends FormRequest
         return true;
     }
 
+    /** @return array<string, list<string>> */
     public function rules(): array
     {
         return [
@@ -19,6 +20,7 @@ class LoginRequest extends FormRequest
         ];
     }
 
+    /** @return array<string, string> */
     public function credentials(): array
     {
         return $this->only('email', 'password');

@@ -28,6 +28,7 @@ class TwoFactorTest extends TestCase
         return $user;
     }
 
+    /** @return array{0: User, 1: string} */
     private function adminUserWith2fa(): array
     {
         $google2fa = new Google2FA;
@@ -103,7 +104,7 @@ class TwoFactorTest extends TestCase
             ->post('/fr/two-factor/setup', ['code' => '000000'])
             ->assertSessionHasErrors('code');
 
-        $this->assertNull($admin->fresh()->two_factor_confirmed_at);
+        $this->assertNull($admin->fresh()?->two_factor_confirmed_at);
     }
 
     public function test_missing_session_secret_returns_error_on_setup(): void
