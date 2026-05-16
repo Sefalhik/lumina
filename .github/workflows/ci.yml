@@ -1,0 +1,186 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── PHP ──────────────────────────────────────────────────────────────────
+  php:
+    name: PHP — PHPStan + PHPUnit
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cardascia_it_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # PHPStan parallel workers don't inherit PHP_INI_SCAN_DIR from the parent
+      # process — same issue as local (Ubuntu APT install, conf.d not auto-scanned
+      # by child processes). Without this, workers fail with Class "Phar" not found.
+      PHP_INI_SCAN_DIR: /etc/php/8.5/cli/conf.d
+      # Override phpunit.xml defaults (port 5433 → 5432 for GH Actions service)
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: cardascia_it_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      # Http::fake() is used in all translation tests — no real API call is made
+      ANTHROPIC_API_KEY: test_key
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo, pdo_pgsql, phar
+          coverage: pcov
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Generate application key
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Run PHPStan — app (level 8)
+        run: ./vendor/bin/phpstan analyse
+
+      - name: Run PHPStan — tests (level 5)
+        run: ./vendor/bin/phpstan analyse -c phpstan-tests.neon
+
+      - name: Run PHPUnit with coverage (≥ 80%)
+        run: composer test:coverage
+
+  # ─── JS ───────────────────────────────────────────────────────────────────
+  js:
+    name: JS — ESLint + Stylelint + Vitest
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint:js
+
+      - name: Stylelint
+        run: npm run lint:scss
+
+      - name: Vitest
+        run: npm run test:unit:run
+
+  # ─── E2E ──────────────────────────────────────────────────────────────────
+  e2e:
+    name: E2E — Playwright
+    runs-on: ubuntu-latest
+    needs: [php]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cardascia_it_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: cardascia_it_e2e
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      APP_URL: http://localhost:8001
+      # No Redis in this job — switch every Redis-dependent driver to a local alternative.
+      # APP_MAINTENANCE_STORE=redis (from .env.example) would make the maintenance middleware
+      # attempt a Redis connection on every request, crashing before any route runs.
+      APP_MAINTENANCE_DRIVER: file
+      SESSION_DRIVER: file
+      SESSION_DOMAIN: localhost
+      SESSION_SECURE_COOKIE: 'false'
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      ANTHROPIC_API_KEY: test_key
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo, pdo_pgsql, phar
+          coverage: none
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v5
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Generate application key
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Run Playwright E2E tests
+        run: npm run test:e2e

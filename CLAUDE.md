@@ -30,6 +30,9 @@ npm run test:unit:run           # Vitest unit suite (no coverage)
 npm run test:unit:coverage      # Vitest unit suite + V8 coverage report + 80% minimum threshold
 npm run test:e2e                # Playwright end-to-end suite
 
+# Full quality audit
+npm run check:full              # ESLint + Stylelint + PHPStan + PHPUnit + Vitest + Playwright (~40s)
+
 # Linting & formatting — JS
 npm run lint:js                 # ESLint — check resources/js/**/*.{js,vue}
 npm run lint:js:fix             # ESLint — auto-fix
@@ -387,3 +390,45 @@ Key rules:
 | `ADMIN_EMAIL` | _(empty)_ | Admin account email — used by `AdminSeeder` |
 | `ADMIN_NAME` | _(empty)_ | Admin account display name — used by `AdminSeeder` |
 | `ADMIN_PASSWORD` | _(empty)_ | Admin account password — used by `AdminSeeder` (never commit a value) |
+
+## Local quality audit
+
+`npm run check:full` (or `bash scripts/check.sh`) runs all 7 checks in sequence with a colored summary:
+
+```
+  ESLint                    ✔  2s
+  Stylelint                 ✔  1s
+  PHPStan (app)             ✔  6s
+  PHPStan (tests)           ✔  5s
+  PHPUnit                   ✔  6s
+  Vitest                    ✔  3s
+  Playwright E2E            ✔  21s
+
+  All 7 checks passed  in 44s
+```
+
+Exits 0 on success, 1 on any failure (shows the relevant output for the failing step).
+
+**Prerequisite for E2E** : the `cardascia_it_e2e` database must exist — see *Playwright — dedicated E2E database* above.
+
+## Continuous integration (GitHub Actions)
+
+Workflow: `.github/workflows/ci.yml` — triggered on every push and every PR targeting `main`.
+
+Three jobs — `php` and `js` run in parallel, `e2e` runs after `php` passes:
+
+| Job | Steps |
+|-----|-------|
+| `PHP — PHPStan + PHPUnit` | setup-php 8.5 (pcov) → composer install → key:generate → PHPStan app (level 8) → PHPStan tests (level 5) → `composer test:coverage` (80% threshold enforced) |
+| `JS — ESLint + Stylelint + Vitest` | Node 22 → npm ci → ESLint → Stylelint → Vitest |
+| `E2E — Playwright` | setup-php + Node → composer + npm install → Playwright Chromium → `npm run test:e2e` |
+
+**PostgreSQL** : each PHP-dependent job spins up its own `postgres:16` service. The PHP job uses `cardascia_it_test`; the E2E job uses `cardascia_it_e2e`. The workflow sets `DB_PORT: 5432` which overrides the phpunit.xml default (5433).
+
+**`PHP_INI_SCAN_DIR`** : set to `/etc/php/8.5/cli/conf.d` in the PHP job env — same issue as local. GitHub Actions runners use Ubuntu with an APT PHP install (`conf.d` layout); PHPStan workers fail with `Class "Phar" not found` without this variable. Not needed in the E2E job (PHPStan doesn't run there).
+
+**Coverage** : `coverage: pcov` in the PHP job + `composer test:coverage` enforces the 80% line coverage threshold in CI, not just locally.
+
+**E2E session driver** : the E2E job sets `SESSION_DRIVER: file` to avoid the async Redis write issue present in the dev setup. `session()->save()` in the e2e helper routes works correctly with the file driver.
+
+**`needs: [php]`** on the E2E job : no point running the full browser suite if the backend is already broken.

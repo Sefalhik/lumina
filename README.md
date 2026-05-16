@@ -20,7 +20,7 @@ Personal website and portfolio of **Laurent Bernard-Cardascia** — Lead Develop
 - PHP 8.5+ with `phpredis` extension
 - PostgreSQL 16 (local port: 5433)
 - Redis 7+
-- Node.js 20+
+- Node.js 22+ (Vite 8 requires Node 22)
 - [mkcert](https://github.com/FiloSottile/mkcert) for local HTTPS
 
 ## Installation
@@ -131,6 +131,9 @@ Three retro-futuristic themes selectable via the navbar switcher:
 ## Code Quality
 
 ```bash
+# Full audit (recommended before pushing)
+npm run check:full     # ESLint + Stylelint + PHPStan + PHPUnit + Vitest + Playwright (~40s)
+
 # Linting & formatting
 npm run lint:js        # ESLint — check JS + Vue (eslint:recommended + vue3-recommended)
 npm run lint:js:fix    # ESLint — auto-fix
@@ -167,3 +170,15 @@ E2E tests use a dedicated database and start their own server on port 8001 — t
 ```bash
 createdb -h 127.0.0.1 -p 5433 -U <your_pg_user> cardascia_it_e2e
 ```
+
+## Continuous integration
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and every PR targeting `main`.
+
+Three jobs — `php` and `js` in parallel, `e2e` after `php` passes:
+
+| Job | What runs |
+|-----|-----------|
+| PHP | PHPStan (app level 8 + tests level 5) → PHPUnit + PCOV coverage (80% threshold enforced) |
+| JS | ESLint → Stylelint → Vitest |
+| E2E | Playwright Chromium against a dedicated `cardascia_it_e2e` PostgreSQL database |

@@ -6,6 +6,7 @@
     "build": "vite build",
     "dev": "vite",
     "start": "concurrently --names 'frankenphp,vite' --prefix-colors 'green,cyan' 'LUMINA_CERT_FILE=storage/certs/cert.pem LUMINA_KEY_FILE=storage/certs/key.pem ./frankenphp run --config Caddyfile' 'vite'",
+    "check:full": "bash scripts/check.sh",
     "lint:js": "eslint 'resources/js/**/*.{js,vue}'",
     "lint:js:fix": "eslint 'resources/js/**/*.{js,vue}' --fix",
     "lint:scss": "stylelint 'resources/css/**/*.scss'",
