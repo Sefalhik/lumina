@@ -35,6 +35,28 @@ php artisan db:seed --class=AdminSeeder   # creates the admin role + account
 npm install
 ```
 
+## i18n translation commands
+
+Two Artisan commands translate content from French (source of truth) to all 23 other EU locales via the Anthropic API. Both require `ANTHROPIC_API_KEY` in `.env`.
+
+```bash
+php artisan i18n:translate              # Translate lang/fr/*.php + resources/js/i18n/fr.json
+php artisan i18n:translate --locale=de  # Single locale
+php artisan i18n:translate --dry-run    # Preview without API calls or file writes
+php artisan i18n:translate --force      # Bypass checksum cache
+
+php artisan cms:translate               # Translate CMS DB content (HomepageContent…)
+php artisan cms:translate --locale=de   # Single locale
+php artisan cms:translate --dry-run     # Preview without API calls or DB writes
+php artisan cms:translate --force       # Bypass translation cache
+```
+
+Both commands use a two-level cache in `storage/app/i18n/` (gitignored):
+1. **File/value checksum** — skips files or DB fields that haven't changed since the last run
+2. **Per-key TTL cache** (6 months) — only sends new/changed keys to the API
+
+The list of CMS models to translate is declared in `config/i18n.php` under `cms_models`.
+
 ## Development
 
 ```bash

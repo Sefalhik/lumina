@@ -254,6 +254,71 @@ class TranslationCacheTest extends TestCase
         }
     }
 
+    // ── getChangedCmsFields ──────────────────────────────────────────────────
+
+    public function test_all_cms_fields_are_new_when_no_snapshot_exists(): void
+    {
+        $frValues = ['tagline' => 'Mon accroche', 'bio' => 'Mon bio'];
+        $result = $this->cache->getChangedCmsFields('cms_HomepageContent_1', $frValues);
+
+        $this->assertSame($frValues, $result);
+    }
+
+    public function test_unchanged_cms_fields_are_not_returned(): void
+    {
+        $frValues = ['tagline' => 'Mon accroche', 'bio' => 'Mon bio'];
+        $this->cache->snapshotCmsRecord('cms_HomepageContent_1', $frValues);
+
+        $result = $this->cache->getChangedCmsFields('cms_HomepageContent_1', $frValues);
+
+        $this->assertEmpty($result);
+    }
+
+    public function test_modified_cms_field_is_returned_as_changed(): void
+    {
+        $this->cache->snapshotCmsRecord('cms_HomepageContent_1', ['tagline' => 'Ancien', 'bio' => 'Bio']);
+
+        $result = $this->cache->getChangedCmsFields('cms_HomepageContent_1', ['tagline' => 'Nouveau', 'bio' => 'Bio']);
+
+        $this->assertArrayHasKey('tagline', $result);
+        $this->assertArrayNotHasKey('bio', $result);
+    }
+
+    public function test_new_cms_field_is_returned_as_changed(): void
+    {
+        $this->cache->snapshotCmsRecord('cms_HomepageContent_1', ['tagline' => 'Accroche']);
+
+        $result = $this->cache->getChangedCmsFields('cms_HomepageContent_1', ['tagline' => 'Accroche', 'bio' => 'Bio']);
+
+        $this->assertArrayHasKey('bio', $result);
+        $this->assertArrayNotHasKey('tagline', $result);
+    }
+
+    // ── snapshotCmsRecord ────────────────────────────────────────────────────
+
+    public function test_cms_snapshot_persists_across_instances(): void
+    {
+        $frValues = ['tagline' => 'Mon accroche'];
+        $this->cache->snapshotCmsRecord('cms_HomepageContent_1', $frValues);
+
+        $fresh = new TranslationCache($this->baseDir);
+        $result = $fresh->getChangedCmsFields('cms_HomepageContent_1', $frValues);
+
+        $this->assertEmpty($result);
+    }
+
+    public function test_different_cms_records_have_independent_snapshots(): void
+    {
+        $this->cache->snapshotCmsRecord('cms_HomepageContent_1', ['tagline' => 'Record 1']);
+        $this->cache->snapshotCmsRecord('cms_HomepageContent_2', ['tagline' => 'Record 2']);
+
+        $changed1 = $this->cache->getChangedCmsFields('cms_HomepageContent_1', ['tagline' => 'Record 1']);
+        $changed2 = $this->cache->getChangedCmsFields('cms_HomepageContent_2', ['tagline' => 'Record 2 modifié']);
+
+        $this->assertEmpty($changed1);
+        $this->assertArrayHasKey('tagline', $changed2);
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private function deleteDir(string $path): void

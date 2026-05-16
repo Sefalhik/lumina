@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Services\AnthropicTranslator;
 use App\Services\TranslationCache;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class I18nTranslate extends Command
@@ -18,14 +18,13 @@ class I18nTranslate extends Command
 
     protected $description = 'Translate i18n files from French (source of truth) to EU locales using the Anthropic API';
 
-    /** @var array<string, string> */
-    private array $nativeNames;
-
     /** @var list<string> */
     private array $targetLocales;
 
-    public function __construct(private readonly TranslationCache $cache)
-    {
+    public function __construct(
+        private readonly AnthropicTranslator $translator,
+        private readonly TranslationCache $cache,
+    ) {
         parent::__construct();
     }
 
@@ -38,7 +37,6 @@ class I18nTranslate extends Command
             return self::FAILURE;
         }
 
-        $this->nativeNames = config('i18n.native_names', []);
         $allLocales = config('i18n.supported_locales', []);
         $resolved = $this->resolveTargetLocales($allLocales);
 
@@ -58,13 +56,29 @@ class I18nTranslate extends Command
         $this->info('Target locales : <fg=cyan>'.implode(', ', $this->targetLocales).'</>');
         $this->newLine();
 
+        Log::info('i18n:translate started', [
+            'service' => self::class,
+            'method' => 'handle',
+            'step' => 'start',
+            'target_locales' => $this->targetLocales,
+            'dry_run' => (bool) $this->option('dry-run'),
+            'force' => (bool) $this->option('force'),
+        ]);
+
         $exitCode = self::SUCCESS;
 
-        $exitCode = $this->translatePhpFiles($apiKey) === self::FAILURE ? self::FAILURE : $exitCode;
-        $exitCode = $this->translateJsFiles($apiKey) === self::FAILURE ? self::FAILURE : $exitCode;
+        $exitCode = $this->translatePhpFiles() === self::FAILURE ? self::FAILURE : $exitCode;
+        $exitCode = $this->translateJsFiles() === self::FAILURE ? self::FAILURE : $exitCode;
 
         $this->newLine();
         $this->info($exitCode === self::SUCCESS ? 'All translations completed.' : 'Completed with errors.');
+
+        Log::info('i18n:translate completed', [
+            'service' => self::class,
+            'method' => 'handle',
+            'step' => 'complete',
+            'success' => $exitCode === self::SUCCESS,
+        ]);
 
         return $exitCode;
     }
@@ -96,7 +110,7 @@ class I18nTranslate extends Command
         return array_values(array_filter($allLocales, fn (string $l) => $l !== 'fr'));
     }
 
-    private function translatePhpFiles(string $apiKey): int
+    private function translatePhpFiles(): int
     {
         $sourceDir = lang_path('fr');
         $files = glob($sourceDir.'/*.php');
@@ -116,14 +130,26 @@ class I18nTranslate extends Command
 
             if (! is_array($source)) {
                 $this->warn("Skipping {$filename}: not a valid PHP array file.");
+                Log::warning('i18n:translate skipped invalid PHP file', [
+                    'service' => self::class,
+                    'method' => 'translatePhpFiles',
+                    'step' => 'skip_invalid',
+                    'file' => $filename,
+                ]);
 
                 continue;
             }
 
-            $flatSource = $this->flattenJson($source);
+            $flatSource = $this->translator->flattenJson($source);
 
             if (! $this->option('force') && $this->cache->isFileUnchanged($sourceFile)) {
                 $this->line("  <fg=cyan>{$filename}</> — unchanged, skipping");
+                Log::debug('i18n:translate PHP file unchanged', [
+                    'service' => self::class,
+                    'method' => 'translatePhpFiles',
+                    'step' => 'skip_unchanged',
+                    'file' => $filename,
+                ]);
 
                 continue;
             }
@@ -145,7 +171,7 @@ class I18nTranslate extends Command
                     continue;
                 }
 
-                $toTranslate = $this->keysToTranslate($apiKey, $locale, $fileKey, $flatSource, $changedKeys);
+                $toTranslate = $this->keysToTranslate($locale, $fileKey, $flatSource, $changedKeys);
                 if ($toTranslate === null) {
                     $exitCode = self::FAILURE;
 
@@ -156,12 +182,29 @@ class I18nTranslate extends Command
 
                 if (count($cached) !== count($flatSource)) {
                     $this->error("    Incomplete translation for {$locale}/{$filename}");
+                    Log::error('i18n:translate incomplete PHP translation', [
+                        'service' => self::class,
+                        'method' => 'translatePhpFiles',
+                        'step' => 'incomplete',
+                        'file' => $filename,
+                        'locale' => $locale,
+                        'cached_count' => count($cached),
+                        'expected_count' => count($flatSource),
+                    ]);
                     $exitCode = self::FAILURE;
 
                     continue;
                 }
 
                 $this->writePhpFile($targetFile, $cached);
+                Log::info('i18n:translate PHP file written', [
+                    'service' => self::class,
+                    'method' => 'translatePhpFiles',
+                    'step' => 'file_written',
+                    'file' => $filename,
+                    'locale' => $locale,
+                    'key_count' => count($cached),
+                ]);
             }
 
             if (! $this->option('dry-run')) {
@@ -172,7 +215,7 @@ class I18nTranslate extends Command
         return $exitCode;
     }
 
-    private function translateJsFiles(string $apiKey): int
+    private function translateJsFiles(): int
     {
         $sourceFile = $this->jsI18nPath('fr.json');
 
@@ -192,10 +235,16 @@ class I18nTranslate extends Command
         }
 
         $fileKey = 'ui';
-        $flatSource = $this->flattenJson($source);
+        $flatSource = $this->translator->flattenJson($source);
 
         if (! $this->option('force') && $this->cache->isFileUnchanged($sourceFile)) {
             $this->line('  <fg=cyan>fr.json</> — unchanged, skipping');
+            Log::debug('i18n:translate JS file unchanged', [
+                'service' => self::class,
+                'method' => 'translateJsFiles',
+                'step' => 'skip_unchanged',
+                'file' => 'fr.json',
+            ]);
 
             return self::SUCCESS;
         }
@@ -212,7 +261,7 @@ class I18nTranslate extends Command
                 continue;
             }
 
-            $toTranslate = $this->keysToTranslate($apiKey, $locale, $fileKey, $flatSource, $changedKeys);
+            $toTranslate = $this->keysToTranslate($locale, $fileKey, $flatSource, $changedKeys);
             if ($toTranslate === null) {
                 $exitCode = self::FAILURE;
 
@@ -223,6 +272,14 @@ class I18nTranslate extends Command
 
             if (count($cached) !== count($flatSource)) {
                 $this->error("    Incomplete translation for {$locale}/{$fileKey}");
+                Log::error('i18n:translate incomplete JS translation', [
+                    'service' => self::class,
+                    'method' => 'translateJsFiles',
+                    'step' => 'incomplete',
+                    'locale' => $locale,
+                    'cached_count' => count($cached),
+                    'expected_count' => count($flatSource),
+                ]);
                 $exitCode = self::FAILURE;
 
                 continue;
@@ -230,8 +287,15 @@ class I18nTranslate extends Command
 
             file_put_contents(
                 $targetFile,
-                json_encode($this->unflattenJson($cached), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n",
+                json_encode($this->translator->unflattenJson($cached), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n",
             );
+            Log::info('i18n:translate JS file written', [
+                'service' => self::class,
+                'method' => 'translateJsFiles',
+                'step' => 'file_written',
+                'locale' => $locale,
+                'key_count' => count($cached),
+            ]);
         }
 
         if (! $this->option('dry-run')) {
@@ -250,7 +314,6 @@ class I18nTranslate extends Command
      * @return array<string, string>|null null on API error
      */
     private function keysToTranslate(
-        string $apiKey,
         string $locale,
         string $fileKey,
         array $flatSource,
@@ -268,8 +331,17 @@ class I18nTranslate extends Command
             return [];
         }
 
-        $translated = $this->callApi($apiKey, $toTranslate, $locale);
+        $translated = $this->translator->translate($toTranslate, $locale);
         if ($translated === null) {
+            $this->error("    Translation failed for locale {$locale}");
+            Log::error('i18n:translate API call failed', [
+                'service' => self::class,
+                'method' => 'keysToTranslate',
+                'step' => 'api_failure',
+                'locale' => $locale,
+                'file_key' => $fileKey,
+            ]);
+
             return null;
         }
 
@@ -278,139 +350,11 @@ class I18nTranslate extends Command
         return $translated;
     }
 
-    /**
-     * @param  array<string, string>  $keysToTranslate
-     * @return array<string, string>|null
-     */
-    private function callApi(string $apiKey, array $keysToTranslate, string $locale): ?array
-    {
-        $nativeName = $this->nativeNames[$locale] ?? $locale;
-        $sourceJson = json_encode($keysToTranslate, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-        $prompt = <<<PROMPT
-You are a professional translator specializing in UI localization.
-
-Translate the following JSON key-value pairs from French to {$nativeName} ({$locale}).
-
-Rules:
-- Translate only the VALUES, never the keys
-- Keep all placeholders like {theme}, {name}, {count} exactly as-is
-- Keep proper names, brand names, and technical terms untranslated
-- Output ONLY the translated JSON object, nothing else — no explanation, no markdown code blocks
-
-Source JSON (French):
-{$sourceJson}
-PROMPT;
-
-        $response = Http::withHeaders([
-            'x-api-key' => $apiKey,
-            'anthropic-version' => '2023-06-01',
-        ])->timeout(60)->post('https://api.anthropic.com/v1/messages', [
-            'model' => config('services.anthropic.model', 'claude-haiku-4-5-20251001'),
-            'max_tokens' => 8192,
-            'messages' => [['role' => 'user', 'content' => $prompt]],
-        ]);
-
-        if ($response->failed()) {
-            $body = $response->json();
-            $message = $body['error']['message'] ?? $response->body();
-            $this->error("    API error for locale {$locale} (HTTP {$response->status()}): {$message}");
-            Log::error('i18n:translate API request failed', [
-                'service' => 'I18nTranslate',
-                'method' => 'callApi',
-                'step' => 'http_request',
-                'locale' => $locale,
-                'http_status' => $response->status(),
-                'api_message' => $message,
-            ]);
-
-            return null;
-        }
-
-        $body = $response->json();
-        $content = $body['content'][0]['text'] ?? null;
-
-        if (! is_string($content) || empty($content)) {
-            $this->error("    Empty response from API for locale {$locale}");
-            Log::error('i18n:translate API returned empty content', [
-                'service' => 'I18nTranslate',
-                'method' => 'callApi',
-                'step' => 'parse_response',
-                'locale' => $locale,
-                'stop_reason' => $body['stop_reason'] ?? null,
-            ]);
-
-            return null;
-        }
-
-        $content = preg_replace('/^```(?:json)?\s*/m', '', $content) ?? $content;
-        $content = preg_replace('/\s*```$/m', '', $content) ?? $content;
-
-        $decoded = json_decode(trim($content), true);
-
-        if (! is_array($decoded)) {
-            $this->error("    Invalid JSON in API response for locale {$locale}");
-            Log::error('i18n:translate API response is not valid JSON', [
-                'service' => 'I18nTranslate',
-                'method' => 'callApi',
-                'step' => 'json_decode',
-                'locale' => $locale,
-                'stop_reason' => $body['stop_reason'] ?? null,
-                'raw_excerpt' => mb_substr(trim($content), 0, 200),
-            ]);
-
-            return null;
-        }
-
-        return $decoded;
-    }
-
     private function jsI18nPath(string $filename = ''): string
     {
         $base = (string) config('i18n.js_i18n_path', resource_path('js/i18n'));
 
         return $filename !== '' ? $base.'/'.$filename : $base;
-    }
-
-    /**
-     * @param  array<string, mixed>  $array
-     * @return array<string, string>
-     */
-    private function flattenJson(array $array, string $prefix = ''): array
-    {
-        $result = [];
-        foreach ($array as $key => $value) {
-            $fullKey = $prefix !== '' ? $prefix.'.'.$key : (string) $key;
-            if (is_array($value)) {
-                $result += $this->flattenJson($value, $fullKey);
-            } else {
-                $result[$fullKey] = (string) $value;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param  array<string, string>  $flat
-     * @return array<string, mixed>
-     */
-    private function unflattenJson(array $flat): array
-    {
-        $result = [];
-        foreach ($flat as $key => $value) {
-            $parts = explode('.', $key);
-            $ref = &$result;
-            foreach ($parts as $part) {
-                if (! isset($ref[$part]) || ! is_array($ref[$part])) {
-                    $ref[$part] = [];
-                }
-                $ref = &$ref[$part];
-            }
-            $ref = $value;
-        }
-
-        return $result;
     }
 
     /**
@@ -423,7 +367,7 @@ PROMPT;
             mkdir($dir, 0755, true);
         }
 
-        $nested = $this->unflattenJson($data);
+        $nested = $this->translator->unflattenJson($data);
         $content = "<?php\n\nreturn ".$this->exportPhpArray($nested, 0).";\n";
 
         file_put_contents($path, $content);

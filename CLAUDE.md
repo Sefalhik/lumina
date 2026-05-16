@@ -15,6 +15,7 @@ php artisan octane:start        # Dev server via FrankenPHP (worker mode) — pr
 php artisan serve               # Dev server (standard, port 8000)
 php artisan migrate             # Run migrations — requires explicit confirmation first
 php artisan i18n:translate      # Translate lang/fr/*.php + resources/js/i18n/fr.json via Anthropic API
+php artisan cms:translate       # Translate CMS DB content from French to EU locales via Anthropic API
 
 # Testing — PHP
 php artisan test                # Full PHPUnit suite (no coverage)
@@ -108,13 +109,15 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 | `app/Services/` | Business logic — unit-tested, no HTTP dependency |
 | `app/Services/Auth/LoginService.php` | Post-login redirect resolution (role-based) |
 | `app/Services/Auth/TwoFactorService.php` | Secret generation, QR SVG, TOTP verify, DB confirm |
+| `app/Services/AnthropicTranslator.php` | Anthropic API call + JSON flatten/unflatten helpers — shared by both translation commands |
+| `app/Services/TranslationCache.php` | File-checksum + per-key TTL cache for i18n and CMS translations |
 | `resources/views/` | Blade templates |
 | `resources/js/` | Vue island components + utilities |
 | `resources/js/utils/` | Pure JS utility modules (unit-tested) |
 | `resources/js/i18n/` | vue-i18n locale files — one JSON per locale (24 EU languages) |
 | `resources/css/app.scss` | Global styles (minimal — UnoCSS handles utilities) |
 | `config/geo.php` | Geo API proxy configuration (env-driven) |
-| `config/i18n.php` | Supported locales, default locale, native names, cache path |
+| `config/i18n.php` | Supported locales, default locale, native names, cache path, `cms_models` list |
 | `lang/fr/` | PHP translation files — French source of truth for Blade `__()` |
 | `storage/app/i18n/` | TranslationCache storage — checksums + per-key translations (gitignored) |
 | `docs/` | Technical documentation |
@@ -257,18 +260,35 @@ const { t } = useI18n();
 ```
 Add keys to `resources/js/i18n/fr.json` — the `i18n:translate` command propagates them to other locales.
 
+### Translation commands — shared infrastructure
+
+Both `i18n:translate` and `cms:translate` share the same service layer:
+
+- **`AnthropicTranslator`** (`app/Services/AnthropicTranslator.php`) — makes the API call, strips markdown fences, decodes JSON, logs errors. Also provides `flattenJson()` / `unflattenJson()` helpers for dot-notation key handling.
+- **`TranslationCache`** (`app/Services/TranslationCache.php`) — two-level cache: file/value checksum (skip unchanged sources) + per-key TTL store (6 months). Supports both file-backed sources (`snapshotFile`) and DB-backed CMS records (`snapshotCmsRecord` / `getChangedCmsFields`).
+- **`AppServiceProvider`** binds both services with config values resolved at request time.
+
+The cache lives in `storage/app/i18n/` (gitignored) — JSON files, not Redis (volatile) and not a DB table (needs migration). Persistent, diffable, zero dependencies.
+
+Requires `ANTHROPIC_API_KEY` in `.env`. Both commands are no-ops with `--dry-run`.
+
 ### `php artisan i18n:translate`
-Translates French source files to all other supported locales using the Anthropic API (Claude Haiku).
+Translates `lang/fr/*.php` and `resources/js/i18n/fr.json` to all other EU locales.
 
-Two-level optimization:
-1. **File checksum** (SHA-256) — skip unchanged source files entirely
-2. **Per-key TTL cache** (6 months) — only send new/changed keys to the API; serve the rest from `storage/app/i18n/`
+PHP source files may contain nested arrays (e.g. `validation.php` → `attributes` sub-array). The command flattens them to dot-notation before sending to the API, then reconstructs the nested structure for the output file via `exportPhpArray()`.
 
-Options: `--locale=de` (single locale), `--force` (bypass checksum), `--dry-run` (no API calls, no file writes).
+Options: `--locale=de`, `--force` (bypass checksum), `--dry-run`.
 
-The cache is JSON files in `storage/app/i18n/` — not Redis (volatile) and not a DB table (needs migration). Persistent, diffable, zero dependencies.
+### `php artisan cms:translate`
+Translates DB content for all models listed in `config('i18n.cms_models')`. Each model must use `spatie/laravel-translatable` (`HasTranslations` trait + `$translatable` array).
 
-Requires `ANTHROPIC_API_KEY` in `.env`. Skipped automatically with `--dry-run`.
+Change detection: hashes the French field values per record and compares to the stored snapshot. Only changed or missing fields trigger an API call.
+
+Cache key per record: `cms_{ModelBaseName}_{id}` (e.g. `cms_HomepageContent_1`).
+
+Options: `--locale=de`, `--force` (retranslate all fields), `--dry-run`.
+
+To add a new CMS model: add its class to `config/i18n.php` → `cms_models`.
 
 ## Accessibility (WCAG 2.1 AA)
 

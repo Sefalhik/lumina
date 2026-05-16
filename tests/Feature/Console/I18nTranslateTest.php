@@ -409,7 +409,7 @@ class I18nTranslateTest extends TestCase
 
     // ── API error handling ────────────────────────────────────────────────────
 
-    public function test_api_http_error_displays_anthropic_message(): void
+    public function test_api_http_error_fails_with_translation_failed_message(): void
     {
         Http::fake([
             'https://api.anthropic.com/v1/messages' => Http::response([
@@ -418,11 +418,11 @@ class I18nTranslateTest extends TestCase
         ]);
 
         $this->artisan('i18n:translate', ['--locale' => 'de', '--force' => true])
-            ->expectsOutputToContain('model not found')
+            ->expectsOutputToContain('Translation failed')
             ->assertFailed();
     }
 
-    public function test_invalid_json_in_api_response_is_reported(): void
+    public function test_invalid_json_in_api_response_fails_with_translation_failed_message(): void
     {
         Http::fake([
             'https://api.anthropic.com/v1/messages' => Http::response([
@@ -431,11 +431,11 @@ class I18nTranslateTest extends TestCase
         ]);
 
         $this->artisan('i18n:translate', ['--locale' => 'de', '--force' => true])
-            ->expectsOutputToContain('Invalid JSON')
+            ->expectsOutputToContain('Translation failed')
             ->assertFailed();
     }
 
-    public function test_empty_content_in_api_response_is_reported(): void
+    public function test_empty_content_in_api_response_fails_with_translation_failed_message(): void
     {
         Http::fake([
             'https://api.anthropic.com/v1/messages' => Http::response([
@@ -444,7 +444,7 @@ class I18nTranslateTest extends TestCase
         ]);
 
         $this->artisan('i18n:translate', ['--locale' => 'de', '--force' => true])
-            ->expectsOutputToContain('Empty response')
+            ->expectsOutputToContain('Translation failed')
             ->assertFailed();
     }
 

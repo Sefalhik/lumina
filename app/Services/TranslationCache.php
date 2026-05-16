@@ -199,6 +199,59 @@ class TranslationCache
         return $result;
     }
 
+    // ── CMS change detection ─────────────────────────────────────────────────
+
+    /**
+     * Returns fields whose French value has changed since the last CMS record snapshot.
+     *
+     * @param  array<string, string>  $frValues  field → French value
+     * @return array<string, string>
+     */
+    public function getChangedCmsFields(string $cacheKey, array $frValues): array
+    {
+        $previous = $this->loadChecksumEntry($cacheKey)['keys'] ?? [];
+
+        $changed = array_filter(
+            $frValues,
+            fn (string $value, string $key) => ! array_key_exists($key, $previous) || $previous[$key] !== $value,
+            ARRAY_FILTER_USE_BOTH,
+        );
+
+        Log::debug('CMS field diff computed', [
+            'service' => self::class,
+            'method' => __FUNCTION__,
+            'step' => 'cms_field_diff',
+            'cache_key' => $cacheKey,
+            'changed_count' => count($changed),
+            'total_count' => count($frValues),
+        ]);
+
+        return $changed;
+    }
+
+    /**
+     * Persist the French field values snapshot for a CMS record after translation.
+     *
+     * @param  array<string, string>  $frValues  field → French value
+     */
+    public function snapshotCmsRecord(string $cacheKey, array $frValues): void
+    {
+        $checksums = $this->readChecksums();
+        $checksums[$cacheKey] = [
+            'hash' => hash('sha256', json_encode($frValues, JSON_UNESCAPED_UNICODE) ?: ''),
+            'keys' => $frValues,
+        ];
+        $this->writeChecksums($checksums);
+
+        Log::info('CMS record snapshot saved', [
+            'service' => self::class,
+            'method' => __FUNCTION__,
+            'step' => 'cms_snapshot_saved',
+            'cache_key' => $cacheKey,
+            'field_count' => count($frValues),
+        ]);
+    }
+
     // ── Internals ────────────────────────────────────────────────────────────
 
     private function hashFile(string $path): string

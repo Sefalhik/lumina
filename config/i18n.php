@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\HomepageContent;
+
 return [
     'default_locale' => 'fr',
     'supported_locales' => [
@@ -7,6 +9,10 @@ return [
         'fi', 'fr', 'ga', 'hr', 'hu', 'it', 'lt', 'lv',
         'mt', 'nl', 'pl', 'pt', 'ro', 'sk', 'sl', 'sv',
     ],
+    'cms_models' => [
+        HomepageContent::class,
+    ],
+
     'native_names' => [
         'bg' => 'Български',
         'cs' => 'Čeština',
