@@ -4,6 +4,7 @@
         "prettier --write"
     ],
     "resources/js/**/*.{js,vue}": [
-        "prettier --write"
+        "prettier --write",
+        "eslint"
     ]
 }

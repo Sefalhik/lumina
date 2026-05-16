@@ -9,7 +9,7 @@ const visible = ref(false);
 const fadingOut = ref(false);
 const displayedLines = ref([]);
 const terminalRef = ref(null);
-let timers = [];
+const timers = [];
 
 // ─── Sequence builder ────────────────────────────────────────────────────────
 // Kept here (not in utils) because it depends on browser globals and is
@@ -166,8 +166,8 @@ onUnmounted(() => {
 
 <template>
     <Transition name="boot-fade">
-        <div v-if="visible" class="boot-overlay" @click="dismiss" aria-hidden="true">
-            <div class="boot-terminal" ref="terminalRef">
+        <div v-if="visible" class="boot-overlay" aria-hidden="true" @click="dismiss">
+            <div ref="terminalRef" class="boot-terminal">
                 <div
                     v-for="(line, i) in displayedLines"
                     :key="line.group ? line.group : i"

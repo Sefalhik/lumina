@@ -30,6 +30,13 @@ npm run test:unit:run           # Vitest unit suite (no coverage)
 npm run test:unit:coverage      # Vitest unit suite + V8 coverage report + 80% minimum threshold
 npm run test:e2e                # Playwright end-to-end suite
 
+# Linting & formatting — JS
+npm run lint:js                 # ESLint — check resources/js/**/*.{js,vue}
+npm run lint:js:fix             # ESLint — auto-fix
+npm run lint:scss               # Stylelint — check SCSS
+npm run lint:fix                # Stylelint — auto-fix SCSS
+npm run format                  # Prettier — format SCSS, Vue, JS
+
 # Frontend
 npm run dev                     # Vite HMR dev server
 npm run build                   # Production asset build
@@ -245,6 +252,29 @@ PHPStan's ReactPHP worker processes don't inherit the conf.d scan path from the 
 The `analyse` script in `composer.json` always exports `PHP_INI_SCAN_DIR=/etc/php/8.5/cli/conf.d`
 so that `phar.so` (and other extensions) are loaded in child processes too.
 Without this, child workers fail with `Class "Phar" not found`.
+
+## Linting — ESLint
+
+Config file: `eslint.config.js` (ESLint v9 flat config).
+
+### Scope
+`resources/js/**/*.{js,vue}` — source files and Vitest unit tests at the same level (no separate config for tests).
+
+### Rule sets (in order)
+1. `@eslint/js` — `eslint:recommended`
+2. `eslint-plugin-vue` — `flat/recommended` (Vue 3 rules)
+3. `eslint-config-prettier` — disables formatting rules that conflict with Prettier
+
+Custom rules on top:
+- `vue/component-api-style: ['error', ['script-setup']]` — enforces `<script setup>`, rejects Options API
+- `no-var: error`, `prefer-const: error`
+
+### Globals
+Browser globals (`window`, `document`, `sessionStorage`, `fetch`…) are declared via the `globals` package (`globals.browser`).
+`route` is declared as a custom global — it's the Ziggy helper injected by the `@routes` Blade directive.
+
+### Pre-commit integration
+`lint-staged` runs `eslint` (check only, no `--fix`) after `prettier --write` on staged `.js` and `.vue` files. The commit is blocked if ESLint reports errors.
 
 ## Internationalisation (i18n)
 

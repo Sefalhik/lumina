@@ -132,6 +132,8 @@ Three retro-futuristic themes selectable via the navbar switcher:
 
 ```bash
 # Linting & formatting
+npm run lint:js        # ESLint — check JS + Vue (eslint:recommended + vue3-recommended)
+npm run lint:js:fix    # ESLint — auto-fix
 npm run lint:scss      # Stylelint — check SCSS
 npm run lint:fix       # Stylelint — auto-fix SCSS
 npm run format         # Prettier — format SCSS, Vue, JS

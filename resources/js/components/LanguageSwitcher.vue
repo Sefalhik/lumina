@@ -103,13 +103,13 @@ onUnmounted(() => {
                         :href="hrefFor(lang.code)"
                         :hreflang="lang.code"
                         :lang="lang.code"
-                        @click="onLocaleClick(lang.code)"
                         class="flex items-center gap-2 px-2 py-1.5 rounded-sm text-xs font-mono tracking-wide transition-colors"
                         :class="
                             lang.code === current
                                 ? 'text-primary bg-primary/10'
                                 : 'text-base-content/70 hover:text-primary hover:bg-primary/5'
                         "
+                        @click="onLocaleClick(lang.code)"
                     >
                         <span class="text-sm leading-none w-5 text-center shrink-0">{{ lang.flag }}</span>
                         <span class="flex-1 truncate">{{ lang.name }}</span>
