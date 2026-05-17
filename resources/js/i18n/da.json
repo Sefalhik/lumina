@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Skift sprog",
         "filter_placeholder": "Filtrer…",
+        "filter_aria_label": "Søg efter et sprog",
         "no_results": "Ingen resultater"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLIK ELLER TRYK PÅ EN TAST FOR AT SPRINGE OVER ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Ikon for kategori {n}",
+        "name_aria": "Navn på kategori {n}",
+        "remove_category": "Fjern kategori {n}",
+        "tech_aria": "Teknologi {t} i kategori {n}",
+        "remove_tech": "Fjern teknologi {t}",
+        "add_tech": "+ Tilføj en teknologi",
+        "add_category": "+ Tilføj en kategori",
+        "drag_category": "Træk for at omordne kategori",
+        "drag_tech": "Træk for at omordne teknologi",
+        "icons": {
+            "hexagone_creux": "Hul sekskant",
+            "hexagone_plein": "Fyldt sekskant",
+            "carre_pointe": "Markeret kvadrat",
+            "cible": "Målskive",
+            "double_cercle": "Dobbelt cirkel",
+            "cercle_croix": "Cirkel-kryds",
+            "cercle_x": "Cirkel-X",
+            "cercle_point": "Cirkel-prik",
+            "losange_plein": "Fyldt rombe",
+            "losange_creux": "Hul rombe",
+            "petit_losange": "Lille rombe",
+            "triangle_plein": "Fyldt trekant",
+            "triangle_creux": "Hul trekant",
+            "delta": "Delta",
+            "etoile_4": "4-takket stjerne",
+            "etoile_creuse": "Hul stjerne",
+            "etoile_apl": "APL-stjerne",
+            "etoile_operateur": "Operatør-stjerne",
+            "hexagone_apl": "APL-sekskant",
+            "anneau_benzene": "Benzenring",
+            "marqueur_terminal": "Terminalmarkør",
+            "therefore": "Therefore",
+            "reference": "Reference",
+            "trigramme": "Trigram",
+            "engrenage": "Gear",
+            "eclair": "Lyn",
+            "chevron": "Chevron",
+            "double_chevron": "Dobbelt chevron"
+        }
     }
 }

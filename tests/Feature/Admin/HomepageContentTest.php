@@ -94,13 +94,15 @@ class HomepageContentTest extends TestCase
         $this->assertSame('Nouvelle accroche', $content->getTranslation('tagline', 'fr'));
     }
 
-    public function test_update_persists_all_three_fields(): void
+    public function test_update_persists_all_fields(): void
     {
         $this->actingAs($this->admin)->put('/fr/admin/homepage', $this->validPayload());
 
         $content = HomepageContent::firstOrFail();
         $this->assertSame('Nouveau sous-titre', $content->getTranslation('subtitle', 'fr'));
         $this->assertSame('Nouvelle bio.', $content->getTranslation('bio', 'fr'));
+        $this->assertSame('Description SEO de test.', $content->getTranslation('meta_description', 'fr'));
+        $this->assertSame('[{"name":"Backend","icon":"⬡","techs":["PHP"]}]', $content->getTranslation('skills', 'fr'));
     }
 
     public function test_update_overwrites_existing_record(): void
@@ -154,6 +156,72 @@ class HomepageContentTest extends TestCase
             ->assertSessionHasErrors('bio.fr');
     }
 
+    public function test_meta_description_fr_is_required(): void
+    {
+        $payload = $this->validPayload();
+        $payload['meta_description']['fr'] = '';
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/homepage', $payload)
+            ->assertSessionHasErrors('meta_description.fr');
+    }
+
+    public function test_meta_description_fr_must_not_exceed_160_characters(): void
+    {
+        $payload = $this->validPayload();
+        $payload['meta_description']['fr'] = str_repeat('a', 161);
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/homepage', $payload)
+            ->assertSessionHasErrors('meta_description.fr');
+    }
+
+    public function test_skills_fr_is_required(): void
+    {
+        $payload = $this->validPayload();
+        $payload['skills']['fr'] = '';
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/homepage', $payload)
+            ->assertSessionHasErrors('skills.fr');
+    }
+
+    public function test_skills_category_without_name_is_rejected(): void
+    {
+        $payload = $this->validPayload();
+        $payload['skills']['fr'] = json_encode([
+            ['icon' => '⬡', 'name' => '', 'techs' => ['PHP']],
+        ]);
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/homepage', $payload)
+            ->assertSessionHasErrors('skills.fr');
+    }
+
+    public function test_skills_tech_with_empty_name_is_rejected(): void
+    {
+        $payload = $this->validPayload();
+        $payload['skills']['fr'] = json_encode([
+            ['icon' => '⬡', 'name' => 'Backend', 'techs' => ['PHP', '', 'Laravel']],
+        ]);
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/homepage', $payload)
+            ->assertSessionHasErrors('skills.fr');
+    }
+
+    public function test_skills_category_with_empty_techs_is_accepted(): void
+    {
+        $payload = $this->validPayload();
+        $payload['skills']['fr'] = json_encode([
+            ['icon' => '⬡', 'name' => 'Backend', 'techs' => []],
+        ]);
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/homepage', $payload)
+            ->assertSessionHasNoErrors();
+    }
+
     // ── Public homepage ───────────────────────────────────────────────────────
 
     public function test_homepage_displays_content_from_database(): void
@@ -182,6 +250,8 @@ class HomepageContentTest extends TestCase
             'tagline' => ['fr' => 'Nouvelle accroche'],
             'subtitle' => ['fr' => 'Nouveau sous-titre'],
             'bio' => ['fr' => 'Nouvelle bio.'],
+            'meta_description' => ['fr' => 'Description SEO de test.'],
+            'skills' => ['fr' => '[{"name":"Backend","icon":"⬡","techs":["PHP"]}]'],
         ];
     }
 }

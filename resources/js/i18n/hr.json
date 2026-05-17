@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Promjena jezika",
         "filter_placeholder": "Filtriraj…",
+        "filter_aria_label": "Pretraži jezik",
         "no_results": "Nema rezultata"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLIKNITE ILI PRITISNITE TIPKU ZA PRESKAKANJE ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Ikona kategorije {n}",
+        "name_aria": "Naziv kategorije {n}",
+        "remove_category": "Ukloniti kategoriju {n}",
+        "tech_aria": "Tehnologija {t} kategorije {n}",
+        "remove_tech": "Ukloniti tehnologiju {t}",
+        "add_tech": "+ Dodaj tehnologiju",
+        "add_category": "+ Dodaj kategoriju",
+        "drag_category": "Povucite za ponovno uređivanje kategorije",
+        "drag_tech": "Povucite za ponovno uređivanje tehnologije",
+        "icons": {
+            "hexagone_creux": "Šuplji šesterokut",
+            "hexagone_plein": "Puni šesterokut",
+            "carre_pointe": "Točkasti kvadrat",
+            "cible": "Cilj",
+            "double_cercle": "Dvostruki krug",
+            "cercle_croix": "Krug-križ",
+            "cercle_x": "Krug-X",
+            "cercle_point": "Krug-točka",
+            "losange_plein": "Puni romb",
+            "losange_creux": "Šuplji romb",
+            "petit_losange": "Mali romb",
+            "triangle_plein": "Puni trokut",
+            "triangle_creux": "Šuplji trokut",
+            "delta": "Delta",
+            "etoile_4": "Zvijezda s 4 grana",
+            "etoile_creuse": "Šuplja zvijezda",
+            "etoile_apl": "APL zvijezda",
+            "etoile_operateur": "Zvijezda operatora",
+            "hexagone_apl": "APL šesterokut",
+            "anneau_benzene": "Benzenski prsten",
+            "marqueur_terminal": "Marker terminala",
+            "therefore": "Therefore",
+            "reference": "Referenca",
+            "trigramme": "Trigram",
+            "engrenage": "Zupčanik",
+            "eclair": "Munja",
+            "chevron": "Ševron",
+            "double_chevron": "Dvostruki ševron"
+        }
     }
 }

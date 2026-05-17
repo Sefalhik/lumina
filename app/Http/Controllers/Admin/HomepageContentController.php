@@ -34,6 +34,8 @@ class HomepageContentController extends Controller
         $content->setTranslation('tagline', 'fr', $validated['tagline']['fr']);
         $content->setTranslation('subtitle', 'fr', $validated['subtitle']['fr']);
         $content->setTranslation('bio', 'fr', $validated['bio']['fr']);
+        $content->setTranslation('meta_description', 'fr', $validated['meta_description']['fr']);
+        $content->setTranslation('skills', 'fr', $validated['skills']['fr']);
         $content->save();
 
         Log::info('Homepage content updated', [

@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Spremenite jezik",
         "filter_placeholder": "Filtriraj…",
+        "filter_aria_label": "Iskanje jezika",
         "no_results": "Ni rezultatov"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLIKNITE ALI PRITISNITE GUMB ZA PRESKOK ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Ikona kategorije {n}",
+        "name_aria": "Ime kategorije {n}",
+        "remove_category": "Odstrani kategorijo {n}",
+        "tech_aria": "Tehnologija {t} kategorije {n}",
+        "remove_tech": "Odstrani tehnologijo {t}",
+        "add_tech": "+ Dodaj tehnologijo",
+        "add_category": "+ Dodaj kategorijo",
+        "drag_category": "Potegni za spremembo vrstnega reda kategorije",
+        "drag_tech": "Potegni za spremembo vrstnega reda tehnologije",
+        "icons": {
+            "hexagone_creux": "Prazen šestkotnik",
+            "hexagone_plein": "Polni šestkotnik",
+            "carre_pointe": "Pikovit kvadrat",
+            "cible": "Tarča",
+            "double_cercle": "Dvojni krog",
+            "cercle_croix": "Krog s križem",
+            "cercle_x": "Krog-X",
+            "cercle_point": "Krog s točko",
+            "losange_plein": "Polni diamant",
+            "losange_creux": "Prazen diamant",
+            "petit_losange": "Mali diamant",
+            "triangle_plein": "Polni trikotnik",
+            "triangle_creux": "Prazen trikotnik",
+            "delta": "Delta",
+            "etoile_4": "Zvezda 4 krake",
+            "etoile_creuse": "Prazna zvezda",
+            "etoile_apl": "Zvezda APL",
+            "etoile_operateur": "Operatorska zvezda",
+            "hexagone_apl": "Šestkotnik APL",
+            "anneau_benzene": "Benzenski prstan",
+            "marqueur_terminal": "Terminalski označevalec",
+            "therefore": "Therefore",
+            "reference": "Referenca",
+            "trigramme": "Trigram",
+            "engrenage": "Zobnik",
+            "eclair": "Strela",
+            "chevron": "Chevron",
+            "double_chevron": "Dvojni chevron"
+        }
     }
 }

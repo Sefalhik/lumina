@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Cambia lingua",
         "filter_placeholder": "Filtra…",
+        "filter_aria_label": "Cerca una lingua",
         "no_results": "Nessun risultato"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ CLICCA O PREMI UN TASTO PER SALTARE ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Icona della categoria {n}",
+        "name_aria": "Nome della categoria {n}",
+        "remove_category": "Rimuovi la categoria {n}",
+        "tech_aria": "Tecnologia {t} della categoria {n}",
+        "remove_tech": "Rimuovi la tecnologia {t}",
+        "add_tech": "+ Aggiungi una tecnologia",
+        "add_category": "+ Aggiungi una categoria",
+        "drag_category": "Trascina per riordinare la categoria",
+        "drag_tech": "Trascina per riordinare la tecnologia",
+        "icons": {
+            "hexagone_creux": "Esagono vuoto",
+            "hexagone_plein": "Esagono pieno",
+            "carre_pointe": "Quadrato puntato",
+            "cible": "Bersaglio",
+            "double_cercle": "Doppio cerchio",
+            "cercle_croix": "Cerchio-croce",
+            "cercle_x": "Cerchio-X",
+            "cercle_point": "Cerchio-punto",
+            "losange_plein": "Rombo pieno",
+            "losange_creux": "Rombo vuoto",
+            "petit_losange": "Piccolo rombo",
+            "triangle_plein": "Triangolo pieno",
+            "triangle_creux": "Triangolo vuoto",
+            "delta": "Delta",
+            "etoile_4": "Stella a 4 punte",
+            "etoile_creuse": "Stella vuota",
+            "etoile_apl": "Stella APL",
+            "etoile_operateur": "Stella operatore",
+            "hexagone_apl": "Esagono APL",
+            "anneau_benzene": "Anello benzene",
+            "marqueur_terminal": "Marcatore terminale",
+            "therefore": "Therefore",
+            "reference": "Riferimento",
+            "trigramme": "Trigramma",
+            "engrenage": "Ingranaggio",
+            "eclair": "Fulmine",
+            "chevron": "Chevron",
+            "double_chevron": "Doppio chevron"
+        }
     }
 }

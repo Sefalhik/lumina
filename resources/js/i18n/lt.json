@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Keisti kalbą",
         "filter_placeholder": "Filtruoti…",
+        "filter_aria_label": "Ieškoti kalbos",
         "no_results": "Nėra rezultatų"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ SPUSTELĖKITE ARBA PASPAUSKITE BET KURĮ KLAVIŠĄ, NORĖDAMI PRALEISTI ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Kategorijos {n} piktograma",
+        "name_aria": "Kategorijos {n} pavadinimas",
+        "remove_category": "Ištrinti kategoriją {n}",
+        "tech_aria": "Technologija {t} iš kategorijos {n}",
+        "remove_tech": "Ištrinti technologiją {t}",
+        "add_tech": "+ Pridėti technologiją",
+        "add_category": "+ Pridėti kategoriją",
+        "drag_category": "Tempti norėdami pertvarkyti kategoriją",
+        "drag_tech": "Tempti norėdami pertvarkyti technologiją",
+        "icons": {
+            "hexagone_creux": "Tuščias šešiakampis",
+            "hexagone_plein": "Pilnas šešiakampis",
+            "carre_pointe": "Taškintas kvadratas",
+            "cible": "Taikinys",
+            "double_cercle": "Dvigubas apskritimas",
+            "cercle_croix": "Apskritimas su kryžiumi",
+            "cercle_x": "Apskritimas su X",
+            "cercle_point": "Apskritimas su tašku",
+            "losange_plein": "Pilnas rombas",
+            "losange_creux": "Tuščias rombas",
+            "petit_losange": "Mažas rombas",
+            "triangle_plein": "Pilnas trikampis",
+            "triangle_creux": "Tuščias trikampis",
+            "delta": "Delta",
+            "etoile_4": "4 šakų žvaigždė",
+            "etoile_creuse": "Tuščia žvaigždė",
+            "etoile_apl": "APL žvaigždė",
+            "etoile_operateur": "Operatoriaus žvaigždė",
+            "hexagone_apl": "APL šešiakampis",
+            "anneau_benzene": "Benzeno žiedas",
+            "marqueur_terminal": "Terminalo žymeklis",
+            "therefore": "Therefore",
+            "reference": "Nuoroda",
+            "trigramme": "Trigramas",
+            "engrenage": "Krumpliaraštis",
+            "eclair": "Žaibas",
+            "chevron": "Chevron",
+            "double_chevron": "Dvigubas chevron"
+        }
     }
 }

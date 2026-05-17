@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Taal wijzigen",
         "filter_placeholder": "Filteren…",
+        "filter_aria_label": "Een taal zoeken",
         "no_results": "Geen resultaten"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLIK OF DRUK OP EEN TOETS OM OVER TE SLAAN ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Pictogram van categorie {n}",
+        "name_aria": "Naam van categorie {n}",
+        "remove_category": "Categorie {n} verwijderen",
+        "tech_aria": "Technologie {t} van categorie {n}",
+        "remove_tech": "Technologie {t} verwijderen",
+        "add_tech": "+ Een technologie toevoegen",
+        "add_category": "+ Een categorie toevoegen",
+        "drag_category": "Sleep om de categorie opnieuw in te delen",
+        "drag_tech": "Sleep om de technologie opnieuw in te delen",
+        "icons": {
+            "hexagone_creux": "Holle zeshoek",
+            "hexagone_plein": "Volle zeshoek",
+            "carre_pointe": "Gestipte vierkant",
+            "cible": "Doelwit",
+            "double_cercle": "Dubbele cirkel",
+            "cercle_croix": "Cirkel-kruis",
+            "cercle_x": "Cirkel-X",
+            "cercle_point": "Cirkel-punt",
+            "losange_plein": "Volle ruit",
+            "losange_creux": "Holle ruit",
+            "petit_losange": "Kleine ruit",
+            "triangle_plein": "Volle driehoek",
+            "triangle_creux": "Holle driehoek",
+            "delta": "Delta",
+            "etoile_4": "Ster met 4 punten",
+            "etoile_creuse": "Holle ster",
+            "etoile_apl": "APL-ster",
+            "etoile_operateur": "Operator-ster",
+            "hexagone_apl": "APL-zeshoek",
+            "anneau_benzene": "Benzeenring",
+            "marqueur_terminal": "Terminalmarkering",
+            "therefore": "Therefore",
+            "reference": "Referentie",
+            "trigramme": "Trigram",
+            "engrenage": "Tandwiel",
+            "eclair": "Bliksem",
+            "chevron": "Chevron",
+            "double_chevron": "Dubbele chevron"
+        }
     }
 }

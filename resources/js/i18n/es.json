@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Cambiar idioma",
         "filter_placeholder": "Filtrar…",
+        "filter_aria_label": "Buscar un idioma",
         "no_results": "Sin resultados"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ HAGA CLIC O PRESIONE UNA TECLA PARA OMITIR ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Icono de la categoría {n}",
+        "name_aria": "Nombre de la categoría {n}",
+        "remove_category": "Eliminar la categoría {n}",
+        "tech_aria": "Tecnología {t} de la categoría {n}",
+        "remove_tech": "Eliminar la tecnología {t}",
+        "add_tech": "+ Añadir una tecnología",
+        "add_category": "+ Añadir una categoría",
+        "drag_category": "Arrastrar para reordenar la categoría",
+        "drag_tech": "Arrastrar para reordenar la tecnología",
+        "icons": {
+            "hexagone_creux": "Hexágono hueco",
+            "hexagone_plein": "Hexágono lleno",
+            "carre_pointe": "Cuadrado punteado",
+            "cible": "Objetivo",
+            "double_cercle": "Doble círculo",
+            "cercle_croix": "Círculo-cruz",
+            "cercle_x": "Círculo-X",
+            "cercle_point": "Círculo-punto",
+            "losange_plein": "Rombo lleno",
+            "losange_creux": "Rombo hueco",
+            "petit_losange": "Pequeño rombo",
+            "triangle_plein": "Triángulo lleno",
+            "triangle_creux": "Triángulo hueco",
+            "delta": "Delta",
+            "etoile_4": "Estrella de 4 puntas",
+            "etoile_creuse": "Estrella hueca",
+            "etoile_apl": "Estrella APL",
+            "etoile_operateur": "Estrella operador",
+            "hexagone_apl": "Hexágono APL",
+            "anneau_benzene": "Anillo de benceno",
+            "marqueur_terminal": "Marcador terminal",
+            "therefore": "Therefore",
+            "reference": "Referencia",
+            "trigramme": "Trigrama",
+            "engrenage": "Engranaje",
+            "eclair": "Rayo",
+            "chevron": "Chevron",
+            "double_chevron": "Doble chevron"
+        }
     }
 }

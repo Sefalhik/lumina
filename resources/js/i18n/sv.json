@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Byt språk",
         "filter_placeholder": "Filtrera…",
+        "filter_aria_label": "Sök ett språk",
         "no_results": "Inga resultat"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLICKA ELLER TRYCK EN TANGENT FÖR ATT HOPPA ÖVER ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Ikon för kategori {n}",
+        "name_aria": "Namn på kategori {n}",
+        "remove_category": "Ta bort kategori {n}",
+        "tech_aria": "Teknik {t} i kategori {n}",
+        "remove_tech": "Ta bort teknik {t}",
+        "add_tech": "+ Lägg till teknik",
+        "add_category": "+ Lägg till kategori",
+        "drag_category": "Dra för att sortera om kategori",
+        "drag_tech": "Dra för att sortera om teknik",
+        "icons": {
+            "hexagone_creux": "Ihåligt hexagon",
+            "hexagone_plein": "Fyllt hexagon",
+            "carre_pointe": "Spetsig kvadrat",
+            "cible": "Målsida",
+            "double_cercle": "Dubbel cirkel",
+            "cercle_croix": "Cirkel-kryss",
+            "cercle_x": "Cirkel-X",
+            "cercle_point": "Cirkel-punkt",
+            "losange_plein": "Fylld romb",
+            "losange_creux": "Ihålig romb",
+            "petit_losange": "Liten romb",
+            "triangle_plein": "Fylld triangel",
+            "triangle_creux": "Ihålig triangel",
+            "delta": "Delta",
+            "etoile_4": "Fyrgrenig stjärna",
+            "etoile_creuse": "Ihålig stjärna",
+            "etoile_apl": "APL-stjärna",
+            "etoile_operateur": "Operatörstjärna",
+            "hexagone_apl": "APL-hexagon",
+            "anneau_benzene": "Bensenring",
+            "marqueur_terminal": "Terminalmarkör",
+            "therefore": "Therefore",
+            "reference": "Referens",
+            "trigramme": "Trigram",
+            "engrenage": "Kugghjul",
+            "eclair": "Blixt",
+            "chevron": "Chevron",
+            "double_chevron": "Dubbel chevron"
+        }
     }
 }

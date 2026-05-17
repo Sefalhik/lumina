@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Athraigh teanga",
         "filter_placeholder": "Scagaire…",
+        "filter_aria_label": "Cuardaigh teanga",
         "no_results": "Gan torthaí"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ CLICEÁIL NÓ BRÚIGH CNAIPE CHUN A SCIPEÁIL ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Deilbhín an chatagóir {n}",
+        "name_aria": "Ainm an chatagóir {n}",
+        "remove_category": "Bain an chatagóir {n}",
+        "tech_aria": "Teicneolaíocht {t} an chatagóir {n}",
+        "remove_tech": "Bain an teicneolaíocht {t}",
+        "add_tech": "+ Cuir teicneolaíocht leis",
+        "add_category": "+ Cuir catagóir leis",
+        "drag_category": "Tarraing chun an chatagóir a athord",
+        "drag_tech": "Tarraing chun an teicneolaíocht a athord",
+        "icons": {
+            "hexagone_creux": "Heicseagán folamh",
+            "hexagone_plein": "Heicseagán lán",
+            "carre_pointe": "Cearnóg poncaithe",
+            "cible": "Sprioc",
+            "double_cercle": "Ciorcal dúbailte",
+            "cercle_croix": "Ciorcal-chros",
+            "cercle_x": "Ciorcal-X",
+            "cercle_point": "Ciorcal-poncanna",
+            "losange_plein": "Deilbhín lán",
+            "losange_creux": "Deilbhín folamh",
+            "petit_losange": "Beag deilbhín",
+            "triangle_plein": "Triantán lán",
+            "triangle_creux": "Triantán folamh",
+            "delta": "Delta",
+            "etoile_4": "Réalta 4 gheal",
+            "etoile_creuse": "Réalta fholamh",
+            "etoile_apl": "Réalta APL",
+            "etoile_operateur": "Réalta oibreora",
+            "hexagone_apl": "Heicseagán APL",
+            "anneau_benzene": "Fáinne benzene",
+            "marqueur_terminal": "Marcóir spréachta",
+            "therefore": "Therefore",
+            "reference": "Tagairt",
+            "trigramme": "Trigram",
+            "engrenage": "Giaranna",
+            "eclair": "Drithíonn",
+            "chevron": "Chevron",
+            "double_chevron": "Chevron dúbailte"
+        }
     }
 }

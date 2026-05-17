@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Nyelv módosítása",
         "filter_placeholder": "Szűrés…",
+        "filter_aria_label": "Nyelvkeresés",
         "no_results": "Nincs találat"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KATTINTSON VAGY NYOMJON MEG EGY BILLENTYŰT A KIHAGYÁSHOZ ]"
+    },
+    "skills_editor": {
+        "icon_aria": "A(z) {n} kategória ikonja",
+        "name_aria": "A(z) {n} kategória neve",
+        "remove_category": "A(z) {n} kategória eltávolítása",
+        "tech_aria": "A(z) {t} technológia a(z) {n} kategóriában",
+        "remove_tech": "A(z) {t} technológia eltávolítása",
+        "add_tech": "+ Technológia hozzáadása",
+        "add_category": "+ Kategória hozzáadása",
+        "drag_category": "Húzza az átrendezéshez a kategóriát",
+        "drag_tech": "Húzza az átrendezéshez a technológiát",
+        "icons": {
+            "hexagone_creux": "Üres hatszög",
+            "hexagone_plein": "Kitöltött hatszög",
+            "carre_pointe": "Pontozott négyzet",
+            "cible": "Céltábla",
+            "double_cercle": "Dupla kör",
+            "cercle_croix": "Kör-kereszt",
+            "cercle_x": "Kör-X",
+            "cercle_point": "Kör-pont",
+            "losange_plein": "Kitöltött rombusz",
+            "losange_creux": "Üres rombusz",
+            "petit_losange": "Kis rombusz",
+            "triangle_plein": "Kitöltött háromszög",
+            "triangle_creux": "Üres háromszög",
+            "delta": "Delta",
+            "etoile_4": "4 ágú csillag",
+            "etoile_creuse": "Üres csillag",
+            "etoile_apl": "APL csillag",
+            "etoile_operateur": "Operátor csillag",
+            "hexagone_apl": "APL hatszög",
+            "anneau_benzene": "Benzén gyűrű",
+            "marqueur_terminal": "Terminál jelölő",
+            "therefore": "Therefore",
+            "reference": "Referencia",
+            "trigramme": "Trigram",
+            "engrenage": "Fogaskerék",
+            "eclair": "Villám",
+            "chevron": "Chevron",
+            "double_chevron": "Dupla chevron"
+        }
     }
 }

@@ -9,7 +9,7 @@
     "rules": {
         "order/properties-alphabetical-order": true,
         "scss/at-rule-no-unknown": [true, {
-            "ignoreAtRules": ["use", "forward", "tailwind", "plugin", "apply", "layer"]
+            "ignoreAtRules": ["use", "forward", "tailwind", "plugin", "apply", "layer", "source"]
         }],
         "at-rule-no-unknown": null,
         "no-descending-specificity": null,

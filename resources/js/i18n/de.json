@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Sprache wechseln",
         "filter_placeholder": "Filtern…",
+        "filter_aria_label": "Eine Sprache suchen",
         "no_results": "Keine Ergebnisse"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLICKEN ODER TASTE DRÜCKEN ZUM ÜBERSPRINGEN ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Symbol der Kategorie {n}",
+        "name_aria": "Name der Kategorie {n}",
+        "remove_category": "Kategorie {n} löschen",
+        "tech_aria": "Technologie {t} der Kategorie {n}",
+        "remove_tech": "Technologie {t} löschen",
+        "add_tech": "+ Technologie hinzufügen",
+        "add_category": "+ Kategorie hinzufügen",
+        "drag_category": "Kategorie zum Neuordnen ziehen",
+        "drag_tech": "Technologie zum Neuordnen ziehen",
+        "icons": {
+            "hexagone_creux": "Hohles Sechseck",
+            "hexagone_plein": "Vollständiges Sechseck",
+            "carre_pointe": "Spitzquadrat",
+            "cible": "Zielscheibe",
+            "double_cercle": "Doppelkreis",
+            "cercle_croix": "Kreis-Kreuz",
+            "cercle_x": "Kreis-X",
+            "cercle_point": "Kreis-Punkt",
+            "losange_plein": "Vollständiger Rhombus",
+            "losange_creux": "Hohler Rhombus",
+            "petit_losange": "Kleiner Rhombus",
+            "triangle_plein": "Vollständiges Dreieck",
+            "triangle_creux": "Hohles Dreieck",
+            "delta": "Delta",
+            "etoile_4": "4-strahliger Stern",
+            "etoile_creuse": "Hoher Stern",
+            "etoile_apl": "APL-Stern",
+            "etoile_operateur": "Operator-Stern",
+            "hexagone_apl": "APL-Sechseck",
+            "anneau_benzene": "Benzolring",
+            "marqueur_terminal": "Terminalmarker",
+            "therefore": "Therefore",
+            "reference": "Referenz",
+            "trigramme": "Trigramm",
+            "engrenage": "Zahnrad",
+            "eclair": "Blitz",
+            "chevron": "Chevron",
+            "double_chevron": "Doppel-Chevron"
+        }
     }
 }

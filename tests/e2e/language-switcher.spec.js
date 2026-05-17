@@ -34,6 +34,14 @@ test.describe('LanguageSwitcher', () => {
         await expect(page.getByRole('listbox', { name: 'Changer de langue' })).toContainText('Aucun résultat');
     });
 
+    test('marks the current locale as selected', async ({ page }) => {
+        await page.getByRole('button', { name: 'Changer de langue' }).click();
+
+        const currentOption = page.getByRole('option', { name: /Français/ });
+        await expect(currentOption).toHaveAttribute('aria-selected', 'true');
+        await expect(currentOption).toContainText('✓');
+    });
+
     test('switching locale reloads the page with the correct html[lang]', async ({ page }) => {
         await page.getByRole('button', { name: 'Changer de langue' }).click();
         await page.getByRole('option', { name: /Deutsch/ }).locator('a').click();

@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Changer de langue",
         "filter_placeholder": "Filtrer…",
+        "filter_aria_label": "Rechercher une langue",
         "no_results": "Aucun résultat"
     },
     "theme_switcher": {
@@ -15,5 +16,46 @@
     },
     "boot": {
         "skip": "[ CLIQUEZ OU APPUYEZ SUR UNE TOUCHE POUR IGNORER ]"
+    },
+    "skills_editor": {
+        "icon_aria":        "Icône de la catégorie {n}",
+        "name_aria":        "Nom de la catégorie {n}",
+        "remove_category":  "Supprimer la catégorie {n}",
+        "tech_aria":        "Technologie {t} de la catégorie {n}",
+        "remove_tech":      "Supprimer la technologie {t}",
+        "add_tech":         "+ Ajouter une techno",
+        "add_category":     "+ Ajouter une catégorie",
+        "drag_category":    "Glisser pour réordonner la catégorie",
+        "drag_tech":        "Glisser pour réordonner la technologie",
+        "icons": {
+            "hexagone_creux":    "Hexagone creux",
+            "hexagone_plein":    "Hexagone plein",
+            "carre_pointe":      "Carré pointé",
+            "cible":             "Cible",
+            "double_cercle":     "Double cercle",
+            "cercle_croix":      "Cercle-croix",
+            "cercle_x":          "Cercle-X",
+            "cercle_point":      "Cercle-point",
+            "losange_plein":     "Losange plein",
+            "losange_creux":     "Losange creux",
+            "petit_losange":     "Petit losange",
+            "triangle_plein":    "Triangle plein",
+            "triangle_creux":    "Triangle creux",
+            "delta":             "Delta",
+            "etoile_4":          "Étoile 4 branches",
+            "etoile_creuse":     "Étoile creuse",
+            "etoile_apl":        "Étoile APL",
+            "etoile_operateur":  "Étoile opérateur",
+            "hexagone_apl":      "Hexagone APL",
+            "anneau_benzene":    "Anneau benzène",
+            "marqueur_terminal": "Marqueur terminal",
+            "therefore":         "Therefore",
+            "reference":         "Référence",
+            "trigramme":         "Trigramme",
+            "engrenage":         "Engrenage",
+            "eclair":            "Éclair",
+            "chevron":           "Chevron",
+            "double_chevron":    "Double chevron"
+        }
     }
 }

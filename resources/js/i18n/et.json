@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Muuda keelt",
         "filter_placeholder": "Filtreeri…",
+        "filter_aria_label": "Otsi keelt",
         "no_results": "Tulemusi ei leitud"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLIKI VÕI VAJUTA NUPPU VAHELE JÄTMISEKS ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Kategooria {n} ikoon",
+        "name_aria": "Kategooria {n} nimi",
+        "remove_category": "Eemalda kategooria {n}",
+        "tech_aria": "Tehnoloogia {t} kategooriast {n}",
+        "remove_tech": "Eemalda tehnoloogia {t}",
+        "add_tech": "+ Lisa tehnoloogia",
+        "add_category": "+ Lisa kategooria",
+        "drag_category": "Lohistamisega kategooria ümber järjestamiseks",
+        "drag_tech": "Lohistamisega tehnoloogia ümber järjestamiseks",
+        "icons": {
+            "hexagone_creux": "Täis kuusnurk",
+            "hexagone_plein": "Täis kuusnurk",
+            "carre_pointe": "Osutatud ruut",
+            "cible": "Sihtmärk",
+            "double_cercle": "Kahekordne ring",
+            "cercle_croix": "Ring-rist",
+            "cercle_x": "Ring-X",
+            "cercle_point": "Ring-punkt",
+            "losange_plein": "Täis romb",
+            "losange_creux": "Tühi romb",
+            "petit_losange": "Väike romb",
+            "triangle_plein": "Täis kolmnurk",
+            "triangle_creux": "Tühi kolmnurk",
+            "delta": "Delta",
+            "etoile_4": "4-harulised tähed",
+            "etoile_creuse": "Tühi täht",
+            "etoile_apl": "APL täht",
+            "etoile_operateur": "Operaatori täht",
+            "hexagone_apl": "APL kuusnurk",
+            "anneau_benzene": "Benteeni ring",
+            "marqueur_terminal": "Terminali marker",
+            "therefore": "Therefore",
+            "reference": "Viide",
+            "trigramme": "Trigramm",
+            "engrenage": "Hammasratas",
+            "eclair": "Välk",
+            "chevron": "Ševroon",
+            "double_chevron": "Kahekordne ševroon"
+        }
     }
 }

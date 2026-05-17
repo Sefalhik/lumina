@@ -52,20 +52,26 @@ Route::get('/e2e/homepage-content', function () {
         'tagline' => $content?->getTranslation('tagline', 'fr', false) ?? '',
         'subtitle' => $content?->getTranslation('subtitle', 'fr', false) ?? '',
         'bio' => $content?->getTranslation('bio', 'fr', false) ?? '',
+        'meta_description' => $content?->getTranslation('meta_description', 'fr', false) ?? '',
+        'skills' => $content?->getTranslation('skills', 'fr', false) ?? '[]',
     ]);
 })->middleware('web');
 
-// Restores homepage FR content from a JSON body { tagline, subtitle, bio }.
+// Restores homepage FR content from a JSON body { tagline, subtitle, bio, meta_description }.
 Route::post('/e2e/homepage-content', function () {
     $data = request()->validate([
         'tagline' => ['required', 'string'],
         'subtitle' => ['required', 'string'],
         'bio' => ['required', 'string'],
+        'meta_description' => ['required', 'string'],
+        'skills' => ['nullable', 'string'],
     ]);
     $content = HomepageContent::firstOrNew([]);
     $content->setTranslation('tagline', 'fr', $data['tagline']);
     $content->setTranslation('subtitle', 'fr', $data['subtitle']);
     $content->setTranslation('bio', 'fr', $data['bio']);
+    $content->setTranslation('meta_description', 'fr', $data['meta_description']);
+    $content->setTranslation('skills', 'fr', $data['skills'] ?? '[]');
     $content->save();
 
     return response()->json(['ok' => true]);

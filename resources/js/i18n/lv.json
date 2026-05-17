@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Mainīt valodu",
         "filter_placeholder": "Filtrēt…",
+        "filter_aria_label": "Meklēt valodu",
         "no_results": "Nav rezultātu"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ NOKLIKŠĶINIET VAI NOSPIEDIET JEBKURU TAUSTIŅU, LAI IZLAISTU ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Kategorijas {n} ikona",
+        "name_aria": "Kategorijas {n} nosaukums",
+        "remove_category": "Noņemt kategoriju {n}",
+        "tech_aria": "Tehnologija {t} no kategorijas {n}",
+        "remove_tech": "Noņemt tehnologiju {t}",
+        "add_tech": "+ Pievienot tehnologiju",
+        "add_category": "+ Pievienot kategoriju",
+        "drag_category": "Vilkt, lai pārkārtotu kategoriju",
+        "drag_tech": "Vilkt, lai pārkārtotu tehnologiju",
+        "icons": {
+            "hexagone_creux": "Dobs sešstūris",
+            "hexagone_plein": "Pildīts sešstūris",
+            "carre_pointe": "Punktots kvadrāts",
+            "cible": "Mērķis",
+            "double_cercle": "Dubultaplis",
+            "cercle_croix": "Aplis-krusts",
+            "cercle_x": "Aplis-X",
+            "cercle_point": "Aplis-punkts",
+            "losange_plein": "Pildīts rombs",
+            "losange_creux": "Dobs rombs",
+            "petit_losange": "Mazs rombs",
+            "triangle_plein": "Pildīts trijstūris",
+            "triangle_creux": "Dobs trijstūris",
+            "delta": "Delta",
+            "etoile_4": "4 zaru zvaigzne",
+            "etoile_creuse": "Doba zvaigzne",
+            "etoile_apl": "APL zvaigzne",
+            "etoile_operateur": "Operatora zvaigzne",
+            "hexagone_apl": "APL sešstūris",
+            "anneau_benzene": "Benzola gredzens",
+            "marqueur_terminal": "Termināļa marķieris",
+            "therefore": "Therefore",
+            "reference": "Atsauce",
+            "trigramme": "Trigramma",
+            "engrenage": "Zobrats",
+            "eclair": "Zibens",
+            "chevron": "Ševrons",
+            "double_chevron": "Dubultševrons"
+        }
     }
 }

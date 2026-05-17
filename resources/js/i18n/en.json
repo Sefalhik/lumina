@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Change language",
         "filter_placeholder": "Filter…",
+        "filter_aria_label": "Search for a language",
         "no_results": "No results"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ CLICK OR PRESS ANY KEY TO SKIP ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Icon of category {n}",
+        "name_aria": "Name of category {n}",
+        "remove_category": "Remove category {n}",
+        "tech_aria": "Technology {t} of category {n}",
+        "remove_tech": "Remove technology {t}",
+        "add_tech": "+ Add a technology",
+        "add_category": "+ Add a category",
+        "drag_category": "Drag to reorder category",
+        "drag_tech": "Drag to reorder technology",
+        "icons": {
+            "hexagone_creux": "Hollow hexagon",
+            "hexagone_plein": "Filled hexagon",
+            "carre_pointe": "Pointed square",
+            "cible": "Target",
+            "double_cercle": "Double circle",
+            "cercle_croix": "Circle-cross",
+            "cercle_x": "Circle-X",
+            "cercle_point": "Circle-dot",
+            "losange_plein": "Filled diamond",
+            "losange_creux": "Hollow diamond",
+            "petit_losange": "Small diamond",
+            "triangle_plein": "Filled triangle",
+            "triangle_creux": "Hollow triangle",
+            "delta": "Delta",
+            "etoile_4": "4-pointed star",
+            "etoile_creuse": "Hollow star",
+            "etoile_apl": "APL star",
+            "etoile_operateur": "Operator star",
+            "hexagone_apl": "APL hexagon",
+            "anneau_benzene": "Benzene ring",
+            "marqueur_terminal": "Terminal marker",
+            "therefore": "Therefore",
+            "reference": "Reference",
+            "trigramme": "Trigram",
+            "engrenage": "Gear",
+            "eclair": "Lightning",
+            "chevron": "Chevron",
+            "double_chevron": "Double chevron"
+        }
     }
 }

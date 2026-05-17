@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Vaihda kieltä",
         "filter_placeholder": "Suodata…",
+        "filter_aria_label": "Etsi kieltä",
         "no_results": "Ei tuloksia"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ NAPSAUTA TAI PAINA NÄPPÄINTÄ OHITTAAKSESI ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Luokan {n} kuvake",
+        "name_aria": "Luokan {n} nimi",
+        "remove_category": "Poista luokka {n}",
+        "tech_aria": "Luokan {n} teknologia {t}",
+        "remove_tech": "Poista teknologia {t}",
+        "add_tech": "+ Lisää teknologia",
+        "add_category": "+ Lisää luokka",
+        "drag_category": "Vedä järjestääksesi luokan uudelleen",
+        "drag_tech": "Vedä järjestääksesi teknologian uudelleen",
+        "icons": {
+            "hexagone_creux": "Ontto kuusikulma",
+            "hexagone_plein": "Täysi kuusikulma",
+            "carre_pointe": "Terävä neliö",
+            "cible": "Kohde",
+            "double_cercle": "Kaksoiskehä",
+            "cercle_croix": "Kehä-risti",
+            "cercle_x": "Kehä-X",
+            "cercle_point": "Kehä-piste",
+            "losange_plein": "Täysi rombi",
+            "losange_creux": "Ontto rombi",
+            "petit_losange": "Pieni rombi",
+            "triangle_plein": "Täysi kolmio",
+            "triangle_creux": "Ontto kolmio",
+            "delta": "Delta",
+            "etoile_4": "4-haarainen tähti",
+            "etoile_creuse": "Ontto tähti",
+            "etoile_apl": "APL-tähti",
+            "etoile_operateur": "Operaattoritähti",
+            "hexagone_apl": "APL-kuusikulma",
+            "anneau_benzene": "Bentseenirengas",
+            "marqueur_terminal": "Päätemerkki",
+            "therefore": "Therefore",
+            "reference": "Viite",
+            "trigramme": "Trigrammi",
+            "engrenage": "Hammaspyörä",
+            "eclair": "Salama",
+            "chevron": "Chevron",
+            "double_chevron": "Kaksois-chevron"
+        }
     }
 }

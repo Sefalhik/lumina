@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Ibdel il-lingwa",
         "filter_placeholder": "Iffiltra…",
+        "filter_aria_label": "Fittex lingwa",
         "no_results": "L-ebda riżultat"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ IKKLIKKJA JEW AGĦFAS BUTTUNA BIEX TILEF ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Ikona tal-kategorija {n}",
+        "name_aria": "Isem tal-kategorija {n}",
+        "remove_category": "Neħħi l-kategorija {n}",
+        "tech_aria": "Teknoloġija {t} tal-kategorija {n}",
+        "remove_tech": "Neħħi t-teknoloġija {t}",
+        "add_tech": "+ Żid teknoloġija",
+        "add_category": "+ Żid kategorija",
+        "drag_category": "Ġarr biex tordna mill-ġdid il-kategorija",
+        "drag_tech": "Ġarr biex tordna mill-ġdid it-teknoloġija",
+        "icons": {
+            "hexagone_creux": "Eżagonu vojt",
+            "hexagone_plein": "Eżagonu mimlij",
+            "carre_pointe": "Kwadru appuntat",
+            "cible": "Mira",
+            "double_cercle": "Ċirku doppju",
+            "cercle_croix": "Ċirku-salib",
+            "cercle_x": "Ċirku-X",
+            "cercle_point": "Ċirku-punt",
+            "losange_plein": "Rombu mimlij",
+            "losange_creux": "Rombu vojt",
+            "petit_losange": "Rombu żgħir",
+            "triangle_plein": "Trijanglu mimlij",
+            "triangle_creux": "Trijanglu vojt",
+            "delta": "Delta",
+            "etoile_4": "Stilla b'4 fergħat",
+            "etoile_creuse": "Stilla vojta",
+            "etoile_apl": "Stilla APL",
+            "etoile_operateur": "Stilla operatur",
+            "hexagone_apl": "Eżagonu APL",
+            "anneau_benzene": "Ħalka benzene",
+            "marqueur_terminal": "Marker terminali",
+            "therefore": "Therefore",
+            "reference": "Referenza",
+            "trigramme": "Trigramma",
+            "engrenage": "Gear",
+            "eclair": "Saetta",
+            "chevron": "Chevron",
+            "double_chevron": "Chevron doppju"
+        }
     }
 }

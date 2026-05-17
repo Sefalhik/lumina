@@ -26,12 +26,16 @@ test.describe('Admin — Homepage form', () => {
         await expect(page.locator('#tagline_fr')).toBeVisible();
         await expect(page.locator('#subtitle_fr')).toBeVisible();
         await expect(page.locator('#bio_fr')).toBeVisible();
+        await expect(page.locator('#meta_description_fr')).toBeVisible();
+        await expect(page.locator('#skills-editor')).toBeVisible();
     });
 
     test('displays success flash after valid save', async ({ page }) => {
         await page.locator('#tagline_fr').fill('Mon accroche');
         await page.locator('#subtitle_fr').fill('Mon sous-titre');
         await page.locator('#bio_fr').fill('Ma bio en français.');
+        await page.locator('#meta_description_fr').fill('Ma description SEO.');
+        // skills[fr] hidden input is serialized by the Vue component — default value '[]' is valid.
 
         await page.getByRole('button', { name: /enregistrer/i }).click();
         await page.waitForURL('**/fr/admin/homepage');

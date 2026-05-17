@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Αλλαγή γλώσσας",
         "filter_placeholder": "Φιλτράρισμα…",
+        "filter_aria_label": "Αναζήτηση γλώσσας",
         "no_results": "Κανένα αποτέλεσμα"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ ΚΛΙΚ ΑΝ Ή ΠΑΤΗΣΤΕ ΟΠΟΙΟΔΗΠΟΤΕ ΠΛΗΚΤΡΟ ΓΙΑ ΠΑΡΑΛΕΙΨΗ ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Εικονίδιο της κατηγορίας {n}",
+        "name_aria": "Όνομα της κατηγορίας {n}",
+        "remove_category": "Διαγραφή της κατηγορίας {n}",
+        "tech_aria": "Τεχνολογία {t} της κατηγορίας {n}",
+        "remove_tech": "Διαγραφή της τεχνολογίας {t}",
+        "add_tech": "+ Προσθήκη τεχνολογίας",
+        "add_category": "+ Προσθήκη κατηγορίας",
+        "drag_category": "Σύρτε για να αναδιατάξετε την κατηγορία",
+        "drag_tech": "Σύρτε για να αναδιατάξετε την τεχνολογία",
+        "icons": {
+            "hexagone_creux": "Κοίλο εξάγωνο",
+            "hexagone_plein": "Γεμάτο εξάγωνο",
+            "carre_pointe": "Μυτερό τετράγωνο",
+            "cible": "Στόχος",
+            "double_cercle": "Διπλός κύκλος",
+            "cercle_croix": "Κύκλος-σταυρός",
+            "cercle_x": "Κύκλος-Χ",
+            "cercle_point": "Κύκλος-τελεία",
+            "losange_plein": "Γεμάτος ρόμβος",
+            "losange_creux": "Κοίλος ρόμβος",
+            "petit_losange": "Μικρός ρόμβος",
+            "triangle_plein": "Γεμάτο τρίγωνο",
+            "triangle_creux": "Κοίλο τρίγωνο",
+            "delta": "Delta",
+            "etoile_4": "Αστέρι 4 κλάδων",
+            "etoile_creuse": "Κοίλο αστέρι",
+            "etoile_apl": "Αστέρι APL",
+            "etoile_operateur": "Αστέρι τελεστή",
+            "hexagone_apl": "Εξάγωνο APL",
+            "anneau_benzene": "Δακτύλιος βενζένης",
+            "marqueur_terminal": "Δείκτης τερματικού",
+            "therefore": "Therefore",
+            "reference": "Αναφορά",
+            "trigramme": "Τρίγραμμο",
+            "engrenage": "Γρανάζι",
+            "eclair": "Αστραπή",
+            "chevron": "Chevron",
+            "double_chevron": "Διπλό chevron"
+        }
     }
 }

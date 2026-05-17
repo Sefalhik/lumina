@@ -135,6 +135,8 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 | `storage/app/i18n/` | TranslationCache storage — checksums + per-key translations (gitignored) |
 | `docs/` | Technical documentation |
 | `scripts/` | Dev tooling scripts (coverage check, etc.) |
+| `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
+| `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`) |
 
 ### FrankenPHP / Octane notes
 - Worker mode keeps the app bootstrapped between requests — avoid storing state in static properties or singletons that should reset per request.
@@ -202,6 +204,13 @@ Form-submission tests must run in serial mode to prevent session flash interfere
 test.describe.configure({ mode: 'serial' });
 ```
 
+### Playwright — multiple admin sessions
+`auth.setup.js` creates **two isolated server-side sessions** from two separate browser contexts:
+- `tests/e2e/.auth/admin.json` — `ADMIN_AUTH_FILE` — general admin specs
+- `tests/e2e/.auth/admin-editor.json` — `ADMIN_EDITOR_AUTH_FILE` — specs that both submit admin forms and run in parallel with other form-submitting admin specs
+
+**Why two files**: `fullyParallel: true` means spec files run concurrently. Two browser contexts created from the same `storageState` file send the same `laravel_session` cookie → same server-side session store. A flash message set by one spec's form submission is consumed by the next page load in *any* spec sharing that session, regardless of browser context isolation. Different auth files → different `laravel_session` cookies → fully isolated server-side session stores.
+
 ### Playwright — e2e helper routes (`routes/e2e.php`)
 Loaded only in non-production environments (guarded in `bootstrap/app.php`).
 
@@ -233,6 +242,8 @@ page.getByRole('listbox', { name: 'Changer de langue' }).getByRole('option')
 ## Static analysis (PHPStan)
 
 ### Dual-config setup
+Package: `larastan/larastan` (replaced the abandoned `nunomaduro/larastan` in May 2026 — update `phpstan.neon` and `phpstan-tests.neon` include paths accordingly).
+
 Two separate configs run in sequence via `composer analyse`:
 
 | Config | File | Scope | Level |
@@ -266,11 +277,22 @@ Config file: `eslint.config.js` (ESLint v9 flat config).
 ### Rule sets (in order)
 1. `@eslint/js` — `eslint:recommended`
 2. `eslint-plugin-vue` — `flat/recommended` (Vue 3 rules)
-3. `eslint-config-prettier` — disables formatting rules that conflict with Prettier
+3. `eslint-plugin-vuejs-accessibility` — `flat/recommended` (static WCAG a11y checks on Vue templates)
+4. `eslint-config-prettier` — disables formatting rules that conflict with Prettier
 
 Custom rules on top:
 - `vue/component-api-style: ['error', ['script-setup']]` — enforces `<script setup>`, rejects Options API
 - `no-var: error`, `prefer-const: error`
+
+### Accessibility static analysis (`eslint-plugin-vuejs-accessibility`)
+Checks Vue templates at lint time for ARIA and semantic HTML issues — complements the runtime axe-core scan in `tests/e2e/accessibility.spec.js`.
+
+Key rules enforced by `flat/recommended`:
+- `form-control-has-label` — every `<input>`, `<select>`, `<textarea>` must have an accessible label (via `<label>`, `aria-label`, or `aria-labelledby`)
+- `anchor-has-content` — `<a>` tags must have text or an `aria-label`
+- `interactive-supports-focus` — interactive elements must be keyboard-reachable
+
+These checks fire at commit time (lint-staged) and in CI — a missing `aria-label` blocks the commit.
 
 ### Globals
 Browser globals (`window`, `document`, `sessionStorage`, `fetch`…) are declared via the `globals` package (`globals.browser`).
@@ -357,17 +379,27 @@ To add a new CMS model: add its class to `config/i18n.php` → `cms_models`.
 All views are axe-scanned against WCAG 2.1 AA via `@axe-core/playwright` in `tests/e2e/accessibility.spec.js` (3 themes × N pages).
 
 ### Color contrast — safe opacity thresholds
-Dark-themed UIs with near-black backgrounds require higher opacity than typical designs.
+Dark-themed UIs with near-black backgrounds require higher opacity than typical designs. Thresholds below apply to lighter base colors (e.g., `text-base-content`, `text-primary`).
 
 | Text size | Utility opacity | Status |
 |-----------|----------------|--------|
 | 10px (`text-[10px]`) | `/40` | ❌ fails (~2.6:1) |
-| 10px | `/60` | ✅ passes (~4.8:1) |
+| 10px | `/60` | ✅ passes (~4.8:1) for light base colors |
 | 12–14px (`text-xs`, `text-sm`) | `/50` | ❌ fails (~3.5–4.1:1) |
-| 12–14px | `/70` | ✅ passes (~5:1) |
-| Any | `text-secondary/50` | ❌ fails — use `text-secondary` (full opacity) |
+| 12–14px | `/70` | ✅ passes (~5:1) for light base colors |
+| Any | `text-secondary/50` | ❌ fails — `text-secondary` is a dark mid-tone in these themes |
+| Any | `text-secondary` (full opacity) | ❌ still fails in some themes (e.g., neon-noir: ~2.5:1) |
 
-These thresholds were validated across the three themes (sprawl, steampunk, neon-noir). When in doubt, prefer higher opacity — the design intent of "muted" labels is preserved at `/60`–`/70`.
+When in doubt, prefer higher opacity — the design intent of "muted" labels is preserved at `/60`–`/70`. Never assume `text-secondary` at any opacity will pass for small text against near-black backgrounds.
+
+### Decorative elements — axe-core exemption
+When an element is purely aesthetic (no semantic content, `select-none`, not meaningful for AT) and its color cannot reach 4.5:1 regardless of opacity, apply both:
+- `aria-hidden="true"` — removes the element from the accessibility tree (correct for screen readers)
+- `data-a11y-role="decorative"` — tells the `axeCheck()` helper to skip the element
+
+**Important**: `aria-hidden` alone does **not** suppress axe-core's color-contrast check — axe-core scans visually rendered elements regardless of AT visibility. The `.exclude('[data-a11y-role="decorative"]')` call in `accessibility.spec.js` is what actually removes the element from the scan, aligned with the WCAG 1.4.3 exception for incidental/decorative text.
+
+Example: the `> LIST_` terminal-style header in `SkillsEditor.vue` — pure aesthetic decoration, uses `text-secondary` which cannot reach 4.5:1 in any theme at any opacity.
 
 ## Logging conventions
 See `docs/logging-conventions.md` for the full reference.

@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Смяна на езика",
         "filter_placeholder": "Филтриране…",
+        "filter_aria_label": "Търсете език",
         "no_results": "Няма резултати"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ КЛИКНЕТЕ ИЛИ НАТИСНЕТЕ КЛАВИШ ЗА ПРОПУСКАНЕ ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Икона на категория {n}",
+        "name_aria": "Име на категория {n}",
+        "remove_category": "Премахване на категория {n}",
+        "tech_aria": "Технология {t} на категория {n}",
+        "remove_tech": "Премахване на технология {t}",
+        "add_tech": "+ Добавяне на технология",
+        "add_category": "+ Добавяне на категория",
+        "drag_category": "Влачете, за да пренаредите категорията",
+        "drag_tech": "Влачете, за да пренаредите технологията",
+        "icons": {
+            "hexagone_creux": "Куха шестоъгълник",
+            "hexagone_plein": "Запълнена шестоъгълник",
+            "carre_pointe": "Заострен квадрат",
+            "cible": "Мишена",
+            "double_cercle": "Двоен кръг",
+            "cercle_croix": "Кръг-кръст",
+            "cercle_x": "Кръг-X",
+            "cercle_point": "Кръг-точка",
+            "losange_plein": "Запълнен ромб",
+            "losange_creux": "Куб ромб",
+            "petit_losange": "Малък ромб",
+            "triangle_plein": "Запълнен триъгълник",
+            "triangle_creux": "Куб триъгълник",
+            "delta": "Делта",
+            "etoile_4": "4-разклонена звезда",
+            "etoile_creuse": "Куба звезда",
+            "etoile_apl": "APL звезда",
+            "etoile_operateur": "Оператор звезда",
+            "hexagone_apl": "APL шестоъгълник",
+            "anneau_benzene": "Бензенов пръстен",
+            "marqueur_terminal": "Терминален маркер",
+            "therefore": "Therefore",
+            "reference": "Справка",
+            "trigramme": "Триграма",
+            "engrenage": "Зъбно колело",
+            "eclair": "Мълния",
+            "chevron": "Шеврон",
+            "double_chevron": "Двоен шеврон"
+        }
     }
 }

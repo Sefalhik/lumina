@@ -61,6 +61,12 @@
     </header>
 
     <main class="container mx-auto px-4 py-10">
+        @if (session('success'))
+        <div class="mb-6 border border-primary/40 bg-primary/10 px-5 py-3 font-mono text-xs tracking-widest text-primary uppercase">
+            ◈ {{ session('success') }}
+        </div>
+        @endif
+
         @yield('content')
     </main>
 

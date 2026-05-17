@@ -1,11 +1,13 @@
 import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
+import vueA11y from 'eslint-plugin-vuejs-accessibility';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default [
     js.configs.recommended,
     ...pluginVue.configs['flat/recommended'],
+    ...vueA11y.configs['flat/recommended'],
     prettier,
     {
         files: ['resources/js/**/*.{js,vue}'],

@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Alterar idioma",
         "filter_placeholder": "Filtrar…",
+        "filter_aria_label": "Pesquisar um idioma",
         "no_results": "Nenhum resultado"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ CLIQUE OU PRESSIONE UMA TECLA PARA PULAR ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Ícone da categoria {n}",
+        "name_aria": "Nome da categoria {n}",
+        "remove_category": "Remover a categoria {n}",
+        "tech_aria": "Tecnologia {t} da categoria {n}",
+        "remove_tech": "Remover a tecnologia {t}",
+        "add_tech": "+ Adicionar uma tecnologia",
+        "add_category": "+ Adicionar uma categoria",
+        "drag_category": "Arrastar para reordenar a categoria",
+        "drag_tech": "Arrastar para reordenar a tecnologia",
+        "icons": {
+            "hexagone_creux": "Hexágono vazio",
+            "hexagone_plein": "Hexágono cheio",
+            "carre_pointe": "Quadrado pontudo",
+            "cible": "Alvo",
+            "double_cercle": "Duplo círculo",
+            "cercle_croix": "Círculo-cruz",
+            "cercle_x": "Círculo-X",
+            "cercle_point": "Círculo-ponto",
+            "losange_plein": "Losango cheio",
+            "losange_creux": "Losango vazio",
+            "petit_losange": "Pequeno losango",
+            "triangle_plein": "Triângulo cheio",
+            "triangle_creux": "Triângulo vazio",
+            "delta": "Delta",
+            "etoile_4": "Estrela 4 pontas",
+            "etoile_creuse": "Estrela vazia",
+            "etoile_apl": "Estrela APL",
+            "etoile_operateur": "Estrela operador",
+            "hexagone_apl": "Hexágono APL",
+            "anneau_benzene": "Anel benzeno",
+            "marqueur_terminal": "Marcador terminal",
+            "therefore": "Therefore",
+            "reference": "Referência",
+            "trigramme": "Triagrama",
+            "engrenage": "Engrenagem",
+            "eclair": "Raio",
+            "chevron": "Chevron",
+            "double_chevron": "Duplo chevron"
+        }
     }
 }

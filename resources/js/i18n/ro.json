@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Schimbă limba",
         "filter_placeholder": "Filtrare…",
+        "filter_aria_label": "Căutați o limbă",
         "no_results": "Niciun rezultat"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ FACEȚI CLIC SAU APĂSAȚI O TASTĂ PENTRU A OMITE ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Pictograma categoriei {n}",
+        "name_aria": "Numele categoriei {n}",
+        "remove_category": "Ștergeți categoria {n}",
+        "tech_aria": "Tehnologia {t} din categoria {n}",
+        "remove_tech": "Ștergeți tehnologia {t}",
+        "add_tech": "+ Adăugați o tehnologie",
+        "add_category": "+ Adăugați o categorie",
+        "drag_category": "Trageți pentru a reordona categoria",
+        "drag_tech": "Trageți pentru a reordona tehnologia",
+        "icons": {
+            "hexagone_creux": "Hexagon gol",
+            "hexagone_plein": "Hexagon plin",
+            "carre_pointe": "Pătrat punctat",
+            "cible": "Țintă",
+            "double_cercle": "Cerc dublu",
+            "cercle_croix": "Cerc-cruce",
+            "cercle_x": "Cerc-X",
+            "cercle_point": "Cerc-punct",
+            "losange_plein": "Romb plin",
+            "losange_creux": "Romb gol",
+            "petit_losange": "Romb mic",
+            "triangle_plein": "Triunghi plin",
+            "triangle_creux": "Triunghi gol",
+            "delta": "Delta",
+            "etoile_4": "Stea cu 4 brațe",
+            "etoile_creuse": "Stea golă",
+            "etoile_apl": "Stea APL",
+            "etoile_operateur": "Stea operator",
+            "hexagone_apl": "Hexagon APL",
+            "anneau_benzene": "Inel benzen",
+            "marqueur_terminal": "Marcator terminal",
+            "therefore": "Therefore",
+            "reference": "Referință",
+            "trigramme": "Trigramă",
+            "engrenage": "Angrenaj",
+            "eclair": "Fulger",
+            "chevron": "Chevron",
+            "double_chevron": "Chevron dublu"
+        }
     }
 }

@@ -187,6 +187,7 @@ class CmsTranslate extends Command
                 : $record->getAttribute($field);
             $frValues[$field] = is_string($val) ? $val : '';
         }
+        $frValues = array_filter($frValues, fn (string $v) => $v !== '');
 
         $changedFields = $this->option('force')
             ? $frValues

@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Změnit jazyk",
         "filter_placeholder": "Filtrovat…",
+        "filter_aria_label": "Hledat jazyk",
         "no_results": "Žádné výsledky"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLIKNĚTE NEBO STISKNUTÍM KLÁVESY POKRAČUJTE ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Ikona kategorie {n}",
+        "name_aria": "Název kategorie {n}",
+        "remove_category": "Odebrat kategorii {n}",
+        "tech_aria": "Technologie {t} kategorie {n}",
+        "remove_tech": "Odebrat technologii {t}",
+        "add_tech": "+ Přidat technologii",
+        "add_category": "+ Přidat kategorii",
+        "drag_category": "Přetáhněte pro přeuspořádání kategorie",
+        "drag_tech": "Přetáhněte pro přeuspořádání technologie",
+        "icons": {
+            "hexagone_creux": "Dutý šestiúhelník",
+            "hexagone_plein": "Plný šestiúhelník",
+            "carre_pointe": "Špičatý čtverec",
+            "cible": "Cíl",
+            "double_cercle": "Dvojitý kruh",
+            "cercle_croix": "Kruh-křížek",
+            "cercle_x": "Kruh-X",
+            "cercle_point": "Kruh-tečka",
+            "losange_plein": "Plný kosočtverec",
+            "losange_creux": "Dutý kosočtverec",
+            "petit_losange": "Malý kosočtverec",
+            "triangle_plein": "Plný trojúhelník",
+            "triangle_creux": "Dutý trojúhelník",
+            "delta": "Delta",
+            "etoile_4": "Hvězda 4 paprsků",
+            "etoile_creuse": "Dutá hvězda",
+            "etoile_apl": "Hvězda APL",
+            "etoile_operateur": "Hvězda operátor",
+            "hexagone_apl": "Šestiúhelník APL",
+            "anneau_benzene": "Benzenový kruh",
+            "marqueur_terminal": "Koncový marker",
+            "therefore": "Therefore",
+            "reference": "Odkaz",
+            "trigramme": "Trigram",
+            "engrenage": "Ozubené kolo",
+            "eclair": "Blesk",
+            "chevron": "Chevron",
+            "double_chevron": "Dvojitý chevron"
+        }
     }
 }

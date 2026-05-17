@@ -35,6 +35,24 @@ php artisan db:seed --class=AdminSeeder   # creates the admin role + account
 npm install
 ```
 
+## Admin CMS
+
+The admin panel (`/{lang}/admin/`) lets the `admin` role manage site content without touching the codebase.
+
+| Section | Route | What's editable |
+|---------|-------|-----------------|
+| Homepage | `GET/POST /{lang}/admin/homepage` | Tagline, subtitle, bio, meta description, skills grid |
+
+### Skills grid
+The skills section on the homepage is managed via a drag-and-drop editor (`SkillsEditor` Vue component). Each category has:
+- A decorative icon (picked from a curated glyph set — `App\Enums\SkillIcon`)
+- A name
+- A list of technology labels (drag-sortable within the category)
+
+The `skills` field is stored as a JSON column via `spatie/laravel-translatable` — one JSON value per locale. Server-side validation is enforced by `App\Rules\ValidSkillsJson`.
+
+After editing content in the CMS, run `php artisan cms:translate` to propagate French content to the 23 other EU locales.
+
 ## i18n translation commands
 
 Two Artisan commands translate content from French (source of truth) to all 23 other EU locales via the Anthropic API. Both require `ANTHROPIC_API_KEY` in `.env`.
@@ -135,14 +153,14 @@ Three retro-futuristic themes selectable via the navbar switcher:
 npm run check:full     # ESLint + Stylelint + PHPStan + PHPUnit + Vitest + Playwright (~40s)
 
 # Linting & formatting
-npm run lint:js        # ESLint — check JS + Vue (eslint:recommended + vue3-recommended)
+npm run lint:js        # ESLint — check JS + Vue (eslint:recommended + vue3-recommended + vuejs-accessibility)
 npm run lint:js:fix    # ESLint — auto-fix
 npm run lint:scss      # Stylelint — check SCSS
 npm run lint:fix       # Stylelint — auto-fix SCSS
 npm run format         # Prettier — format SCSS, Vue, JS
 ./vendor/bin/pint      # Laravel Pint — format PHP (PSR-12)
 
-# Static analysis — PHPStan (Larastan)
+# Static analysis — PHPStan (larastan/larastan)
 composer analyse       # app/ at level 8, then tests/ at level 5 (two configs in sequence)
 
 # Tests — JS (Vitest)

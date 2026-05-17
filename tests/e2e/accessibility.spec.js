@@ -7,6 +7,10 @@ const THEMES = ['sprawl', 'steampunk', 'neon-noir'];
 function axeCheck(page) {
     return new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa'])
+        // Purely decorative elements (aria-hidden, data-a11y-role="decorative") are WCAG-exempt
+        // from contrast requirements. axe-core still scans visually-rendered elements regardless
+        // of aria-hidden, so we exclude them explicitly.
+        .exclude('[data-a11y-role="decorative"]')
         .analyze();
 }
 

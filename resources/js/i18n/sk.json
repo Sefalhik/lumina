@@ -2,6 +2,7 @@
     "language_switcher": {
         "aria_label": "Zmeniť jazyk",
         "filter_placeholder": "Filtrovať…",
+        "filter_aria_label": "Hľadať jazyk",
         "no_results": "Žiadne výsledky"
     },
     "theme_switcher": {
@@ -24,5 +25,46 @@
     },
     "boot": {
         "skip": "[ KLIKNITE ALEBO STLAČTE AKÚKOĽVEK KLÁVESU PRESKOČIŤ ]"
+    },
+    "skills_editor": {
+        "icon_aria": "Ikona kategórie {n}",
+        "name_aria": "Názov kategórie {n}",
+        "remove_category": "Odstrániť kategóriu {n}",
+        "tech_aria": "Technológia {t} kategórie {n}",
+        "remove_tech": "Odstrániť technológiu {t}",
+        "add_tech": "+ Pridať technológiu",
+        "add_category": "+ Pridať kategóriu",
+        "drag_category": "Pretiahnite na zmenu poradia kategórie",
+        "drag_tech": "Pretiahnite na zmenu poradia technológie",
+        "icons": {
+            "hexagone_creux": "Dutý šesťuholník",
+            "hexagone_plein": "Plný šesťuholník",
+            "carre_pointe": "Špicatý štvorec",
+            "cible": "Terč",
+            "double_cercle": "Dvojitý kruh",
+            "cercle_croix": "Kruh-kríž",
+            "cercle_x": "Kruh-X",
+            "cercle_point": "Kruh-bod",
+            "losange_plein": "Plný diamant",
+            "losange_creux": "Dutý diamant",
+            "petit_losange": "Malý diamant",
+            "triangle_plein": "Plný trojuholník",
+            "triangle_creux": "Dutý trojuholník",
+            "delta": "Delta",
+            "etoile_4": "Hviezda so 4 ramenami",
+            "etoile_creuse": "Dutá hviezda",
+            "etoile_apl": "Hviezda APL",
+            "etoile_operateur": "Operátorová hviezda",
+            "hexagone_apl": "Šesťuholník APL",
+            "anneau_benzene": "Benzénový kruh",
+            "marqueur_terminal": "Terminálový značka",
+            "therefore": "Therefore",
+            "reference": "Referencia",
+            "trigramme": "Triagram",
+            "engrenage": "Ozubené koleso",
+            "eclair": "Blesk",
+            "chevron": "Šev",
+            "double_chevron": "Dvojitý šev"
+        }
     }
 }
