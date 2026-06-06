@@ -189,6 +189,21 @@ E2E tests use a dedicated database and start their own server on port 8001 — t
 createdb -h 127.0.0.1 -p 5433 -U <your_pg_user> cardascia_it_e2e
 ```
 
+## Maintenance
+
+### FrankenPHP
+
+The `./frankenphp` binary is a standalone file versioned separately from Composer/npm. To update it:
+
+```bash
+npm run update:frankenphp          # Interactive — shows current vs latest, asks confirmation
+npm run update:frankenphp -- --force  # Non-interactive (CI/CD)
+```
+
+The script detects the current platform, fetches the latest release from GitHub, and replaces the binary. It also re-applies `cap_net_bind_service` automatically — the Linux capability required to bind port 443 is tied to the binary inode and is lost whenever the file is replaced.
+
+> **First-time setup** (or after a manual binary replacement): `sudo setcap cap_net_bind_service=+ep ./frankenphp`
+
 ## Continuous integration
 
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and every PR targeting `main`.

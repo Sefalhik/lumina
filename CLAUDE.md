@@ -43,6 +43,11 @@ npm run format                  # Prettier — format SCSS, Vue, JS
 # Frontend
 npm run dev                     # Vite HMR dev server
 npm run build                   # Production asset build
+
+# Maintenance
+npm run update:frankenphp             # Update FrankenPHP binary — shows diff, asks confirmation
+npm run update:frankenphp -- --force  # Update without prompt (CI/CD)
+# Note: setcap cap_net_bind_service=+ep is re-applied automatically after each update
 ```
 
 ## Stack

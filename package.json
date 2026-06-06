@@ -7,6 +7,7 @@
     "dev": "vite",
     "start": "concurrently --names 'frankenphp,vite' --prefix-colors 'green,cyan' 'LUMINA_CERT_FILE=storage/certs/cert.pem LUMINA_KEY_FILE=storage/certs/key.pem ./frankenphp run --config Caddyfile' 'vite'",
     "check:full": "bash scripts/check.sh",
+    "update:frankenphp": "bash scripts/update-frankenphp.sh",
     "lint:js": "eslint 'resources/js/**/*.{js,vue}'",
     "lint:js:fix": "eslint 'resources/js/**/*.{js,vue}' --fix",
     "lint:scss": "stylelint 'resources/css/**/*.scss'",
@@ -47,15 +48,18 @@
     "vitest": "^4.1.4"
   },
   "dependencies": {
-    "@tailwindcss/vite": "4.2.2",
+    "@tailwindcss/vite": "^4.2.2",
     "@vitejs/plugin-vue": "^6.0.5",
     "daisyui": "^5.5.19",
     "pinia": "^3.0.4",
     "sass": "^1.99.0",
-    "tailwindcss": "4.2.2",
+    "tailwindcss": "^4.2.2",
     "vue": "^3.5.32",
     "vue-i18n": "^11.4.0",
     "vue-router": "^5.0.4",
     "vuedraggable": "^4.1.0"
+},
+"allowScripts": {
+    "@parcel/watcher@2.5.6": true
   }
 }
