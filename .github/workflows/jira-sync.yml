@@ -1,0 +1,82 @@
+name: JIRA Sync
+
+# Synchronise l'état des tickets JIRA depuis les événements de Pull Request.
+# La clé JIRA (LUMN-N) est extraite du nom de la branche source (ex: feat/LUMN-12-desc),
+# avec repli sur le titre de la PR. Transition IDs : voir docs/jira-workflow-reference.md.
+#
+# Une transition n'aboutit que si le ticket est dans l'état source attendu — sinon
+# l'API JIRA renvoie 400 et l'étape émet un avertissement sans faire échouer le job
+# (le pipeline GitHub ne doit jamais casser à cause d'un état JIRA incohérent).
+
+on:
+  pull_request:
+    types: [opened, reopened, closed]
+
+jobs:
+  jira-transition:
+    name: Transition JIRA
+    runs-on: ubuntu-latest
+    # Pas de secret disponible pour les PR issues de forks — on ne tente rien.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Extraire la clé JIRA
+        id: jira_key
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          KEY=$(printf '%s\n%s' "$HEAD_REF" "$PR_TITLE" | grep -oiE 'LUMN-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]')
+          if [ -z "$KEY" ]; then
+            echo "Aucune clé JIRA (LUMN-N) trouvée dans la branche ni le titre — rien à synchroniser."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Clé JIRA détectée : $KEY"
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "key=$KEY" >> "$GITHUB_OUTPUT"
+          fi
+
+      # PR ouverte/réouverte → "Ouvrir PR" (4) : En cours → En review
+      - name: PR ouverte → En review
+        if: >-
+          steps.jira_key.outputs.found == 'true' &&
+          (github.event.action == 'opened' || github.event.action == 'reopened')
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_KEY: ${{ steps.jira_key.outputs.key }}
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
+            -H 'Content-Type: application/json' \
+            "$JIRA_BASE_URL/rest/api/3/issue/$JIRA_KEY/transitions" \
+            -d '{"transition":{"id":"4"}}')
+          if [ "$CODE" = "204" ]; then
+            echo "✓ $JIRA_KEY → En review"
+          else
+            echo "::warning::Transition 'Ouvrir PR' refusée pour $JIRA_KEY (HTTP $CODE) — le ticket n'était probablement pas en 'En cours'."
+          fi
+
+      # PR mergée sur main → "PR approuvée" (5) : En review → PR approuvée
+      - name: PR mergée → PR approuvée
+        if: >-
+          steps.jira_key.outputs.found == 'true' &&
+          github.event.action == 'closed' &&
+          github.event.pull_request.merged == true
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_KEY: ${{ steps.jira_key.outputs.key }}
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
+            -H 'Content-Type: application/json' \
+            "$JIRA_BASE_URL/rest/api/3/issue/$JIRA_KEY/transitions" \
+            -d '{"transition":{"id":"5"}}')
+          if [ "$CODE" = "204" ]; then
+            echo "✓ $JIRA_KEY → PR approuvée"
+          else
+            echo "::warning::Transition 'PR approuvée' refusée pour $JIRA_KEY (HTTP $CODE) — le ticket n'était probablement pas en 'En review'."
+          fi

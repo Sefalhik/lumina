@@ -36,3 +36,4 @@ frankenphp-worker.php
 /test-results
 /coverage
 /tests/e2e/.auth
+docs/plans/
