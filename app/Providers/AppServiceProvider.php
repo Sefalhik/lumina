@@ -4,8 +4,12 @@ namespace App\Providers;
 
 use App\Services\AnthropicTranslator;
 use App\Services\LocaleResolver;
+use App\Services\Seo\LocalizedUrlService;
 use App\Services\TranslationCache;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\View\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +32,12 @@ class AppServiceProvider extends ServiceProvider
             supported: config('i18n.supported_locales', ['fr']),
             default: config('i18n.default_locale', 'fr'),
         ));
+
+        $this->app->bind(LocalizedUrlService::class, fn () => new LocalizedUrlService(
+            indexableLocales: config('i18n.indexable_locales', ['fr']),
+            supportedLocales: config('i18n.supported_locales', ['fr']),
+            publicRoutes: config('seo.public_routes', []),
+        ));
     }
 
     /**
@@ -35,6 +45,26 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Feed canonical/hreflang data to the main layout so no controller has
+        // to wire it. Glue only — the URL logic lives in LocalizedUrlService.
+        ViewFacade::composer('layouts.app', function (View $view): void {
+            $route = Route::current();
+            $routeName = $route?->getName();
+
+            if ($route === null || $routeName === null) {
+                $view->with(['seoCanonical' => null, 'seoAlternates' => []]);
+
+                return;
+            }
+
+            $service = app(LocalizedUrlService::class);
+            $parameters = $route->parameters();
+            $locale = app()->getLocale();
+
+            $view->with([
+                'seoCanonical' => $service->canonical($routeName, $parameters, $locale),
+                'seoAlternates' => $service->alternates($routeName, $parameters, $locale),
+            ]);
+        });
     }
 }
