@@ -129,13 +129,15 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 | `app/Services/Auth/TwoFactorService.php` | Secret generation, QR SVG, TOTP verify, DB confirm |
 | `app/Services/AnthropicTranslator.php` | Anthropic API call + JSON flatten/unflatten helpers — shared by both translation commands |
 | `app/Services/TranslationCache.php` | File-checksum + per-key TTL cache for i18n and CMS translations |
+| `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
 | `resources/views/` | Blade templates |
 | `resources/js/` | Vue island components + utilities |
 | `resources/js/utils/` | Pure JS utility modules (unit-tested) |
 | `resources/js/i18n/` | vue-i18n locale files — one JSON per locale (24 EU languages) |
 | `resources/css/app.scss` | Global styles (minimal — UnoCSS handles utilities) |
 | `config/geo.php` | Geo API proxy configuration (env-driven) |
-| `config/i18n.php` | Supported locales, default locale, native names, cache path, `cms_models` list |
+| `config/i18n.php` | Supported locales, **indexable locales**, default locale, native names, cache path, `cms_models` list |
+| `config/seo.php` | `public_routes` allowlist — route names allowed to carry canonical/`hreflang` |
 | `lang/fr/` | PHP translation files — French source of truth for Blade `__()` |
 | `storage/app/i18n/` | TranslationCache storage — checksums + per-key translations (gitignored) |
 | `docs/` | Technical documentation |
@@ -405,6 +407,16 @@ When an element is purely aesthetic (no semantic content, `select-none`, not mea
 **Important**: `aria-hidden` alone does **not** suppress axe-core's color-contrast check — axe-core scans visually rendered elements regardless of AT visibility. The `.exclude('[data-a11y-role="decorative"]')` call in `accessibility.spec.js` is what actually removes the element from the scan, aligned with the WCAG 1.4.3 exception for incidental/decorative text.
 
 Example: the `> LIST_` terminal-style header in `SkillsEditor.vue` — pure aesthetic decoration, uses `text-secondary` which cannot reach 4.5:1 in any theme at any opacity.
+
+## SEO conventions
+See `docs/seo-conventions.md` for the full reference.
+
+Key rules:
+- **Two locale lists, two questions**: `supported_locales` (24) = what the site *serves*; `indexable_locales` (5: fr, en, de, it, nl) = what it *declares to crawlers*. Restricting the second removes no locale from the site.
+- `config/seo.php` → `public_routes` is an **allowlist, never a denylist** — auth and admin routes share the `/{lang}/` prefix, so a forgotten denylist entry would publish the admin URL structure sitewide. **Add every new public route there.**
+- `canonical` is **always self-referencing**, in every served locale — a non-indexed locale is distinct content, never a duplicate to redirect away
+- `hreflang` requires reciprocity, so pages in non-indexed locales declare **none at all**
+- `x-default` points at `/`, which `LocaleResolver` resolves from `Accept-Language`
 
 ## Logging conventions
 See `docs/logging-conventions.md` for the full reference.

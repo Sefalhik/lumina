@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="@yield('meta_description', 'Laurent Bernard-Cardascia — Lead Developer')">
     <title>@yield('title', 'cardascia-it') | Laurent Bernard-Cardascia</title>
+
+    {{-- SEO: canonical + hreflang. Populated by the layouts.app view composer;
+         both are empty on non-public routes. See docs/seo-conventions.md --}}
+    @isset($seoCanonical)
+        <link rel="canonical" href="{{ $seoCanonical }}">
+    @endisset
+    @foreach ($seoAlternates ?? [] as $seoHreflang => $seoAlternateUrl)
+        <link rel="alternate" hreflang="{{ $seoHreflang }}" href="{{ $seoAlternateUrl }}">
+    @endforeach
+
     <link rel="icon" id="favicon" type="image/svg+xml" href="/favicons/favicon-sprawl.svg">
 
     {{-- Anti-FOUC: restore theme and matching favicon from localStorage before first paint --}}
