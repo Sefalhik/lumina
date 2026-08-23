@@ -8,6 +8,7 @@
  */
 
 use App\Models\HomepageContent;
+use App\Models\SiteIdentity;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -73,6 +74,48 @@ Route::post('/e2e/homepage-content', function () {
     $content->setTranslation('meta_description', 'fr', $data['meta_description']);
     $content->setTranslation('skills', 'fr', $data['skills'] ?? '[]');
     $content->save();
+
+    return response()->json(['ok' => true]);
+})->middleware('web');
+
+// Returns the current site identity as JSON so tests can snapshot and restore it.
+// Form-submission specs mutate this row, and it feeds the footer of every page —
+// without a restore, later specs would see whatever the last submission left.
+Route::get('/e2e/site-identity', function () {
+    $identity = SiteIdentity::first();
+
+    return response()->json([
+        'full_name' => $identity?->full_name ?? '',
+        'job_title' => $identity?->getTranslation('job_title', 'fr', false) ?? '',
+        'contact_email' => $identity?->contact_email ?? '',
+        'github_url' => $identity?->github_url ?? '',
+        'linkedin_url' => $identity?->linkedin_url ?? '',
+        'mastodon_url' => $identity?->mastodon_url ?? '',
+    ]);
+})->middleware('web');
+
+// Restores the site identity from a JSON body. Values are written as-is,
+// bypassing SiteIdentityRequest on purpose: this is a restore, not a form.
+Route::post('/e2e/site-identity', function () {
+    $data = request()->validate([
+        'full_name' => ['nullable', 'string'],
+        'job_title' => ['nullable', 'string'],
+        'contact_email' => ['nullable', 'string'],
+        'github_url' => ['nullable', 'string'],
+        'linkedin_url' => ['nullable', 'string'],
+        'mastodon_url' => ['nullable', 'string'],
+    ]);
+
+    $identity = SiteIdentity::firstOrNew([]);
+    $identity->fill([
+        'full_name' => $data['full_name'] ?: null,
+        'contact_email' => $data['contact_email'] ?: null,
+        'github_url' => $data['github_url'] ?: null,
+        'linkedin_url' => $data['linkedin_url'] ?: null,
+        'mastodon_url' => $data['mastodon_url'] ?: null,
+    ]);
+    $identity->setTranslation('job_title', 'fr', $data['job_title'] ?? '');
+    $identity->save();
 
     return response()->json(['ok' => true]);
 })->middleware('web');

@@ -15,4 +15,13 @@ export default function globalSetup() {
         env: { ...process.env, ...e2eEnv },
         stdio: 'inherit',
     });
+
+    // Seed a fictional site identity so the footer actually renders its links.
+    // Without this the table is empty, the footer is bare, and the axe-core
+    // scan never sees those links — the suite would stay green while their
+    // accessibility went unchecked.
+    execSync('php artisan db:seed --class=E2eSiteIdentitySeeder --force', {
+        env: { ...process.env, ...e2eEnv },
+        stdio: 'inherit',
+    });
 }

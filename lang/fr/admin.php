@@ -33,6 +33,26 @@ return [
     'homepage_preview' => 'Aperçu sur le site',
     'homepage_saved' => 'Contenu sauvegardé.',
 
+    // Site identity CMS
+    'identity_nav' => 'Identité du site',
+    'identity_edit_title' => 'Identité du site — Édition',
+    'identity_edit_subtitle' => 'Coordonnées & profils publics',
+    'identity_edit_heading' => 'Éditer l\'identité du site',
+    'identity_field_full_name' => 'Nom complet',
+    'identity_field_job_title' => 'Intitulé de poste',
+    'identity_field_contact_email' => 'Adresse de contact',
+    'identity_field_github' => 'Profil GitHub',
+    'identity_field_linkedin' => 'Profil LinkedIn',
+    'identity_field_mastodon' => 'Profil Mastodon',
+    'identity_hint_optional' => 'Facultatif — laisser vide pour ne pas l\'afficher.',
+    'identity_hint_job_title' => 'Doit être identique sur le site, GitHub et LinkedIn.',
+    'identity_save' => 'Enregistrer',
+    'identity_saved' => 'Identité sauvegardée.',
+    'identity_url_invalid' => 'Cette adresse n\'est pas une URL valide.',
+    'identity_url_requires_https' => 'Cette adresse doit être une URL valide en https.',
+    'identity_url_wrong_host' => 'Cette URL doit pointer vers :host.',
+    'identity_url_bad_shape' => 'Cette URL doit désigner un profil, par exemple :example',
+
     // Dashboard status cards
     'card_status_label' => 'Statut',
     'card_status_value' => '◈ Système en ligne',

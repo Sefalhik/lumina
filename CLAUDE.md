@@ -130,6 +130,8 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 | `app/Services/AnthropicTranslator.php` | Anthropic API call + JSON flatten/unflatten helpers — shared by both translation commands |
 | `app/Services/TranslationCache.php` | File-checksum + per-key TTL cache for i18n and CMS translations |
 | `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
+| `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
+| `app/Models/SiteIdentity.php` | Single-row site identity. **Mixed model**: only `job_title` is translated |
 | `resources/views/` | Blade templates |
 | `resources/js/` | Vue island components + utilities |
 | `resources/js/utils/` | Pure JS utility modules (unit-tested) |
@@ -143,7 +145,7 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 | `docs/` | Technical documentation |
 | `scripts/` | Dev tooling scripts (coverage check, etc.) |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
-| `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`) |
+| `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
 
 ### FrankenPHP / Octane notes
 - Worker mode keeps the app bootstrapped between requests — avoid storing state in static properties or singletons that should reset per request.
@@ -193,7 +195,9 @@ The Playwright `webServer` starts the server automatically with env overrides fr
 - `SESSION_DOMAIN=localhost`
 - `SESSION_SECURE_COOKIE=false` (HTTP — not HTTPS like the dev server)
 
-`globalSetup` (`tests/e2e/global-setup.js`) runs `migrate:fresh --force` before each test run — every run starts from a clean schema.
+`globalSetup` (`tests/e2e/global-setup.js`) runs `migrate:fresh --force` before each test run — every run starts from a clean schema — then seeds `E2eSiteIdentitySeeder`.
+
+**Why that seeder matters**: with an empty `site_identities` table the footer renders no links, so the axe-core scan never sees them and their accessibility goes unverified while the suite stays green. Seeding a fictional identity makes the existing scan cover them on all three themes. Any future feature whose markup only appears when data exists needs the same treatment.
 
 ### Playwright — authentication
 Admin tests use `storageState` to authenticate once and reuse the session — **never** call the auth helper in `beforeEach` (causes race conditions under `fullyParallel: true`).
@@ -211,12 +215,21 @@ Form-submission tests must run in serial mode to prevent session flash interfere
 test.describe.configure({ mode: 'serial' });
 ```
 
-### Playwright — multiple admin sessions
-`auth.setup.js` creates **two isolated server-side sessions** from two separate browser contexts:
-- `tests/e2e/.auth/admin.json` — `ADMIN_AUTH_FILE` — general admin specs
-- `tests/e2e/.auth/admin-editor.json` — `ADMIN_EDITOR_AUTH_FILE` — specs that both submit admin forms and run in parallel with other form-submitting admin specs
+### Playwright — one admin session per spec file
+`auth.setup.js` creates **one isolated server-side session per spec file that loads admin pages**, each from its own browser context (`tests/e2e/helpers/auth.js`):
 
-**Why two files**: `fullyParallel: true` means spec files run concurrently. Two browser contexts created from the same `storageState` file send the same `laravel_session` cookie → same server-side session store. A flash message set by one spec's form submission is consumed by the next page load in *any* spec sharing that session, regardless of browser context isolation. Different auth files → different `laravel_session` cookies → fully isolated server-side session stores.
+| Auth file | Constant | Used by |
+|-----------|----------|---------|
+| `.auth/admin.json` | `ADMIN_AUTH_FILE` | `admin/homepage-form.spec.js` |
+| `.auth/admin-editor.json` | `ADMIN_EDITOR_AUTH_FILE` | `admin/skills-editor.spec.js` |
+| `.auth/admin-identity.json` | `ADMIN_IDENTITY_AUTH_FILE` | `site-identity.spec.js` |
+| `.auth/admin-a11y.json` | `ADMIN_A11Y_AUTH_FILE` | `accessibility.spec.js` |
+
+**Why one per file**: `fullyParallel: true` runs spec files concurrently. Two browser contexts created from the same `storageState` send the same `laravel_session` cookie → the same server-side session store. A flash message set by one spec's submission is consumed by the next page load in *any* spec sharing that session, regardless of browser-context isolation.
+
+**The trap**: this is not limited to specs that submit forms. **Any page load consumes pending flashes**, so a read-only spec steals them too — that is why the axe-core scans need their own session, and why adding three scans on the shared session was enough to break `homepage-form.spec.js`.
+
+**When adding a spec that loads admin pages**, give it its own auth file: add a constant in `helpers/auth.js`, add it to `SESSIONS` in `auth.setup.js`, and `test.use()` it. Reusing an existing one produces failures in a *different* spec, which is a miserable thing to debug.
 
 ### Playwright — e2e helper routes (`routes/e2e.php`)
 Loaded only in non-production environments (guarded in `bootstrap/app.php`).
@@ -226,6 +239,10 @@ Loaded only in non-production environments (guarded in `bootstrap/app.php`).
 | `GET /e2e/admin-auth` | Creates `e2e-admin@test.local`, assigns admin role, logs in, sets 2FA session flag |
 | `GET /e2e/homepage-content` | Returns current FR homepage content as JSON (for test snapshot) |
 | `POST /e2e/homepage-content` | Restores FR homepage content from JSON body (for test teardown) |
+| `GET /e2e/site-identity` | Returns the current site identity as JSON (for test snapshot) |
+| `POST /e2e/site-identity` | Restores the site identity from JSON body (for test teardown) |
+
+**Specs that mutate site-wide data must restore it after *every* test, not just at the end.** The identity row feeds the footer of every page, so leaving it modified corrupts any spec that renders a public page. `site-identity.spec.js` keeps the admin form and the footer in **one serial file** for the same reason — split across two files, Playwright runs them in parallel and they read each other's half-written state.
 
 Note: `two_factor_confirmed_at` is not in `User::$fillable` — assign it directly on the model instance to bypass the guard.
 
@@ -407,6 +424,17 @@ When an element is purely aesthetic (no semantic content, `select-none`, not mea
 **Important**: `aria-hidden` alone does **not** suppress axe-core's color-contrast check — axe-core scans visually rendered elements regardless of AT visibility. The `.exclude('[data-a11y-role="decorative"]')` call in `accessibility.spec.js` is what actually removes the element from the scan, aligned with the WCAG 1.4.3 exception for incidental/decorative text.
 
 Example: the `> LIST_` terminal-style header in `SkillsEditor.vue` — pure aesthetic decoration, uses `text-secondary` which cannot reach 4.5:1 in any theme at any opacity.
+
+## Site identity
+See `docs/site-identity.md` for the full reference.
+
+Key rules:
+- `SiteIdentity` is a **single-row, mixed model**: `spatie/laravel-translatable` works **column by column**, so only `job_title` is translated and the other five columns are ordinary. `HomepageContent` having identical `$translatable`/`$fillable` is a coincidence, not a constraint.
+- Profile URLs are validated on **three axes** — `url:https`, the host, **and the shape of the profile path**. A host check alone accepts `https://github.com/`, which would misinform a `sameAs` declaration.
+- Query strings and fragments are stripped in `prepareForValidation()` (LinkedIn's `?trk=…`)
+- Footer links carry `rel="me"` — Mastodon verifies identity by mutual link
+- The contact address is **deliberately** a plain `mailto:`; the reasoning is in the doc
+- Every field is nullable and the table is empty after migrating — blank fields must render nothing
 
 ## SEO conventions
 See `docs/seo-conventions.md` for the full reference.

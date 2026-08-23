@@ -339,3 +339,83 @@ body.booting {
         transform: rotate(360deg);
     }
 }
+
+// ============================================================
+// FOOTER FUNCTION BAR — 80s console menu
+// Usage: see the <footer> in resources/views/layouts/app.blade.php
+// ---
+// Numbers are reverse-video menu indices, not keyboard shortcuts: binding
+// F1–F4 would fight the browser (help, find) and screen readers, and showing
+// a key that does nothing would announce an affordance that isn't there.
+// They carry aria-hidden; each link's aria-label is its accessible name.
+// ============================================================
+
+.fn-item {
+    border: 1px solid color-mix(in oklch, var(--color-primary) 25%, transparent);
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+
+    &:hover,
+    &:focus-visible {
+        border-color: color-mix(in oklch, var(--color-primary) 75%, transparent);
+        box-shadow: 0 0 12px color-mix(in oklch, var(--color-primary) 35%, transparent);
+    }
+}
+
+// Reverse video, the way a DOS menu highlighted its hotkeys.
+.fn-key {
+    background: var(--color-primary);
+    color: var(--color-base-100);
+}
+
+// ============================================================
+// GLITCH ON HOVER — same RGB split as .glitch, but only while the
+// parent .fn-item is hovered or focused. Four items glitching
+// permanently would be noise; a burst on approach is atmosphere.
+// ============================================================
+
+:is([data-theme='sprawl'], [data-theme='neon-noir']) .glitch-hover {
+    position: relative;
+
+    &::before,
+    &::after {
+        animation-play-state: paused;
+        content: attr(data-text);
+        font: inherit;
+        inset: 0;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+    }
+
+    &::before {
+        animation: glitch-red 1.4s step-end infinite;
+        color: oklch(70% 0.28 25deg);
+        text-shadow: none;
+    }
+
+    &::after {
+        animation: glitch-cyan 1.4s step-end infinite;
+        color: oklch(80% 0.22 210deg);
+        text-shadow: none;
+    }
+}
+
+:is([data-theme='sprawl'], [data-theme='neon-noir']) .fn-item:is(:hover, :focus-visible) .glitch-hover {
+    &::before,
+    &::after {
+        animation-play-state: running;
+    }
+}
+
+// The rest of the site does not honour this yet — tracked as debt, out of
+// scope here. A new effect should not add to the pile.
+@media (prefers-reduced-motion: reduce) {
+    .glitch-hover::before,
+    .glitch-hover::after {
+        animation: none !important;
+        content: none !important;
+    }
+}
