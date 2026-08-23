@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\SiteIdentity;
 use App\Services\AnthropicTranslator;
 use App\Services\LocaleResolver;
 use App\Services\Seo\LocalizedUrlService;
+use App\Services\SiteIdentityService;
 use App\Services\TranslationCache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View as ViewFacade;
@@ -64,6 +66,21 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'seoCanonical' => $service->canonical($routeName, $parameters, $locale),
                 'seoAlternates' => $service->alternates($routeName, $parameters, $locale),
+            ]);
+        });
+
+        // Feed the footer its identity data. One row, one query per render —
+        // not worth a cache layer and its invalidation until it shows up in a
+        // profile. Glue only; the filtering lives in SiteIdentityService.
+        ViewFacade::composer('layouts.app', function (View $view): void {
+            $identity = SiteIdentity::first();
+            $service = app(SiteIdentityService::class);
+
+            $view->with([
+                'siteName' => $service->displayName($identity),
+                'siteJobTitle' => $service->jobTitle($identity),
+                'siteEmail' => $service->contactEmail($identity),
+                'siteSocialLinks' => $service->socialLinks($identity),
             ]);
         });
     }

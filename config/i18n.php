@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\HomepageContent;
+use App\Models\SiteIdentity;
 
 return [
     'default_locale' => 'fr',
@@ -27,6 +28,7 @@ return [
     'indexable_locales' => ['fr', 'en', 'de', 'it', 'nl'],
     'cms_models' => [
         HomepageContent::class,
+        SiteIdentity::class,
     ],
 
     'native_names' => [

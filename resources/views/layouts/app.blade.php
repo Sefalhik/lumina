@@ -143,9 +143,43 @@
         @yield('content')
     </main>
 
-    <footer class="border-t border-primary/20 mt-24 py-8">
-        <div class="container mx-auto px-4 text-center text-sm tracking-widest">
-            <p class="font-mono text-base-content/70">&copy; {{ date('Y') }} Laurent Bernard-Cardascia — <span class="text-primary">cardascia-it.org</span></p>
+    <footer class="border-t border-primary/20 mt-24 py-10">
+        <div class="container mx-auto px-4 text-center">
+
+            {{-- Contact channels. rel="me" is what lets Mastodon verify the
+                 profile ↔ site link and show a green check. --}}
+            @if (! empty($siteSocialLinks ?? []) || ! empty($siteEmail))
+            <nav class="mb-7 flex flex-wrap items-center justify-center gap-3 font-mono text-[11px] tracking-[0.2em] uppercase"
+                 aria-label="{{ __('footer.contact_label') }}">
+                @foreach ($siteSocialLinks ?? [] as $siteIndex => $siteLink)
+                <a href="{{ $siteLink['url'] }}"
+                   target="_blank"
+                   rel="me noopener noreferrer"
+                   aria-label="{{ __('footer.social_aria', ['network' => $siteLink['label']]) }}"
+                   class="fn-item inline-flex items-stretch bg-base-200/40 text-base-content/70 transition-colors duration-300 hover:text-primary focus-visible:text-primary">
+                    <span class="fn-key px-1.5 py-1 font-bold" aria-hidden="true">{{ str_pad((string) ($siteIndex + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                    <span class="glitch-hover px-2.5 py-1" data-text="{{ $siteLink['label'] }}">{{ $siteLink['label'] }}</span>
+                </a>
+                @endforeach
+
+                @if (! empty($siteEmail))
+                <a href="mailto:{{ $siteEmail }}"
+                   aria-label="{{ __('footer.email_aria', ['email' => $siteEmail]) }}"
+                   class="fn-item inline-flex items-stretch bg-base-200/40 text-base-content/70 transition-colors duration-300 hover:text-primary focus-visible:text-primary">
+                    <span class="fn-key px-1.5 py-1 font-bold" aria-hidden="true">{{ str_pad((string) (count($siteSocialLinks ?? []) + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                    <span class="glitch-hover px-2.5 py-1" data-text="{{ __('footer.contact_label') }}">{{ __('footer.contact_label') }}</span>
+                </a>
+                @endif
+            </nav>
+            @endif
+
+            <p class="font-mono text-sm tracking-widest text-base-content/70">
+                &copy; {{ date('Y') }}@if (! empty($siteName)) {{ $siteName }}@endif
+                @if (! empty($siteJobTitle))
+                <span class="text-primary/70" aria-hidden="true">::</span> <span class="text-base-content/70">{{ $siteJobTitle }}</span>
+                @endif
+                <span class="text-primary/70" aria-hidden="true">::</span> <span class="text-primary">cardascia-it.org</span>
+            </p>
         </div>
     </footer>
 

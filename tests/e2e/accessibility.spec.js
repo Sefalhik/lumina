@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { ADMIN_AUTH_FILE } from './helpers/auth.js';
+import { ADMIN_A11Y_AUTH_FILE } from './helpers/auth.js';
 
 const THEMES = ['sprawl', 'steampunk', 'neon-noir'];
 
@@ -53,7 +53,7 @@ test.describe('Accessibility — login page', () => {
 });
 
 test.describe('Accessibility — 2FA challenge page', () => {
-    test.use({ storageState: ADMIN_AUTH_FILE });
+    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
@@ -68,7 +68,7 @@ test.describe('Accessibility — 2FA challenge page', () => {
 });
 
 test.describe('Accessibility — admin dashboard', () => {
-    test.use({ storageState: ADMIN_AUTH_FILE });
+    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
@@ -83,11 +83,26 @@ test.describe('Accessibility — admin dashboard', () => {
 });
 
 test.describe('Accessibility — admin homepage edit', () => {
-    test.use({ storageState: ADMIN_AUTH_FILE });
+    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
             await page.goto('/fr/admin/homepage');
+            await page.evaluate((t) => {
+                document.documentElement.setAttribute('data-theme', t);
+            }, theme);
+
+            expect(formatViolations(await axeCheck(page))).toEqual([]);
+        });
+    }
+});
+
+test.describe('Accessibility — admin site identity edit', () => {
+    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+
+    for (const theme of THEMES) {
+        test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
+            await page.goto('/fr/admin/identity');
             await page.evaluate((t) => {
                 document.documentElement.setAttribute('data-theme', t);
             }, theme);

@@ -39,6 +39,12 @@
                 ◈ {{ __('admin.homepage_nav') }}
             </p>
         </a>
+        <a href="{{ route('admin.identity.edit', ['lang' => app()->getLocale()]) }}"
+           class="border border-primary/20 bg-base-200 p-6 hover:border-primary/60 hover:glow-box transition-all duration-300 group block">
+            <p class="font-display text-sm text-primary group-hover:glow-primary transition-all">
+                ◈ {{ __('admin.identity_nav') }}
+            </p>
+        </a>
     </div>
 </div>
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\HomepageContentController;
+use App\Http\Controllers\Admin\SiteIdentityController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\TwoFactorController;
@@ -50,5 +51,7 @@ Route::prefix('{lang}')
                 Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
                 Route::get('/homepage', [HomepageContentController::class, 'edit'])->name('homepage.edit');
                 Route::put('/homepage', [HomepageContentController::class, 'update'])->name('homepage.update');
+                Route::get('/identity', [SiteIdentityController::class, 'edit'])->name('identity.edit');
+                Route::put('/identity', [SiteIdentityController::class, 'update'])->name('identity.update');
             });
     });
