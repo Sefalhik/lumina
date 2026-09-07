@@ -4,10 +4,9 @@ namespace Tests\Feature\Admin;
 
 use App\Models\SiteIdentity;
 use App\Models\User;
-use App\Services\TranslationCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -32,12 +31,21 @@ class SiteIdentityTest extends TestCase
         $this->withSession(['auth.two_factor_verified' => true]);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * The job title must stay a string that appears nowhere else in the
+     * rendered page. Every `home.php` lang file sets fallback_subtitle to
+     * "Lead Developer // Ingénieur Logiciel", which the home page shows
+     * whenever HomepageContent is empty — as it is under RefreshDatabase. A
+     * footer assertion on "Lead Developer" therefore passed with the footer
+     * job title switched off entirely.
+     *
+     * @return array<string, mixed>
+     */
     private function validPayload(array $overrides = []): array
     {
         return array_merge([
             'full_name' => 'Laurent Bernard-Cardascia',
-            'job_title' => ['fr' => 'Lead Developer'],
+            'job_title' => 'Principal Engineer',
             'contact_email' => 'contact@cardascia-it.org',
             'github_url' => 'https://github.com/Sefalhik',
             'linkedin_url' => 'https://www.linkedin.com/in/laurent-bernard-cardascia-290bb48b/',
@@ -109,6 +117,21 @@ class SiteIdentityTest extends TestCase
             ->assertSee('name="github_url"', false);
     }
 
+    public function test_edit_form_shows_the_saved_job_title(): void
+    {
+        // The E2E suite checks the field is visible and accepts input, which a
+        // permanently blank field would also pass. Only this asserts the form
+        // hands back what is stored.
+        $identity = SiteIdentity::firstOrNew([]);
+        $identity->fill(['job_title' => 'Tech Lead']);
+        $identity->save();
+
+        $this->actingAs($this->admin)
+            ->get('/fr/admin/identity')
+            ->assertOk()
+            ->assertSee('value="Tech Lead"', false);
+    }
+
     // ── Persistence ───────────────────────────────────────────────────────────
 
     public function test_admin_can_save_identity(): void
@@ -123,7 +146,7 @@ class SiteIdentityTest extends TestCase
         $this->assertSame('Laurent Bernard-Cardascia', $identity->full_name);
         $this->assertSame('contact@cardascia-it.org', $identity->contact_email);
         $this->assertSame('https://github.com/Sefalhik', $identity->github_url);
-        $this->assertSame('Lead Developer', $identity->getTranslation('job_title', 'fr'));
+        $this->assertSame('Principal Engineer', $identity->job_title);
     }
 
     public function test_saving_twice_updates_the_same_row(): void
@@ -147,25 +170,6 @@ class SiteIdentityTest extends TestCase
             ->assertSessionHasNoErrors();
     }
 
-    public function test_updating_french_job_title_keeps_other_locales(): void
-    {
-        $identity = SiteIdentity::firstOrNew([]);
-        $identity->setTranslation('job_title', 'fr', 'Lead Developer');
-        $identity->setTranslation('job_title', 'de', 'Leitender Entwickler');
-        $identity->save();
-
-        $this->actingAs($this->admin)->put('/fr/admin/identity', $this->validPayload([
-            'job_title' => ['fr' => 'Tech Lead'],
-        ]));
-
-        $fresh = SiteIdentity::first();
-
-        $this->assertNotNull($fresh);
-        $this->assertSame('Tech Lead', $fresh->getTranslation('job_title', 'fr'));
-        $this->assertSame('Leitender Entwickler', $fresh->getTranslation('job_title', 'de'));
-    }
-
-    // ── Validation ────────────────────────────────────────────────────────────
 
     public function test_invalid_email_is_rejected(): void
     {
@@ -276,9 +280,24 @@ class SiteIdentityTest extends TestCase
     {
         $this->actingAs($this->admin)
             ->put('/fr/admin/identity', $this->validPayload([
-                'job_title' => ['fr' => str_repeat('a', 121)],
+                'job_title' => str_repeat('a', 121),
             ]))
-            ->assertSessionHasErrors('job_title.fr');
+            ->assertSessionHasErrors('job_title');
+    }
+
+    public function test_job_title_posted_in_the_old_translated_shape_is_rejected(): void
+    {
+        // The form used to post job_title[fr] — an array. A browser holding the
+        // previous page in cache would still submit that shape. The `string`
+        // rule has to turn it into a validation error rather than let the
+        // controller write an array into a varchar column.
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/identity', $this->validPayload([
+                'job_title' => ['fr' => 'Tech Lead'],
+            ]))
+            ->assertSessionHasErrors('job_title');
+
+        $this->assertNull(SiteIdentity::first());
     }
 
     public function test_contact_email_must_not_exceed_180_characters(): void
@@ -316,6 +335,25 @@ class SiteIdentityTest extends TestCase
         $this->get('/fr/')->assertOk()->assertDontSee('mastodon.social', false);
     }
 
+    public function test_clearing_the_job_title_removes_it_from_the_footer(): void
+    {
+        $this->actingAs($this->admin)->put('/fr/admin/identity', $this->validPayload());
+        $this->get('/fr/')->assertOk()->assertSee('Principal Engineer', false);
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/identity', $this->validPayload(['job_title' => '']))
+            ->assertSessionHasNoErrors();
+
+        // job_title is absent from prepareForValidation, unlike full_name and
+        // the profile URLs, so nothing in this codebase normalises an emptied
+        // field. It still lands as null rather than '': Laravel's
+        // ConvertEmptyStringsToNull middleware runs before validation. Asserted
+        // because the column relies on framework behaviour, not on our own.
+        $this->assertNull(SiteIdentity::first()?->job_title);
+
+        $this->get('/fr/')->assertOk()->assertDontSee('Principal Engineer', false);
+    }
+
     public function test_successful_update_flashes_a_confirmation(): void
     {
         $this->actingAs($this->admin)
@@ -330,11 +368,11 @@ class SiteIdentityTest extends TestCase
         $identity = SiteIdentity::firstOrNew([]);
         $identity->fill([
             'full_name' => 'Laurent Bernard-Cardascia',
+            'job_title' => 'Principal Engineer',
             'contact_email' => 'contact@cardascia-it.org',
             'github_url' => 'https://github.com/Sefalhik',
             'mastodon_url' => 'https://mastodon.social/@Sefalhik',
         ]);
-        $identity->setTranslation('job_title', 'fr', 'Lead Developer');
         $identity->save();
 
         $response = $this->get('/fr/')->assertOk();
@@ -343,7 +381,7 @@ class SiteIdentityTest extends TestCase
         $response->assertSee('https://mastodon.social/@Sefalhik', false);
         $response->assertSee('mailto:contact@cardascia-it.org', false);
         $response->assertSee('Laurent Bernard-Cardascia', false);
-        $response->assertSee('Lead Developer', false);
+        $response->assertSee('Principal Engineer', false);
 
         // rel="me" is what makes Mastodon's verification work.
         $response->assertSee('rel="me noopener noreferrer"', false);
@@ -402,67 +440,30 @@ class SiteIdentityTest extends TestCase
         $response->assertSee('&lt;script&gt;', false);
     }
 
-    // ── CMS translation wiring ────────────────────────────────────────────────
+    // ── Translation wiring ────────────────────────────────────────────────────
 
-    public function test_site_identity_is_registered_for_cms_translation(): void
+    public function test_site_identity_is_not_registered_for_cms_translation(): void
     {
-        // Guards the config entry itself: without it the job title would never
-        // be translated, and nothing else in the suite would notice.
-        $this->assertContains(SiteIdentity::class, config('i18n.cms_models'));
+        // job_title is the value a sameAs statement cross-references with the
+        // GitHub, LinkedIn and Mastodon profiles, which each carry one
+        // hand-typed title. Translating it would make the cross-reference hold
+        // in `fr` only. Registering the model here again would silently undo
+        // that on the next `cms:translate` run.
+        $this->assertNotContains(SiteIdentity::class, config('i18n.cms_models'));
     }
 
-    public function test_cms_translate_translates_the_job_title(): void
+    public function test_job_title_is_stored_as_a_plain_string(): void
     {
-        $cacheDir = sys_get_temp_dir().'/identity_cms_'.uniqid('', true);
-        mkdir($cacheDir, 0755, true);
-        $this->app->bind(TranslationCache::class, fn () => new TranslationCache($cacheDir));
-
-        config([
-            'i18n.supported_locales' => ['fr', 'de'],
-            'i18n.native_names' => ['fr' => 'Français', 'de' => 'Deutsch'],
-            'services.anthropic.api_key' => 'test-key',
-        ]);
-
-        $identity = SiteIdentity::firstOrNew([]);
-        $identity->setTranslation('job_title', 'fr', 'Tech Lead');
-        $identity->save();
-
-        Http::fake([
-            'https://api.anthropic.com/v1/messages' => Http::response([
-                'content' => [[
-                    'type' => 'text',
-                    'text' => json_encode(['job_title' => 'Technischer Leiter']),
-                ]],
-            ], 200),
-        ]);
-
-        $this->artisan('cms:translate', ['--locale' => 'de', '--force' => true])
-            ->assertSuccessful();
+        // The other half of the same guard: re-adding HasTranslations would
+        // turn the column back into a translations object without the config
+        // entry above ever changing.
+        $this->actingAs($this->admin)->put('/fr/admin/identity', $this->validPayload([
+            'job_title' => 'Tech Lead',
+        ]));
 
         $this->assertSame(
-            'Technischer Leiter',
-            SiteIdentity::firstOrFail()->getTranslation('job_title', 'de', false),
+            'Tech Lead',
+            DB::table('site_identities')->value('job_title'),
         );
-
-        $this->deleteDir($cacheDir);
-    }
-
-    /** TranslationCache nests subdirectories, so removal has to recurse. */
-    private function deleteDir(string $dir): void
-    {
-        if (! is_dir($dir)) {
-            return;
-        }
-
-        foreach (scandir($dir) ?: [] as $entry) {
-            if ($entry === '.' || $entry === '..') {
-                continue;
-            }
-
-            $path = $dir.'/'.$entry;
-            is_dir($path) ? $this->deleteDir($path) : unlink($path);
-        }
-
-        rmdir($dir);
     }
 }

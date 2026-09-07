@@ -115,7 +115,7 @@ test.describe('Admin — site identity form', () => {
     test('shows every field of the form', async ({ page }) => {
         for (const id of [
             '#full_name',
-            '#job_title_fr',
+            '#job_title',
             '#contact_email',
             '#github_url',
             '#linkedin_url',
@@ -127,7 +127,7 @@ test.describe('Admin — site identity form', () => {
 
     test('a valid save shows the success flash', async ({ page }) => {
         await page.locator('#full_name').fill('Laurent Bernard-Cardascia');
-        await page.locator('#job_title_fr').fill('Tech Lead');
+        await page.locator('#job_title').fill('Tech Lead');
         await page.locator('#github_url').fill('https://github.com/Sefalhik');
 
         await page.getByRole('button', { name: /enregistrer/i }).click();

@@ -69,7 +69,7 @@ class SiteIdentityRequest extends FormRequest
     {
         return [
             'full_name' => ['nullable', 'string', 'max:120'],
-            'job_title.fr' => ['nullable', 'string', 'max:120'],
+            'job_title' => ['nullable', 'string', 'max:120'],
             'contact_email' => ['nullable', 'email:rfc', 'max:180'],
             'github_url' => ['nullable', 'string', 'max:255', 'url:https', ProfileUrl::github()],
             'linkedin_url' => ['nullable', 'string', 'max:255', 'url:https', ProfileUrl::linkedin()],

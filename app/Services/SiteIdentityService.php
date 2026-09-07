@@ -89,10 +89,10 @@ class SiteIdentityService
     }
 
     /**
-     * Job title in the active locale, or null when unset or blank.
+     * Job title, or null when unset or blank.
      *
-     * HasTranslations resolves the translation, so this returns a plain string
-     * rather than the stored JSON.
+     * The same string in every locale on purpose: it is what ties this site to
+     * the profiles a sameAs statement points at. See docs/site-identity.md.
      */
     public function jobTitle(?SiteIdentity $identity): ?string
     {

@@ -86,7 +86,7 @@ Route::get('/e2e/site-identity', function () {
 
     return response()->json([
         'full_name' => $identity?->full_name ?? '',
-        'job_title' => $identity?->getTranslation('job_title', 'fr', false) ?? '',
+        'job_title' => $identity?->job_title ?? '',
         'contact_email' => $identity?->contact_email ?? '',
         'github_url' => $identity?->github_url ?? '',
         'linkedin_url' => $identity?->linkedin_url ?? '',
@@ -109,12 +109,12 @@ Route::post('/e2e/site-identity', function () {
     $identity = SiteIdentity::firstOrNew([]);
     $identity->fill([
         'full_name' => $data['full_name'] ?: null,
+        'job_title' => $data['job_title'] ?: null,
         'contact_email' => $data['contact_email'] ?: null,
         'github_url' => $data['github_url'] ?: null,
         'linkedin_url' => $data['linkedin_url'] ?: null,
         'mastodon_url' => $data['mastodon_url'] ?: null,
     ]);
-    $identity->setTranslation('job_title', 'fr', $data['job_title'] ?? '');
     $identity->save();
 
     return response()->json(['ok' => true]);

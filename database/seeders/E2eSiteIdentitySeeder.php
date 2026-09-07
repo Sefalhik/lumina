@@ -23,13 +23,13 @@ class E2eSiteIdentitySeeder extends Seeder
 
         $identity->fill([
             'full_name' => 'E2E Test Identity',
+            'job_title' => 'Lead Developer',
             'contact_email' => 'contact@example.test',
             'github_url' => 'https://github.com/example',
             'linkedin_url' => 'https://www.linkedin.com/in/example/',
             'mastodon_url' => 'https://mastodon.social/@example',
         ]);
 
-        $identity->setTranslation('job_title', 'fr', 'Lead Developer');
         $identity->save();
     }
 }
