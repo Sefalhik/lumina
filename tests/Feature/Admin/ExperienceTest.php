@@ -339,4 +339,203 @@ class ExperienceTest extends TestCase
         $this->assertContains('description', $translatable);
         $this->assertContains('achievements', $translatable);
     }
+
+    // ── Access control on the mutating routes ─────────────────────────────────
+    //
+    // The list is a read. These are the routes that write and destroy, and they
+    // are the ones worth proving: a middleware chain that protects the index but
+    // not the delete would look identical from the outside.
+
+    public function test_non_admin_user_cannot_create(): void
+    {
+        $intruder = User::factory()->create(['password' => Hash::make('secret')]);
+
+        $this->actingAs($intruder)
+            ->post('/fr/admin/experiences', $this->validPayload())
+            ->assertForbidden();
+
+        $this->assertSame(0, Experience::count());
+    }
+
+    public function test_non_admin_user_cannot_update(): void
+    {
+        $experience = $this->makeExperience();
+        $intruder = User::factory()->create(['password' => Hash::make('secret')]);
+
+        $this->actingAs($intruder)
+            ->put('/fr/admin/experiences/'.$experience->id, $this->validPayload(['job_title' => 'Pirate']))
+            ->assertForbidden();
+
+        $this->assertSame('Principal Engineer', Experience::firstOrFail()->job_title);
+    }
+
+    public function test_non_admin_user_cannot_delete(): void
+    {
+        $experience = $this->makeExperience();
+        $intruder = User::factory()->create(['password' => Hash::make('secret')]);
+
+        $this->actingAs($intruder)
+            ->delete('/fr/admin/experiences/'.$experience->id)
+            ->assertForbidden();
+
+        $this->assertSame(1, Experience::count());
+    }
+
+    public function test_admin_without_verified_two_factor_cannot_create(): void
+    {
+        $this->flushSession();
+
+        $this->actingAs($this->admin)
+            ->post('/fr/admin/experiences', $this->validPayload())
+            ->assertRedirect();
+
+        $this->assertSame(0, Experience::count());
+    }
+
+    public function test_admin_without_verified_two_factor_cannot_update(): void
+    {
+        $experience = $this->makeExperience();
+        $this->flushSession();
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/experiences/'.$experience->id, $this->validPayload(['job_title' => 'Pirate']))
+            ->assertRedirect();
+
+        $this->assertSame('Principal Engineer', Experience::firstOrFail()->job_title);
+    }
+
+    public function test_admin_without_verified_two_factor_cannot_delete(): void
+    {
+        $experience = $this->makeExperience();
+        $this->flushSession();
+
+        $this->actingAs($this->admin)
+            ->delete('/fr/admin/experiences/'.$experience->id)
+            ->assertRedirect();
+
+        $this->assertSame(1, Experience::count());
+    }
+
+    public function test_unauthenticated_user_cannot_update(): void
+    {
+        $experience = $this->makeExperience();
+
+        $this->put('/fr/admin/experiences/'.$experience->id, $this->validPayload(['job_title' => 'Pirate']))
+            ->assertRedirect();
+
+        $this->assertSame('Principal Engineer', Experience::firstOrFail()->job_title);
+    }
+
+    public function test_unauthenticated_user_cannot_reach_the_create_form(): void
+    {
+        $this->get('/fr/admin/experiences/create')->assertRedirect();
+    }
+
+    public function test_non_admin_user_cannot_reach_the_edit_form(): void
+    {
+        $experience = $this->makeExperience();
+        $intruder = User::factory()->create(['password' => Hash::make('secret')]);
+
+        $this->actingAs($intruder)
+            ->get('/fr/admin/experiences/'.$experience->id.'/edit')
+            ->assertForbidden();
+    }
+
+    // ── Admin screens ─────────────────────────────────────────────────────────
+
+    public function test_the_list_shows_the_saved_experiences(): void
+    {
+        $this->makeExperience(['employer' => 'Groupe Vantarel']);
+
+        $this->actingAs($this->admin)
+            ->get('/fr/admin/experiences')
+            ->assertOk()
+            ->assertSee('Groupe Vantarel', false);
+    }
+
+    public function test_the_create_form_renders(): void
+    {
+        $this->actingAs($this->admin)
+            ->get('/fr/admin/experiences/create')
+            ->assertOk()
+            ->assertSee('name="employer"', false)
+            ->assertSee('name="started_at"', false);
+    }
+
+    // ── Escaping ──────────────────────────────────────────────────────────────
+
+    public function test_admin_supplied_values_are_escaped_on_the_cv_page(): void
+    {
+        // Every field on this page is admin-supplied. Blade escapes by default,
+        // but a future switch to {!! !!} for rich text would be silent without
+        // this.
+        $experience = $this->makeExperience(['employer' => '<script>alert(1)</script>']);
+        $experience->setTranslation('description', 'fr', '<script>alert(2)</script>');
+        $experience->save();
+
+        $response = $this->get('/fr/cv')->assertOk();
+
+        $response->assertDontSee('<script>alert(1)</script>', false);
+        $response->assertDontSee('<script>alert(2)</script>', false);
+        $response->assertSee('&lt;script&gt;', false);
+    }
+
+    public function test_admin_supplied_values_are_escaped_in_the_admin_list(): void
+    {
+        $this->makeExperience(['job_title' => '<script>alert(3)</script>']);
+
+        $this->actingAs($this->admin)
+            ->get('/fr/admin/experiences')
+            ->assertOk()
+            ->assertDontSee('<script>alert(3)</script>', false)
+            ->assertSee('&lt;script&gt;', false);
+    }
+
+    // ── Length limits ─────────────────────────────────────────────────────────
+
+    public function test_employer_must_not_exceed_120_characters(): void
+    {
+        $this->actingAs($this->admin)
+            ->post('/fr/admin/experiences', $this->validPayload(['employer' => str_repeat('a', 121)]))
+            ->assertSessionHasErrors('employer');
+    }
+
+    public function test_job_title_must_not_exceed_120_characters(): void
+    {
+        $this->actingAs($this->admin)
+            ->post('/fr/admin/experiences', $this->validPayload(['job_title' => str_repeat('a', 121)]))
+            ->assertSessionHasErrors('job_title');
+    }
+
+    public function test_description_must_not_exceed_2000_characters(): void
+    {
+        $this->actingAs($this->admin)
+            ->post('/fr/admin/experiences', $this->validPayload(['description' => str_repeat('a', 2001)]))
+            ->assertSessionHasErrors('description');
+    }
+
+    // ── Optional fields ───────────────────────────────────────────────────────
+
+    public function test_achievements_are_saved_and_displayed(): void
+    {
+        $this->actingAs($this->admin)->post('/fr/admin/experiences', $this->validPayload([
+            'achievements' => 'Refonte du socle applicatif.',
+        ]));
+
+        $this->assertSame(
+            'Refonte du socle applicatif.',
+            Experience::firstOrFail()->getTranslation('achievements', 'fr'),
+        );
+
+        $this->get('/fr/cv')->assertOk()->assertSee('Refonte du socle applicatif.', false);
+    }
+
+    public function test_location_is_optional(): void
+    {
+        $this->actingAs($this->admin)
+            ->post('/fr/admin/experiences', $this->validPayload(['location' => '']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull(Experience::firstOrFail()->location);
+    }
 }

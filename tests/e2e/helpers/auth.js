@@ -15,3 +15,4 @@ export const ADMIN_AUTH_FILE = path.join(__dirname, '../.auth/admin.json');
 export const ADMIN_EDITOR_AUTH_FILE = path.join(__dirname, '../.auth/admin-editor.json');
 export const ADMIN_A11Y_AUTH_FILE = path.join(__dirname, '../.auth/admin-a11y.json');
 export const ADMIN_IDENTITY_AUTH_FILE = path.join(__dirname, '../.auth/admin-identity.json');
+export const ADMIN_EXPERIENCES_AUTH_FILE = path.join(__dirname, '../.auth/admin-experiences.json');

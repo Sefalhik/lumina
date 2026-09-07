@@ -39,6 +39,23 @@ test.describe('Accessibility — home page', () => {
     }
 });
 
+test.describe('Accessibility — CV page', () => {
+    // E2eExperienceSeeder guarantees a seeded position, so the scan sees the
+    // real timeline markup — period, "still there" badge, headings — rather than
+    // the empty state, which would pass while checking nothing.
+    for (const theme of THEMES) {
+        test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
+            await page.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
+            await page.goto('/fr/cv');
+            await page.evaluate((t) => {
+                document.documentElement.setAttribute('data-theme', t);
+            }, theme);
+
+            expect(formatViolations(await axeCheck(page))).toEqual([]);
+        });
+    }
+});
+
 test.describe('Accessibility — login page', () => {
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
@@ -88,6 +105,36 @@ test.describe('Accessibility — admin homepage edit', () => {
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
             await page.goto('/fr/admin/homepage');
+            await page.evaluate((t) => {
+                document.documentElement.setAttribute('data-theme', t);
+            }, theme);
+
+            expect(formatViolations(await axeCheck(page))).toEqual([]);
+        });
+    }
+});
+
+test.describe('Accessibility — admin experiences list', () => {
+    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+
+    for (const theme of THEMES) {
+        test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
+            await page.goto('/fr/admin/experiences');
+            await page.evaluate((t) => {
+                document.documentElement.setAttribute('data-theme', t);
+            }, theme);
+
+            expect(formatViolations(await axeCheck(page))).toEqual([]);
+        });
+    }
+});
+
+test.describe('Accessibility — admin experience form', () => {
+    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+
+    for (const theme of THEMES) {
+        test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
+            await page.goto('/fr/admin/experiences/create');
             await page.evaluate((t) => {
                 document.documentElement.setAttribute('data-theme', t);
             }, theme);

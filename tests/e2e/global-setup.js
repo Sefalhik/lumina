@@ -38,4 +38,12 @@ export default function globalSetup() {
         env: { ...process.env, ...e2eEnv },
         stdio: 'inherit',
     });
+
+    // Same reasoning for the CV timeline: its markup — period, "still there"
+    // badge, headings — only exists when a record does. An empty table renders
+    // the empty state and the axe-core scan of /cv checks nothing.
+    execSync('php artisan db:seed --class=E2eExperienceSeeder --force', {
+        env: { ...process.env, ...e2eEnv },
+        stdio: 'inherit',
+    });
 }
