@@ -314,6 +314,56 @@ class ExperienceTest extends TestCase
         $this->get('/fr/cv')->assertOk();
     }
 
+    // ── Other locales ─────────────────────────────────────────────────────────
+
+    public function test_cv_page_is_served_in_a_non_french_locale(): void
+    {
+        $this->makeExperience();
+
+        $this->get('/en/cv')
+            ->assertOk()
+            ->assertSee('Groupe Vantarel', false)
+            ->assertSee('Principal Engineer', false);
+    }
+
+    public function test_untranslated_prose_falls_back_to_french(): void
+    {
+        // The page is served in 24 locales but cms:translate has only ever been
+        // run on some of them. Falling back beats rendering an experience with
+        // no description at all — and nothing else pins this behaviour down, so
+        // publishing config/translatable.php with different settings would empty
+        // the CV in 23 locales silently.
+        $experience = $this->makeExperience();
+        $experience->setTranslation('description', 'fr', 'Texte disponible en français seulement.');
+        $experience->save();
+
+        $this->get('/en/cv')
+            ->assertOk()
+            ->assertSee('Texte disponible en français seulement.', false);
+    }
+
+    // ── Ordering edge case ────────────────────────────────────────────────────
+
+    public function test_experiences_starting_the_same_month_keep_a_stable_order(): void
+    {
+        // Dates alone do not define a total order. Without the id tie-breaker in
+        // scopeMostRecentFirst() the two would come back in whatever order the
+        // database felt like, and the page would shuffle between requests.
+        $first = $this->makeExperience(['employer' => 'Premier Saisi', 'started_at' => '2024-04-01']);
+        $second = $this->makeExperience(['employer' => 'Second Saisi', 'started_at' => '2024-04-01']);
+
+        $this->assertLessThan($second->id, $first->id);
+
+        $body = $this->get('/fr/cv')->assertOk()->getContent();
+
+        $this->assertIsString($body);
+        $this->assertLessThan(
+            strpos($body, 'Premier Saisi'),
+            strpos($body, 'Second Saisi'),
+            'With equal start dates the most recently created must come first.',
+        );
+    }
+
     // ── Translation wiring ────────────────────────────────────────────────────
 
     public function test_job_title_is_not_translatable(): void
