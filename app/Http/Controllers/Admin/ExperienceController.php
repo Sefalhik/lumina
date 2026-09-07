@@ -7,12 +7,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ExperienceRequest;
 use App\Models\Experience;
+use App\Services\ExperienceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class ExperienceController extends Controller
 {
+    public function __construct(private readonly ExperienceService $experiences) {}
+
     public function index(): View
     {
         return view('admin.experiences.index', [
@@ -75,39 +78,10 @@ class ExperienceController extends Controller
         return $this->backToIndex('admin.experience_deleted');
     }
 
-    /**
-     * Writes the submitted values onto the model.
-     *
-     * The two prose fields go through setTranslation() on the French value only:
-     * the form edits the source language, and machine translations of the other
-     * locales must survive an edit. Everything else is a plain column — see the
-     * model for why job_title is one of them.
-     */
+    /** Validate, hand the payload to the service, persist. */
     private function apply(Experience $experience, ExperienceRequest $request): void
     {
-        $validated = $request->validated();
-
-        $experience->fill([
-            'employer' => $validated['employer'],
-            'job_title' => $validated['job_title'],
-            'location' => $validated['location'] ?? null,
-            'started_at' => $validated['started_at'],
-            'ended_at' => $validated['ended_at'] ?? null,
-        ]);
-
-        // array_key_exists rather than ?? '': the two cases differ. An emptied
-        // textarea reaches validated() as a present null — clearing it is what
-        // the user asked for. A payload that omits the field entirely is not a
-        // request to erase anything, and treating it as one would wipe the
-        // French prose while leaving the machine translations of the other
-        // locales in place, which is a state no screen can produce or repair.
-        foreach (['description', 'achievements'] as $field) {
-            if (array_key_exists($field, $validated)) {
-                $experience->setTranslation($field, 'fr', (string) $validated[$field]);
-            }
-        }
-
-        $experience->save();
+        $this->experiences->applySubmission($experience, $request->validated())->save();
     }
 
     private function backToIndex(string $messageKey): RedirectResponse
