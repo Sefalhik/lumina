@@ -95,8 +95,16 @@ class ExperienceController extends Controller
             'ended_at' => $validated['ended_at'] ?? null,
         ]);
 
+        // array_key_exists rather than ?? '': the two cases differ. An emptied
+        // textarea reaches validated() as a present null — clearing it is what
+        // the user asked for. A payload that omits the field entirely is not a
+        // request to erase anything, and treating it as one would wipe the
+        // French prose while leaving the machine translations of the other
+        // locales in place, which is a state no screen can produce or repair.
         foreach (['description', 'achievements'] as $field) {
-            $experience->setTranslation($field, 'fr', (string) ($validated[$field] ?? ''));
+            if (array_key_exists($field, $validated)) {
+                $experience->setTranslation($field, 'fr', (string) $validated[$field]);
+            }
         }
 
         $experience->save();

@@ -226,6 +226,79 @@ class ExperienceTest extends TestCase
         $this->assertTrue(Experience::firstOrFail()->isCurrent());
     }
 
+    // ── Payload shape ─────────────────────────────────────────────────────────
+
+    public function test_an_array_is_rejected_where_a_string_is_expected(): void
+    {
+        // The `string` rule is the only thing between a crafted array and a
+        // varchar column. It looks decorative until someone changes the form.
+        $this->actingAs($this->admin)
+            ->post('/fr/admin/experiences', $this->validPayload(['employer' => ['fr' => 'X']]))
+            ->assertSessionHasErrors('employer');
+
+        $this->assertSame(0, Experience::count());
+    }
+
+    public function test_an_array_is_rejected_for_the_prose_fields(): void
+    {
+        // Prose is translated, so `description[fr]` is a plausible thing for a
+        // stale page or a hand-written request to send. The form posts a plain
+        // string and the controller owns the locale.
+        $this->actingAs($this->admin)
+            ->post('/fr/admin/experiences', $this->validPayload(['description' => ['fr' => 'X']]))
+            ->assertSessionHasErrors('description');
+    }
+
+    public function test_relative_date_strings_are_rejected(): void
+    {
+        foreach (['now', '+1 day', 'next tuesday'] as $value) {
+            $this->actingAs($this->admin)
+                ->post('/fr/admin/experiences', $this->validPayload(['started_at' => $value]))
+                ->assertSessionHasErrors('started_at');
+        }
+
+        $this->assertSame(0, Experience::count());
+    }
+
+    // ── Partial payloads ──────────────────────────────────────────────────────
+
+    public function test_clearing_the_prose_from_the_form_empties_it(): void
+    {
+        $experience = $this->makeExperience();
+        $experience->setTranslation('description', 'fr', 'Texte à effacer.');
+        $experience->save();
+
+        $this->actingAs($this->admin)->put('/fr/admin/experiences/'.$experience->id, $this->validPayload([
+            'description' => '',
+        ]));
+
+        $this->assertSame('', Experience::firstOrFail()->getTranslation('description', 'fr', false));
+    }
+
+    public function test_a_payload_omitting_the_prose_leaves_it_untouched(): void
+    {
+        // An emptied textarea and an absent field are different intentions.
+        // Conflating them would let a partial request wipe the French prose
+        // while the machine translations of every other locale survive — a
+        // state no screen can produce, and none can repair.
+        $experience = $this->makeExperience();
+        $experience->setTranslation('description', 'fr', 'Texte à conserver.');
+        $experience->setTranslation('description', 'de', 'Deutscher Text.');
+        $experience->save();
+
+        $payload = $this->validPayload();
+        unset($payload['description'], $payload['achievements']);
+
+        $this->actingAs($this->admin)
+            ->put('/fr/admin/experiences/'.$experience->id, $payload)
+            ->assertSessionHasNoErrors();
+
+        $fresh = Experience::firstOrFail();
+
+        $this->assertSame('Texte à conserver.', $fresh->getTranslation('description', 'fr', false));
+        $this->assertSame('Deutscher Text.', $fresh->getTranslation('description', 'de', false));
+    }
+
     // ── "Still there" semantics ───────────────────────────────────────────────
 
     public function test_is_current_is_true_without_an_end_date(): void
