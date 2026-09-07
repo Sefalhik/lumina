@@ -125,19 +125,16 @@ class SiteIdentityServiceTest extends TestCase
         $this->assertNull($this->service->displayName($this->identity(['full_name' => ''])));
     }
 
-    public function test_job_title_resolves_the_active_locale(): void
+    public function test_job_title_is_returned_as_is(): void
     {
-        $identity = $this->identity();
-        $identity->setTranslation('job_title', 'fr', 'Lead Developer');
-
-        $this->assertSame('Lead Developer', $this->service->jobTitle($identity));
+        $this->assertSame(
+            'Lead Developer',
+            $this->service->jobTitle($this->identity(['job_title' => 'Lead Developer'])),
+        );
     }
 
     public function test_blank_job_title_is_null(): void
     {
-        $identity = $this->identity();
-        $identity->setTranslation('job_title', 'fr', '');
-
-        $this->assertNull($this->service->jobTitle($identity));
+        $this->assertNull($this->service->jobTitle($this->identity(['job_title' => ''])));
     }
 }

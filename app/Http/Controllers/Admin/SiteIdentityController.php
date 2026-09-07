@@ -32,15 +32,13 @@ class SiteIdentityController extends Controller
 
         $identity->fill([
             'full_name' => $validated['full_name'] ?? null,
+            'job_title' => $validated['job_title'] ?? null,
             'contact_email' => $validated['contact_email'] ?? null,
             'github_url' => $validated['github_url'] ?? null,
             'linkedin_url' => $validated['linkedin_url'] ?? null,
             'mastodon_url' => $validated['mastodon_url'] ?? null,
         ]);
 
-        // setTranslation() touches only the French value, leaving AI-generated
-        // translations of the other locales intact.
-        $identity->setTranslation('job_title', 'fr', (string) ($validated['job_title']['fr'] ?? ''));
         $identity->save();
 
         Log::info('Site identity updated', [

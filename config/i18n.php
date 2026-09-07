@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\HomepageContent;
-use App\Models\SiteIdentity;
 
 return [
     'default_locale' => 'fr',
@@ -26,9 +25,15 @@ return [
     | ignored at runtime and logged. See docs/seo-conventions.md.
     */
     'indexable_locales' => ['fr', 'en', 'de', 'it', 'nl'],
+    /*
+    | Models whose content `php artisan cms:translate` walks. A model listed
+    | here must use HasTranslations and declare a non-empty $translatable.
+    |
+    | SiteIdentity is deliberately absent: none of its columns is translated.
+    | See docs/site-identity.md.
+    */
     'cms_models' => [
         HomepageContent::class,
-        SiteIdentity::class,
     ],
 
     'native_names' => [

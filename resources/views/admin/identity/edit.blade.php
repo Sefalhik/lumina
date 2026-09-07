@@ -36,16 +36,16 @@
                class="input w-full bg-base-200 font-mono text-sm {{ $errors->has('full_name') ? 'border-error' : 'border-primary/20 focus:border-primary/60' }}">
     </div>
 
-    {{-- Job title (translated) --}}
+    {{-- Job title — one value for every locale, see docs/site-identity.md --}}
     <div class="mb-8">
         <label class="block text-[10px] tracking-[0.3em] uppercase text-base-content/60 mb-2 font-mono"
-               for="job_title_fr">
+               for="job_title">
             › {{ __('admin.identity_field_job_title') }}
         </label>
-        <input id="job_title_fr" type="text" name="job_title[fr]"
-               value="{{ old('job_title.fr', $identity->getTranslation('job_title', 'fr', false)) }}"
+        <input id="job_title" type="text" name="job_title"
+               value="{{ old('job_title', $identity->job_title) }}"
                maxlength="120"
-               class="input w-full bg-base-200 font-mono text-sm {{ $errors->has('job_title.fr') ? 'border-error' : 'border-primary/20 focus:border-primary/60' }}">
+               class="input w-full bg-base-200 font-mono text-sm {{ $errors->has('job_title') ? 'border-error' : 'border-primary/20 focus:border-primary/60' }}">
         <p class="mt-2 text-[10px] tracking-widest uppercase text-base-content/60 font-mono">
             {{ __('admin.identity_hint_job_title') }}
         </p>

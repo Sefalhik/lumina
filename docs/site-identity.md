@@ -28,11 +28,13 @@ protected $fillable = [
 listed in `$translatable` are stored as multilingual JSON. Every other column on the same model
 stays an ordinary column.
 
-So a model can perfectly well hold translated *and* untranslated fields:
+So a model can perfectly well hold translated *and* untranslated fields. `SiteIdentity` was
+designed that way — `job_title` translated, the rest not — and then deliberately went the other
+way. Every column is untranslated today:
 
 | Field | Translated? | Why |
 |-------|-------------|-----|
-| `job_title` | yes | "Tech Lead" may read better localised in some markets |
+| `job_title` | no | It is a cross-reference key, not prose — see the section below |
 | `full_name` | no | A proper noun does not get translated |
 | `contact_email` | no | An address is an address |
 | `github_url`, `linkedin_url`, `mastodon_url` | no | So is a URL |
@@ -40,8 +42,43 @@ So a model can perfectly well hold translated *and* untranslated fields:
 `HomepageContent` happens to have identical `$translatable` and `$fillable` arrays — that is a
 coincidence of its content, **not a constraint of the trait**. Do not copy it as a rule.
 
-The model is registered in `config('i18n.cms_models')`, so `php artisan cms:translate` picks up
-`job_title` automatically and ignores everything else.
+Because nothing on the model is translated, it carries no `HasTranslations` trait and is **not**
+listed in `config('i18n.cms_models')`. `php artisan cms:translate` never walks it.
+
+### Why `job_title` is not translated
+
+Decided 2026-09-07, migration `2026_09_07_000000_make_site_identity_job_title_untranslated`.
+
+The `sameAs` declaration asserts that this site, GitHub, LinkedIn and Mastodon designate the same
+person. Formally, `sameAs` is just a list of URLs — no specification requires the job titles to
+agree. But a search engine resolving an entity corroborates what it finds behind those links, and
+the job title is the one attribute all four supports carry.
+
+Those three profiles hold **one** hand-typed title each: `Tech Lead`. The site could have held
+twenty-four. The first `php artisan cms:translate` run would have produced a localised title for
+every locale — plausibly *Technischer Leiter*, *Responsabile Tecnico* — and the corroboration would
+then have held for `fr` alone. A signal that contradicts itself in 23 locales out of 24 is worth
+less than no signal at all.
+
+Two alternatives were rejected:
+
+- **Keep it translated**, accepting that only the canonical locale corroborates. Gives up the
+  benefit the field exists for.
+- **Keep it translated but pin the same value everywhere.** Works until the next `cms:translate
+  --force`, which silently undoes it. Nothing enforces it.
+
+Dropping the field from `$translatable` is the only option a test can guard, and
+`SiteIdentityTest` guards it from both ends: the model must stay out of `cms_models`, and the
+column must still hold a plain string after a save. Re-adding either half alone would not restore
+the old behaviour — but it would be the first step back to it, and the suite says so.
+
+The cost is that a German visitor reads an English job title. *Tech Lead* is used as-is across
+European tech markets, so this is close to free — and the admin form's hint (« Doit être identique
+sur le site, GitHub et LinkedIn ») now states a rule the code actually enforces.
+
+**On the column type**: the migration is raw SQL, not `->change()`. PostgreSQL refuses a
+`json → varchar` cast without an explicit `USING` clause, which the schema builder does not emit.
+`down()` rebuilds `{"fr": …}` around the value; the round trip was verified before shipping.
 
 ## URL validation — three axes, not one
 

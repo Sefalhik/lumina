@@ -3,27 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Translatable\HasTranslations;
 
 /**
  * Site-wide identity: who runs this site, and where to find them.
  *
  * Single row. Distinct from HomepageContent because these values are used on
  * every page (footer, and structured data later), not just the home page.
+ *
+ * Nothing here is translated, job_title included. The title is the value that
+ * cross-references this site with the GitHub, LinkedIn and Mastodon profiles a
+ * sameAs statement points at; those carry one hand-typed title each, so a
+ * localised one would only ever have matched in `fr`. docs/site-identity.md
+ * records the decision — SiteIdentityTest guards it.
  */
 class SiteIdentity extends Model
 {
-    use HasTranslations;
-
-    /**
-     * Only job_title is translated. Names, emails and profile URLs are the same
-     * in every language — listing them here would store pointless JSON and hand
-     * them to cms:translate for no reason.
-     *
-     * @var list<string>
-     */
-    public array $translatable = ['job_title'];
-
     /** @var list<string> */
     protected $fillable = [
         'full_name',
