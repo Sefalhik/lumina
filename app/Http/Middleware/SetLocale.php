@@ -21,6 +21,20 @@ class SetLocale
         app()->setLocale($lang);
         URL::defaults(['lang' => $lang]);
 
+        // Drop {lang} from the route parameters once it has done its job.
+        //
+        // Laravel hands a controller its route parameters positionally, so
+        // keeping it here means every action on a route that also carries a
+        // model — /{lang}/admin/experiences/{experience} — would receive the
+        // locale string as its first argument instead of the bound model. The
+        // alternative is a `string $lang` first parameter on every such method,
+        // which spreads a routing detail through the whole controller layer.
+        //
+        // Safe because nothing reads the parameter afterwards: URL generation
+        // goes through the URL default set above, and LocalizedUrlService always
+        // passes an explicit 'lang' when building alternates.
+        $request->route()?->forgetParameter('lang');
+
         return $next($request);
     }
 }

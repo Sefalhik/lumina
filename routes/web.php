@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\ExperienceController;
 use App\Http\Controllers\Admin\HomepageContentController;
 use App\Http\Controllers\Admin\SiteIdentityController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Dashboard\AdminController;
+use App\Http\Controllers\Public\CvController;
 use App\Http\Controllers\Public\HomeController;
 use App\Services\LocaleResolver;
 use Illuminate\Http\Request;
@@ -38,7 +40,7 @@ Route::prefix('{lang}')
 
         // Public
         Route::get('/', [HomeController::class, 'index'])->name('home');
-        Route::get('/cv', fn () => view('cv'))->name('cv');
+        Route::get('/cv', [CvController::class, 'index'])->name('cv');
         Route::get('/projects', fn () => view('projects'))->name('projects');
         Route::get('/blog', fn () => view('blog.index'))->name('blog');
         Route::get('/blog/{slug}', fn (string $slug) => view('blog.show', ['slug' => $slug]))->name('blog.show');
@@ -53,5 +55,12 @@ Route::prefix('{lang}')
                 Route::put('/homepage', [HomepageContentController::class, 'update'])->name('homepage.update');
                 Route::get('/identity', [SiteIdentityController::class, 'edit'])->name('identity.edit');
                 Route::put('/identity', [SiteIdentityController::class, 'update'])->name('identity.update');
+
+                Route::get('/experiences', [ExperienceController::class, 'index'])->name('experiences.index');
+                Route::get('/experiences/create', [ExperienceController::class, 'create'])->name('experiences.create');
+                Route::post('/experiences', [ExperienceController::class, 'store'])->name('experiences.store');
+                Route::get('/experiences/{experience}/edit', [ExperienceController::class, 'edit'])->name('experiences.edit');
+                Route::put('/experiences/{experience}', [ExperienceController::class, 'update'])->name('experiences.update');
+                Route::delete('/experiences/{experience}', [ExperienceController::class, 'destroy'])->name('experiences.destroy');
             });
     });

@@ -107,6 +107,20 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 - `redirectUsersTo` — authenticated users hitting guest routes → `/{lang}/home`
 - `redirectGuestsTo` — unauthenticated users hitting auth routes → `/{lang}/login`
 
+### Route parameters and the `{lang}` prefix
+
+Laravel passes route parameters to a controller **positionally**. Every public and admin route sits
+under `Route::prefix('{lang}')`, so `{lang}` would arrive as the *first* argument of any action — an
+action typed `edit(Experience $experience)` receives the locale string instead of the bound model.
+
+`SetLocale` therefore calls `$request->route()?->forgetParameter('lang')` once it has set the locale
+and the URL default. Without it, every controller taking a route-model-bound parameter would need a
+`string $lang` first argument, spreading a routing detail through the whole controller layer.
+
+Safe because nothing reads the parameter afterwards: URL generation goes through
+`URL::defaults(['lang' => …])`, and `LocalizedUrlService` always passes an explicit `lang` when
+building alternates.
+
 ### Roles & access
 | Role | Access |
 |------|--------|

@@ -59,4 +59,35 @@ return [
     'card_operator_label' => 'Opérateur',
     'card_security_label' => 'Sécurité',
     'card_security_value' => '◈ 2FA actif',
+
+    // Experiences — CV professional timeline
+    'experience_nav' => 'Parcours professionnel',
+    'experience_index_title' => 'Parcours professionnel',
+    'experience_index_subtitle' => 'Contenu public / CV',
+    'experience_index_heading' => 'Parcours professionnel',
+    'experience_create' => 'Ajouter une expérience',
+    'experience_edit_heading' => 'Modifier une expérience',
+    'experience_create_heading' => 'Nouvelle expérience',
+    'experience_empty' => 'Aucune expérience enregistrée.',
+
+    'experience_field_employer' => 'Employeur',
+    'experience_field_job_title' => 'Intitulé de poste',
+    'experience_field_location' => 'Lieu',
+    'experience_field_started_at' => 'Date de début',
+    'experience_field_ended_at' => 'Date de fin',
+    'experience_field_description' => 'Description',
+    'experience_field_achievements' => 'Réalisations',
+
+    'experience_hint_job_title' => 'Doit être identique au profil LinkedIn — c’est le point de recoupement.',
+    'experience_hint_ended_at' => 'Laisser vide si le poste est toujours occupé.',
+    'experience_current' => 'En poste',
+
+    'experience_save' => 'Enregistrer',
+    'experience_delete' => 'Supprimer',
+    'experience_back' => 'Retour à la liste',
+
+    'experience_created' => 'Expérience ajoutée.',
+    'experience_updated' => 'Expérience mise à jour.',
+    'experience_deleted' => 'Expérience supprimée.',
+    'experience_end_before_start' => 'La date de fin ne peut pas précéder la date de début.',
 ];
