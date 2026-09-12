@@ -3,7 +3,7 @@
 Projet **LUMN** ("Lumina") — Company-managed, instance `cardascia-it.atlassian.net`.
 Cloud ID : `ce1e33ab-e0ad-42ee-90b9-1712e6204310`
 
-Workflow strict à 8 statuts. Référence des IDs pour les automatisations
+Workflow strict à 9 statuts. Référence des IDs pour les automatisations
 (GitHub Actions → JIRA REST API, JIRA Automation).
 
 ## Statuts
@@ -18,6 +18,7 @@ Workflow strict à 8 statuts. Référence des IDs pour les automatisations
 | En déploiement | 10042 | En cours |
 | En production | 10043 | Terminé |
 | Bloqué | 10044 | En cours |
+| Annulé | 10077 | Terminé |
 
 ## Transitions
 
@@ -37,6 +38,8 @@ Workflow strict à 8 statuts. Référence des IDs pour les automatisations
 | 13 | Demander corrections | En review → En cours | GitHub Actions — changes requested (optionnel) |
 | 14 | Rejeter (CI) | PR approuvée → En cours | GitHub Actions — CI rouge post-merge |
 | 15 | Rollback | En déploiement → En cours | GitHub Actions — échec déploiement / smoke tests |
+| 16 | Annulé | **globale** (tous statuts) → Annulé | Manuel |
+| 17 | Réactivation | Annulé → Backlog | Manuel |
 
 ## Appel REST type
 
@@ -51,3 +54,78 @@ curl -s -X POST \
 Les transitions `Bloquer` (8) et ses sorties (9, 10, 11) ne sont valides que depuis/vers
 les états actifs — voir le workflow. `Bloquer` n'est pas joignable depuis `Backlog`
 ni `En production`.
+
+## Annulation — ajouté le 2026-09-12
+
+`Annulé` est la seule sortie du workflow autre que `En production`. Avant lui, un ticket obsolète,
+doublonné ou absorbé par un autre n'avait nulle part où aller.
+
+Trois choix de conception, tous délibérés :
+
+**Catégorie `Terminé`, pas `En cours`.** Un statut d'annulation rangé en catégorie « En cours »
+ferait compter les tickets annulés comme du travail en cours dans tous les rapports, et leur temps
+de cycle ne se fermerait jamais. C'est le réglage le plus facile à rater.
+
+**Transition globale.** Un ticket s'annule depuis n'importe quel statut. La transition 16 est donc
+globale plutôt que câblée depuis chacun des huit autres. Elle est aussi disponible **depuis
+`Annulé` lui-même** — une auto-boucle qui semble inutile et qui ne l'est pas : elle permet de
+repasser un ticket annulé avant l'ajout des post-fonctions pour qu'il reçoive enfin sa résolution.
+
+**Une sortie existe.** La transition 17 ramène vers `Backlog`. Sans elle, un statut atteignable en
+un clic depuis partout serait définitif, et une erreur de manipulation demanderait une intervention
+d'administration.
+
+## Résolutions — le statut ne ferme pas un ticket
+
+Dans Jira, « fermé » est porté par le champ **Résolution**, pas par le statut. Un changement de
+statut ne le renseigne **jamais** tout seul.
+
+Un ticket en `Annulé` sans résolution reste « non résolu » : il remonte dans les filtres par défaut
+(`resolution = EMPTY`), sa clé ne s'affiche pas barrée, et les rapports fondés sur la date de
+résolution l'ignorent. Le statut est vert, la colonne est la bonne, et rien n'est clos.
+
+Les transitions qui terminent un ticket portent donc une **post-fonction** qui renseigne la
+résolution :
+
+| Transition | Résolution posée |
+|------------|------------------|
+| 16 — Annulé | `Won't Do` |
+| 7 — Mettre en production | à poser, même principe |
+
+**Une post-fonction ne s'applique qu'aux transitions futures.** Un ticket annulé avant son ajout
+reste sans résolution ; il faut le repasser par la transition (d'où l'utilité de l'auto-boucle).
+
+Vérification par l'API plutôt que par l'écran — c'est la couleur verte du statut qui masque
+l'absence de résolution :
+
+```bash
+curl -s -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
+  "https://cardascia-it.atlassian.net/rest/api/3/issue/$KEY?fields=status,resolution,resolutiondate"
+```
+
+## Priorités
+
+Le projet utilise l'échelle Jira standard à cinq niveaux. Elle **complète** le rang du backlog,
+elle ne le remplace pas : la priorité partitionne la file, le rang arbitre à l'intérieur d'un
+palier. Sans elle, chaque ticket créé exigeait un glisser-déposer manuel pour trouver sa place.
+
+| Priorité | ID | Sens dans ce projet |
+|----------|----|---------------------|
+| Highest | 1 | en cours, ou prochain à prendre — l'axe prioritaire du moment |
+| High | 2 | bloque un autre ticket, ou piège connu qui se redéclenchera |
+| Medium | 3 | file normale — **valeur par défaut** |
+| Low | 4 | utile, sans urgence ni dépendance |
+| Lowest | 5 | dette pure, aucun effet visible |
+
+**La priorité est renseignée à la création**, jamais après coup — y compris dans les brouillons de
+tickets soumis à validation, où elle fait partie de l'en-tête au même titre que le type et l'epic.
+Un ticket créé sans priorité hérite de `Medium` et se noie dans la file.
+
+Les tickets en `PR approuvée` gardent `Medium` : leur travail est fait, ils attendent un
+déploiement, et une priorité n'y décrit plus rien d'actionnable.
+
+### Priorité et liens de blocage ne disent pas la même chose
+
+Une priorité dit « celui-ci compte davantage ». Un lien `Blocks` dit « celui-ci est **impossible**
+avant celui-là ». La seconde information est plus forte et se vérifie ; elle n'a pas à être
+réencodée en priorité.
