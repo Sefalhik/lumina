@@ -34,6 +34,13 @@ class CvService
      */
     public function timeline(Collection $experiences): array
     {
+        // Sorted on started_at only, and that is enough: PHP 8 sorts are stable,
+        // so positions starting the same month keep the order the query gave
+        // them — which Experience::scopeMostRecentFirst() settles with an id
+        // tie-breaker. Two places share the ordering knowledge, deliberately:
+        // this sort makes the page correct whatever the caller hands over, the
+        // scope makes it deterministic. Replacing this with an unstable sort
+        // would silently lose the tie-breaker.
         $rows = $experiences
             ->sortByDesc(fn (Experience $experience): string => $experience->started_at->format('Y-m-d'))
             ->map(fn (Experience $experience): array => [

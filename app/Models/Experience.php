@@ -64,6 +64,12 @@ class Experience extends Model
     /**
      * Positions still held. The query-side counterpart of isCurrent().
      *
+     * No application code calls this yet — only the test that pins its meaning.
+     * Kept deliberately: a predicate and its query form belong together, and
+     * whoever needs "the current position" should find it here rather than
+     * writing whereNull('ended_at') again somewhere else. If it is still
+     * unused when a second reader wonders about it, delete it.
+     *
      * @param  Builder<Experience>  $query
      */
     public function scopeCurrent(Builder $query): void
@@ -76,6 +82,13 @@ class Experience extends Model
      *
      * Computed rather than stored: an explicit position column would be one more
      * thing to keep consistent for an order that dates already define.
+     *
+     * The id tie-breaker is load-bearing even though CvService sorts again.
+     * PHP 8 sorts are stable, so the service's sortByDesc on started_at alone
+     * preserves the order this query returned — meaning two positions starting
+     * the same month are separated here and nowhere else. Removing
+     * orderByDesc('id') fails a test, which is the only thing that states this
+     * coupling out loud.
      *
      * @param  Builder<Experience>  $query
      */
