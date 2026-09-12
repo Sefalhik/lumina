@@ -509,3 +509,56 @@ Three jobs — `php` and `js` run in parallel, `e2e` runs after `php` passes:
 **E2E session driver** : the E2E job sets `SESSION_DRIVER: file` to avoid the async Redis write issue present in the dev setup. `session()->save()` in the e2e helper routes works correctly with the file driver.
 
 **`needs: [php]`** on the E2E job : no point running the full browser suite if the backend is already broken.
+
+## Branch protection and merge policy
+
+Set up 2026-09-12. `main` is governed by a **single ruleset**, `Protection de main`
+(`id 23077780`), active, with **no bypass actors** — it applies to administrators, including the
+repository owner.
+
+| Rule | Effect |
+|------|--------|
+| `deletion` | `main` cannot be deleted |
+| `non_fast_forward` | no force-push |
+| `required_linear_history` | no merge commits |
+| `pull_request` | direct pushes blocked; **0 required approvals**; squash is the only allowed merge method |
+| `required_status_checks` (**strict**) | the three quality checks must pass, and the branch must be up to date |
+
+Required checks, by exact context name — a typo here produces a requirement that is never
+satisfied, and the PR hangs forever:
+
+```
+PHP — PHPStan + PHPUnit
+JS — ESLint + Stylelint + Vitest
+E2E — Playwright
+```
+
+**`JIRA Sync` is deliberately excluded.** It is not a quality gate: it only runs on pull-request
+events, and it cannot fail by design — a refused transition is a `::warning::` (see LUMN-17).
+Requiring it would prove nothing.
+
+**Zero required approvals is not an oversight.** GitHub forbids approving your own pull request, so
+on a solo repository requiring even one approval locks the owner out permanently.
+
+**Strict mode means rebasing.** Once a PR is merged, every other open PR becomes out of date and
+must be rebased onto `main` before it can be merged. With one or two branches in flight this costs
+seconds, and it is what catches a branch that no longer passes against the new base.
+
+At the repository level, **squash is the only merge method** (`allow_merge_commit` and
+`allow_rebase_merge` are off), and `delete_branch_on_merge` is on.
+
+### Checking protection — do not use the classic endpoint
+
+```bash
+gh api repos/Sefalhik/lumina/rules/branches/main   # effective rules, with their ruleset_id
+gh api repos/Sefalhik/lumina/rulesets              # existing rulesets
+gh api repos/Sefalhik/lumina/rulesets/<id>         # detail, including bypass_actors
+```
+
+`GET /repos/{owner}/{repo}/branches/main/protection` reports **classic branch protection only** and
+is blind to rulesets. On this repository it answers `404 Branch not protected` while the branch is
+in fact protected — a false negative that has already produced one wrong diagnosis.
+
+Always inspect `bypass_actors` as well: a ruleset that can be bypassed is a reminder, not a
+protection. The previous ruleset had one in `always` mode, which is why it did not apply to the
+owner.
