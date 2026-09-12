@@ -15,23 +15,6 @@ class ExperienceRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation(): void
-    {
-        $clean = [];
-
-        foreach (['employer', 'job_title', 'location', 'description', 'achievements'] as $field) {
-            $value = $this->input($field);
-
-            if (is_string($value)) {
-                $clean[$field] = trim($value);
-            }
-        }
-
-        if ($clean !== []) {
-            $this->merge($clean);
-        }
-    }
-
     /**
      * An empty ended_at is the "still in this position" case, so it stays
      * nullable — but when it is given it cannot precede the start.

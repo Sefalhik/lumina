@@ -708,6 +708,23 @@ class ExperienceTest extends TestCase
             ->assertSessionHasErrors('description');
     }
 
+    // ── Normalisation ─────────────────────────────────────────────────────────
+
+    public function test_surrounding_whitespace_is_trimmed(): void
+    {
+        $this->actingAs($this->admin)->post('/fr/admin/experiences', $this->validPayload([
+            'employer' => '   Groupe Vantarel   ',
+            'job_title' => "\t Principal Engineer \n",
+            'description' => '  Direction technique.  ',
+        ]));
+
+        $experience = Experience::firstOrFail();
+
+        $this->assertSame('Groupe Vantarel', $experience->employer);
+        $this->assertSame('Principal Engineer', $experience->job_title);
+        $this->assertSame('Direction technique.', $experience->getTranslation('description', 'fr'));
+    }
+
     // ── Optional fields ───────────────────────────────────────────────────────
 
     public function test_achievements_are_saved_and_displayed(): void
