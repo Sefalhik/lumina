@@ -7,6 +7,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Experience;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -227,6 +228,47 @@ class ExperienceTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertTrue(Experience::firstOrFail()->isCurrent());
+    }
+
+    // ── Query behaviour ───────────────────────────────────────────────────────
+
+    /** Counts the queries a single request to the CV page issues. */
+    private function queriesForCvPage(): int
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $this->get('/fr/cv')->assertOk();
+
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $count;
+    }
+
+    public function test_the_cv_page_query_count_does_not_grow_with_the_rows(): void
+    {
+        // Deliberately an invariance check rather than a fixed number: LUMN-19
+        // adds a second section to this page and will legitimately add a query.
+        // Pinning an exact count would break then and teach nothing. What must
+        // never change is that the count is independent of how many records
+        // exist — which is the definition of the N+1 this guards against.
+        $this->makeExperience(['employer' => 'Unique']);
+        $withOne = $this->queriesForCvPage();
+
+        for ($i = 0; $i < 20; $i++) {
+            $this->makeExperience([
+                'employer' => 'Employeur '.$i,
+                'started_at' => sprintf('%04d-01-01', 2000 + $i),
+            ]);
+        }
+
+        $this->assertSame(21, Experience::count());
+        $this->assertSame(
+            $withOne,
+            $this->queriesForCvPage(),
+            'Rendering twenty-one positions must cost the same number of queries as one.',
+        );
     }
 
     // ── Routing edges ─────────────────────────────────────────────────────────
