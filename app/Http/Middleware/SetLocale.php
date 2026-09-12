@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,7 +34,15 @@ class SetLocale
         // Safe because nothing reads the parameter afterwards: URL generation
         // goes through the URL default set above, and LocalizedUrlService always
         // passes an explicit 'lang' when building alternates.
-        $request->route()?->forgetParameter('lang');
+        //
+        // The route cannot be null at this point: $lang was read from its own
+        // parameters, and a null route would have yielded a null $lang and left
+        // through the redirect above. assert() states that invariant rather than
+        // hiding it behind a null-safe call whose null branch is unreachable.
+        $route = $request->route();
+        assert($route instanceof Route);
+
+        $route->forgetParameter('lang');
 
         return $next($request);
     }
