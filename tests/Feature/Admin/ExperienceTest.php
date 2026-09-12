@@ -71,7 +71,7 @@ class ExperienceTest extends TestCase
 
     public function test_unauthenticated_user_is_redirected_from_the_list(): void
     {
-        $this->get('/fr/admin/experiences')->assertRedirect();
+        $this->get('/fr/admin/experiences')->assertRedirect('/fr/login');
     }
 
     public function test_non_admin_user_cannot_reach_the_list(): void
@@ -87,12 +87,12 @@ class ExperienceTest extends TestCase
 
         $this->actingAs($this->admin)
             ->get('/fr/admin/experiences')
-            ->assertRedirect();
+            ->assertRedirect('/fr/two-factor/challenge');
     }
 
     public function test_unauthenticated_user_cannot_create(): void
     {
-        $this->post('/fr/admin/experiences', $this->validPayload())->assertRedirect();
+        $this->post('/fr/admin/experiences', $this->validPayload())->assertRedirect('/fr/login');
 
         $this->assertSame(0, Experience::count());
     }
@@ -101,7 +101,7 @@ class ExperienceTest extends TestCase
     {
         $experience = $this->makeExperience();
 
-        $this->delete('/fr/admin/experiences/'.$experience->id)->assertRedirect();
+        $this->delete('/fr/admin/experiences/'.$experience->id)->assertRedirect('/fr/login');
 
         $this->assertSame(1, Experience::count());
     }
@@ -112,7 +112,8 @@ class ExperienceTest extends TestCase
     {
         $this->actingAs($this->admin)
             ->post('/fr/admin/experiences', $this->validPayload())
-            ->assertRedirect();
+            ->assertRedirect('/fr/admin/experiences')
+            ->assertSessionHas('success');
 
         $experience = Experience::first();
 
@@ -135,7 +136,8 @@ class ExperienceTest extends TestCase
             ->put('/fr/admin/experiences/'.$experience->id, $this->validPayload([
                 'job_title' => 'Staff Engineer',
             ]))
-            ->assertRedirect();
+            ->assertRedirect('/fr/admin/experiences')
+            ->assertSessionHas('success');
 
         $this->assertSame('Staff Engineer', Experience::firstOrFail()->job_title);
         $this->assertSame(1, Experience::count());
@@ -147,7 +149,8 @@ class ExperienceTest extends TestCase
 
         $this->actingAs($this->admin)
             ->delete('/fr/admin/experiences/'.$experience->id)
-            ->assertRedirect();
+            ->assertRedirect('/fr/admin/experiences')
+            ->assertSessionHas('success');
 
         $this->assertSame(0, Experience::count());
     }
@@ -224,6 +227,32 @@ class ExperienceTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->assertTrue(Experience::firstOrFail()->isCurrent());
+    }
+
+    // ── Routing edges ─────────────────────────────────────────────────────────
+
+    public function test_an_unknown_experience_yields_a_not_found(): void
+    {
+        $this->actingAs($this->admin)
+            ->get('/fr/admin/experiences/999999/edit')
+            ->assertNotFound();
+    }
+
+    public function test_deleting_an_unknown_experience_yields_a_not_found(): void
+    {
+        $this->actingAs($this->admin)
+            ->delete('/fr/admin/experiences/999999')
+            ->assertNotFound();
+    }
+
+    public function test_the_redirect_keeps_the_submitting_locale(): void
+    {
+        // The controller builds its redirect from app()->getLocale(). Submitting
+        // from /en must come back to /en, or an admin working in one language is
+        // thrown into another on every save.
+        $this->actingAs($this->admin)
+            ->post('/en/admin/experiences', $this->validPayload())
+            ->assertRedirect('/en/admin/experiences');
     }
 
     // ── Payload shape ─────────────────────────────────────────────────────────
@@ -510,7 +539,7 @@ class ExperienceTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post('/fr/admin/experiences', $this->validPayload())
-            ->assertRedirect();
+            ->assertRedirect('/fr/two-factor/challenge');
 
         $this->assertSame(0, Experience::count());
     }
@@ -522,7 +551,7 @@ class ExperienceTest extends TestCase
 
         $this->actingAs($this->admin)
             ->put('/fr/admin/experiences/'.$experience->id, $this->validPayload(['job_title' => 'Pirate']))
-            ->assertRedirect();
+            ->assertRedirect('/fr/two-factor/challenge');
 
         $this->assertSame('Principal Engineer', Experience::firstOrFail()->job_title);
     }
@@ -534,7 +563,7 @@ class ExperienceTest extends TestCase
 
         $this->actingAs($this->admin)
             ->delete('/fr/admin/experiences/'.$experience->id)
-            ->assertRedirect();
+            ->assertRedirect('/fr/two-factor/challenge');
 
         $this->assertSame(1, Experience::count());
     }
@@ -544,14 +573,14 @@ class ExperienceTest extends TestCase
         $experience = $this->makeExperience();
 
         $this->put('/fr/admin/experiences/'.$experience->id, $this->validPayload(['job_title' => 'Pirate']))
-            ->assertRedirect();
+            ->assertRedirect('/fr/login');
 
         $this->assertSame('Principal Engineer', Experience::firstOrFail()->job_title);
     }
 
     public function test_unauthenticated_user_cannot_reach_the_create_form(): void
     {
-        $this->get('/fr/admin/experiences/create')->assertRedirect();
+        $this->get('/fr/admin/experiences/create')->assertRedirect('/fr/login');
     }
 
     public function test_non_admin_user_cannot_reach_the_edit_form(): void
