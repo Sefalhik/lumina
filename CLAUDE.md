@@ -149,7 +149,12 @@ building alternates.
 | `app/Services/TranslationCache.php` | File-checksum + per-key TTL cache for i18n and CMS translations |
 | `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
 | `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
+| `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
+| `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list |
 | `app/Models/SiteIdentity.php` | Single-row site identity. **Mixed model**: only `job_title` is translated |
+| `app/Models/Experience.php` | One position in the CV timeline. Partially translated: prose only — `job_title` is a cross-reference key, not prose |
+| `app/Http/Controllers/Public/CvController.php` | Public CV page — queries, delegates shaping to `CvService` |
+| `app/Http/Controllers/Admin/ExperienceController.php` | CV timeline CRUD — validates, delegates to `ExperienceService`, persists |
 | `resources/views/` | Blade templates |
 | `resources/js/` | Vue island components + utilities |
 | `resources/js/utils/` | Pure JS utility modules (unit-tested) |
@@ -747,6 +752,57 @@ Always inspect `bypass_actors` as well: a ruleset that can be bypassed is a remi
 protection. The previous ruleset had one in `always` mode, which is why it did not apply to the
 owner.
 
+## CV timeline (`Experience`)
+
+Delivered by LUMN-18. First entity of the CV page; the pattern below is meant to be replicated for
+education, certifications and skills.
+
+### Partial translation — decided at design time
+
+| Field | Translated | Why |
+|-------|-----------|-----|
+| `employer`, `location` | no | proper nouns and geography |
+| `started_at`, `ended_at` | no | dates |
+| **`job_title`** | **no** | it is what a `sameAs` statement cross-references with the LinkedIn profile, which carries one hand-typed title. A localised one would match in `fr` alone — the mistake LUMN-15 had to undo on `SiteIdentity` |
+| `description`, `achievements` | yes | prose |
+
+`ExperienceService` reads this split from the model's `$translatable` rather than repeating it, so
+changing the model alone changes the service's behaviour — and fails the two tests that guard the
+decision.
+
+### A null `ended_at` means "still in this position"
+
+A business state, not missing data. It is named rather than implied: `isCurrent()`,
+`scopeCurrent()`, a comment on the column, and tests asserting both. See the memory rule on
+explicit NULL semantics — an implicit one is re-explained at every reading.
+
+### Ordering lives in two places, deliberately
+
+`Experience::scopeMostRecentFirst()` orders by `started_at` then `id`; `CvService::timeline()`
+sorts by `started_at` alone. The second does not override the first — **PHP 8 sorts are stable**,
+so positions starting the same month keep the order the query gave them and the `id` tie-breaker
+survives.
+
+Both are load-bearing: the service sort makes the page correct whatever the caller hands over, the
+scope makes it deterministic. Swapping either for an unstable sort loses the tie-breaker silently.
+
+### Query cost
+
+The CV page issues **one query for the positions**, whatever their number — the model has no
+relation, so nothing can be lazily loaded. `ExperienceTest` pins this as an *invariance* rather
+than a fixed count, so the guard survives LUMN-19 adding a second section.
+
+The weight is elsewhere: **~94 KB of JSON per row** once `cms:translate` has run, since
+`spatie/laravel-translatable` stores all twenty-four locales in one column and the page loads them
+all to display one. Harmless at CV scale — worth settling before the blog engine reuses the pattern
+on article bodies.
+
+### Normalisation is the framework's job
+
+Inputs arrive trimmed: `TrimStrings` sits in the global middleware stack, immediately before
+`ConvertEmptyStringsToNull`. A `prepareForValidation()` that only trims is dead code — one was
+written here and removed once measured. `SiteIdentityRequest` still carries a half-dead one: its
+trimming is redundant, its query-string stripping is not.
 ## Session brain dumps
 
 `docs/blog-prep/` holds one Markdown file per working session — what was found, what resisted, and
