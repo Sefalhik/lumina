@@ -4,10 +4,11 @@ return [
     'title' => 'Strona główna',
     'cta_projects' => 'Zobacz moje projekty',
     'cta_cv' => 'Moje CV',
+    'about_heading' => 'O nas',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex aktywny',
-    'fallback_subtitle' => 'Lead Developer // Inżynier Oprogramowania',
-    'fallback_bio' => 'Architekt systemów, rzemieślnik czystego kodu. Buduję solidne aplikacje i zespoły, które trwają — gdzieś między konsolą a gwiazdami.',
+    'fallback_tagline' => 'Inicjalizacja w toku',
+    'fallback_subtitle' => 'Trwa ładowanie zawartości',
+    'fallback_bio' => 'Zawartość tej strony nie została jeszcze zainicjowana.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

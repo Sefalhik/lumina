@@ -5,12 +5,17 @@ return [
     'cta_projects' => 'Voir mes projets',
     'cta_cv' => 'Mon CV',
 
+    'about_heading' => 'À propos',
     'skills_heading' => 'Stack & expertise',
 
-    // Fallback CMS content — displayed before the seeder has been run
-    'fallback_tagline' => 'Neuromatrix online — biocortex actif',
-    'fallback_subtitle' => 'Lead Developer // Ingénieur Logiciel',
-    'fallback_bio' => 'Architecte de systèmes, artisan du code propre. Je construis des applications robustes et des équipes qui durent — quelque part entre la console et les étoiles.',
+    // Shown only while the homepage row is missing entirely — before the very
+    // first db:seed, or on a database that was reset. Deliberately neutral:
+    // duplicating the real copy here would give it a second home, and the two
+    // would drift. The content itself lives in
+    // database/data/homepage-content.php.
+    'fallback_tagline' => 'Initialisation en cours',
+    'fallback_subtitle' => 'Contenu en cours de chargement',
+    'fallback_bio' => 'Le contenu de cette page n’est pas encore initialisé.',
 
     // Fallback skills grid — displayed before skills are configured in the CMS
     'fallback_skills' => [

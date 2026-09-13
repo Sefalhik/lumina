@@ -4,10 +4,11 @@ return [
     'title' => 'Home',
     'cta_projects' => 'Bekijk mijn projecten',
     'cta_cv' => 'Mijn CV',
+    'about_heading' => 'Over mij',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex actief',
-    'fallback_subtitle' => 'Lead Developer // Software Engineer',
-    'fallback_bio' => 'Systeemarchitect, ambachtsman van schone code. Ik bouw robuuste applicaties en teams die standhouden — ergens tussen de console en de sterren.',
+    'fallback_tagline' => 'Initialisatie in uitvoering',
+    'fallback_subtitle' => 'Inhoud wordt geladen',
+    'fallback_bio' => 'De inhoud van deze pagina is nog niet geïnitialiseerd.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

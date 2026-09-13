@@ -4,10 +4,11 @@ return [
     'title' => 'Etusivu',
     'cta_projects' => 'Näytä projektini',
     'cta_cv' => 'Minun CV',
+    'about_heading' => 'Tietoja',
     'skills_heading' => 'Stack & osaaminen',
-    'fallback_tagline' => 'Neuromatrix online — biocortex aktiiviinen',
-    'fallback_subtitle' => 'Lead Developer // Ohjelmistosuunnittelija',
-    'fallback_bio' => 'Järjestelmäarkkitehti, puhtaan koodin käsityöläinen. Rakennan vahvoja sovelluksia ja tiimejä, jotka kestävät — jossain konsolin ja tähtien välillä.',
+    'fallback_tagline' => 'Alustetaan',
+    'fallback_subtitle' => 'Sisältöä ladataan',
+    'fallback_bio' => 'Tämän sivun sisältöä ei ole vielä alustettu.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

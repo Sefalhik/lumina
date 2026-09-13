@@ -4,10 +4,11 @@ return [
     'title' => 'Startseite',
     'cta_projects' => 'Meine Projekte anschauen',
     'cta_cv' => 'Mein Lebenslauf',
+    'about_heading' => 'Über mich',
     'skills_heading' => 'Stack & Expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex aktiv',
-    'fallback_subtitle' => 'Lead Developer // Software Engineer',
-    'fallback_bio' => 'Systemarchitekt, Handwerker des sauberen Codes. Ich baue robuste Anwendungen und Teams, die Bestand haben — irgendwo zwischen der Konsole und den Sternen.',
+    'fallback_tagline' => 'Initialisierung läuft',
+    'fallback_subtitle' => 'Inhalte werden geladen',
+    'fallback_bio' => 'Der Inhalt dieser Seite wurde noch nicht initialisiert.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

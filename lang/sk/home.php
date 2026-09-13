@@ -4,10 +4,11 @@ return [
     'title' => 'Domov',
     'cta_projects' => 'Zobraziť moje projekty',
     'cta_cv' => 'Môj životopis',
+    'about_heading' => 'O aplikácii',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex aktívny',
-    'fallback_subtitle' => 'Lead Developer // Softvérový inžinier',
-    'fallback_bio' => 'Architekt systémov, remeselník čistého kódu. Budujem robustné aplikácie a tímy, ktoré vydržia — niekde medzi konzolou a hviezdami.',
+    'fallback_tagline' => 'Prebieha inicializácia',
+    'fallback_subtitle' => 'Obsah sa načítava',
+    'fallback_bio' => 'Obsah tejto stránky ešte nie je inicializovaný.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

@@ -1,95 +1,92 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\HomepageContent;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Seeds the single homepage row from database/data/homepage-content.php.
+ *
+ * The content lives in that file rather than here so that the twenty-four
+ * locales it carries can be reviewed in a diff, and so that a deployment never
+ * has to call the translation API to produce its own content. See
+ * `cms:export-seed` for how the file is regenerated.
+ */
 class HomepageContentSeeder extends Seeder
 {
+    public const DATA_FILE = 'data/homepage-content.php';
+
     public function run(): void
     {
         $content = HomepageContent::firstOrNew([]);
+        $existed = $content->exists;
 
+        // Existing content is never overwritten without a human saying so.
+        // In a non-interactive run — a deployment — confirm() returns its
+        // default, so this seeder only ever populates an empty row. Editing
+        // published content is the admin form's job, not a redeploy's.
         if ($content->exists) {
             $confirmed = $this->command?->confirm(
-                'HomepageContent already has data. Overwrite tagline, subtitle, bio and skills?',
+                'HomepageContent already has data. Overwrite it from '.self::DATA_FILE.'?',
                 false,
             );
 
             if (! $confirmed) {
                 $this->command?->info('HomepageContentSeeder: skipped (existing data preserved).');
 
+                // Console output is the only other trace, and a deployment log
+                // is usually discarded. Whether production shipped its content
+                // or quietly kept what was already there is worth being able to
+                // answer afterwards.
+                Log::info('Homepage content seeding skipped', [
+                    'service' => self::class,
+                    'method' => __FUNCTION__,
+                    'step' => 'skipped_existing',
+                ]);
+
                 return;
             }
         }
 
-        $content->setTranslations('tagline', [
-            'fr' => 'Neuromatrix online — biocortex actif',
-            'en' => 'Neuromatrix online — biocortex active',
-        ]);
+        $data = self::data();
 
-        $content->setTranslations('subtitle', [
-            'fr' => 'Lead Developer // Ingénieur Logiciel',
-            'en' => 'Lead Developer // Software Engineer',
-        ]);
-
-        $content->setTranslations('bio', [
-            'fr' => 'Architecte de systèmes, artisan du code propre. Je construis des applications robustes et des équipes qui durent — quelque part entre la console et les étoiles.',
-            'en' => 'Systems architect, craftsman of clean code. I build robust applications and lasting teams — somewhere between the console and the stars.',
-        ]);
-
-        $content->setTranslation('skills', 'fr', json_encode([
-            [
-                'icon' => '⬡',
-                'name' => 'Backend',
-                'techs' => [
-                    'PHP 8.5', 'Laravel 13', 'Symfony', 'API Platform',
-                    'FrankenPHP / Octane', 'REST API', 'PSR standards', 'Composer',
-                ],
-            ],
-            [
-                'icon' => '◈',
-                'name' => 'Frontend',
-                'techs' => [
-                    'Vue 3.5', 'React / Next.js', 'TypeScript',
-                    'Vite', 'Tailwind CSS', 'Playwright', 'jQuery',
-                ],
-            ],
-            [
-                'icon' => '⊙',
-                'name' => 'Data & Persistance',
-                'techs' => [
-                    'PostgreSQL', 'MySQL / MariaDB', 'Redis',
-                    'Elasticsearch', 'ELK Stack', 'Query optimization', 'Schema design',
-                ],
-            ],
-            [
-                'icon' => '△',
-                'name' => 'Architecture & Qualité',
-                'techs' => [
-                    'Clean Architecture', 'SOLID', 'DDD', 'PHPStan lvl 8',
-                    'PHPUnit / Vitest', 'TDD', 'CI quality gates', 'Code review',
-                ],
-            ],
-            [
-                'icon' => '⚙',
-                'name' => 'DevOps & Infrastructure',
-                'techs' => [
-                    'Docker', 'GitHub Actions', 'Jenkins',
-                    'Nginx', 'Caddy', 'Sentry', 'Telescope', 'Xdebug',
-                ],
-            ],
-            [
-                'icon' => '⊗',
-                'name' => 'Sécurité',
-                'techs' => [
-                    'JWT', 'OAuth 2.0', 'OpenID Connect', 'TOTP / 2FA',
-                    'Sanctum', 'OWASP Top 10', 'Rate limiting', 'CORS',
-                ],
-            ],
-        ], JSON_UNESCAPED_UNICODE));
+        foreach ($data as $field => $translations) {
+            $content->setTranslations($field, $translations);
+        }
 
         $content->save();
+
+        Log::info('Homepage content seeded', [
+            'service' => self::class,
+            'method' => __FUNCTION__,
+            'step' => 'seeded',
+            'fields' => count($data),
+            'locales' => count(reset($data) ?: []),
+            'overwritten' => $existed,
+        ]);
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    public static function data(): array
+    {
+        $path = database_path(self::DATA_FILE);
+
+        if (! is_file($path)) {
+            throw new \RuntimeException("Homepage seed data missing: {$path}");
+        }
+
+        $data = require $path;
+
+        if (! is_array($data) || $data === []) {
+            throw new \RuntimeException("Homepage seed data is not a non-empty array: {$path}");
+        }
+
+        return $data;
     }
 }

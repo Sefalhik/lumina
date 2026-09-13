@@ -24,4 +24,18 @@ export default function globalSetup() {
         env: { ...process.env, ...e2eEnv },
         stdio: 'inherit',
     });
+
+    // Same reasoning, applied to the homepage. With an empty homepage_contents
+    // table the view falls back to a one-sentence placeholder: the About
+    // section never renders and the skills grid shows its fallback branch, so
+    // axe-core scans three themes without ever seeing what the CMS actually
+    // produces.
+    //
+    // The real seeder is used rather than an E2E twin, because since LUMN-29 it
+    // reads a versioned, offline data file — so the browser suite exercises the
+    // exact content production will ship, in all twenty-four locales.
+    execSync('php artisan db:seed --class=HomepageContentSeeder --force', {
+        env: { ...process.env, ...e2eEnv },
+        stdio: 'inherit',
+    });
 }

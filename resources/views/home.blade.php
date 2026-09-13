@@ -10,7 +10,7 @@
     <div class="max-w-3xl">
 
         <p class="text-secondary text-sm tracking-[0.3em] uppercase mb-6 font-mono">
-            <span class="text-primary opacity-60">//</span>
+            <span class="text-primary opacity-60" aria-hidden="true">//</span>
             <span class="cursor-blink"> {{ $content?->getTranslation('tagline', app()->getLocale(), true) ?? __('home.fallback_tagline') }}</span>
         </p>
 
@@ -23,9 +23,13 @@
             {{ $content?->getTranslation('subtitle', app()->getLocale(), true) ?? __('home.fallback_subtitle') }}
         </h2>
 
-        <p class="text-base-content/70 text-base md:text-lg leading-relaxed max-w-xl mb-12 font-body">
-            {{ $content?->getTranslation('bio', app()->getLocale(), true) ?? __('home.fallback_bio') }}
+        {{-- The hook only. The rest of the bio lives in its own section below,
+             so identity, hook and call to action all fit above the fold. --}}
+        @if ($prose['lead'] !== '')
+        <p class="text-base-content/70 text-base md:text-lg leading-relaxed max-w-2xl mb-12 font-body">
+            {{ $prose['lead'] }}
         </p>
+        @endif
 
         <div class="flex flex-wrap gap-4">
             <a href="{{ route('projects') }}"
@@ -43,11 +47,31 @@
 {{-- Divider --}}
 <div class="border-t border-primary/10 mx-4"></div>
 
+{{-- About: the rest of the bio, as real paragraphs --}}
+@if ($prose['body'] !== [])
+<section class="container mx-auto px-4 py-20" aria-labelledby="about-heading">
+    <h2 id="about-heading"
+        class="font-display text-xs tracking-[0.4em] uppercase text-primary mb-10">
+        <span class="text-primary glow-primary" aria-hidden="true">›</span> {{ __('home.about_heading') }}
+    </h2>
+
+    <div class="max-w-2xl space-y-6">
+        @foreach ($prose['body'] as $paragraph)
+        <p class="text-base-content/70 text-base md:text-lg leading-relaxed font-body">
+            {{ $paragraph }}
+        </p>
+        @endforeach
+    </div>
+</section>
+
+<div class="border-t border-primary/10 mx-4"></div>
+@endif
+
 {{-- Skills snapshot --}}
 <section class="container mx-auto px-4 py-20" aria-labelledby="skills-heading">
     <h2 id="skills-heading"
         class="font-display text-xs tracking-[0.4em] uppercase text-primary mb-10">
-        <span class="text-primary glow-primary">›</span> {{ __('home.skills_heading') }}
+        <span class="text-primary glow-primary" aria-hidden="true">›</span> {{ __('home.skills_heading') }}
     </h2>
 
     @php

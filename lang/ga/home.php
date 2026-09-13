@@ -4,10 +4,11 @@ return [
     'title' => 'Baile',
     'cta_projects' => 'Féach ar mo thionscadal',
     'cta_cv' => 'Mo CV',
+    'about_heading' => 'Maidir Linn',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex actif',
-    'fallback_subtitle' => 'Lead Developer // Ingénieur Logiciel',
-    'fallback_bio' => 'Ailtire córas, ceardaí an chóid gheal. Tógaim feidhmchláir bhuana agus foireann a fhéadann maireachtáil — áit éigin idir an chonsól agus na réalta.',
+    'fallback_tagline' => 'Tosú ar siúl',
+    'fallback_subtitle' => 'Ábhar á lódáil',
+    'fallback_bio' => 'Níl an t-ábhar ar an leathanach seo tosaithe fós.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

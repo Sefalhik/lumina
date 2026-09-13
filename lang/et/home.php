@@ -4,10 +4,11 @@ return [
     'title' => 'Avaleht',
     'cta_projects' => 'Vaata minu projekte',
     'cta_cv' => 'Minu CV',
+    'about_heading' => 'Meist',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex activ',
-    'fallback_subtitle' => 'Lead Developer // Tarkvara insener',
-    'fallback_bio' => 'Süsteemide arhitekt, puhtakoodse käsitöö meister. Ehitan robustseid rakendusi ja meeskondi, mis püsivad — kusagil konsooli ja tähtede vahel.',
+    'fallback_tagline' => 'Lähtestamine käib',
+    'fallback_subtitle' => 'Sisu on laadimise käigus',
+    'fallback_bio' => 'Selle lehe sisu pole veel lähtestatud.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

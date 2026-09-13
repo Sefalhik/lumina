@@ -4,10 +4,11 @@ return [
     'title' => 'Αρχική σελίδα',
     'cta_projects' => 'Δείτε τα έργα μου',
     'cta_cv' => 'Το CV μου',
+    'about_heading' => 'Σχετικά με',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex actif',
-    'fallback_subtitle' => 'Lead Developer // Μηχανικός Λογισμικού',
-    'fallback_bio' => 'Αρχιτέκτονας συστημάτων, τεχνίτης καθαρού κώδικα. Κατασκευάζω ισχυρές εφαρμογές και ομάδες που διαρκούν — κάπου ανάμεσα στην κονσόλα και τα αστέρια.',
+    'fallback_tagline' => 'Αρχικοποίηση σε εξέλιξη',
+    'fallback_subtitle' => 'Το περιεχόμενο φορτώνεται',
+    'fallback_bio' => 'Το περιεχόμενο αυτής της σελίδας δεν έχει ακόμη αρχικοποιηθεί.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
