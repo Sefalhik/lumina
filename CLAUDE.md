@@ -147,6 +147,7 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 | `lang/fr/` | PHP translation files — French source of truth for Blade `__()` |
 | `storage/app/i18n/` | TranslationCache storage — checksums + per-key translations (gitignored) |
 | `docs/` | Technical documentation |
+| `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
 | `scripts/` | Dev tooling scripts (coverage check, etc.) |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
@@ -731,3 +732,21 @@ in fact protected — a false negative that has already produced one wrong diagn
 Always inspect `bypass_actors` as well: a ruleset that can be bypassed is a reminder, not a
 protection. The previous ruleset had one in `always` mode, which is why it did not apply to the
 owner.
+
+## Session brain dumps
+
+`docs/blog-prep/` holds one Markdown file per working session — what was found, what resisted, and
+the article leads that came out of it. Named `session-YYYY-MM-DD.md`, with a `b`, `c`… suffix when a
+day has more than one.
+
+**A brain dump travels with the ticket in flight. It never gets a branch of its own.**
+
+It is not a deliverable: it documents a session, not a feature. Giving it its own branch ties a
+piece of prose to a ticket it does not implement — and if that ticket is blocked, the writing sits
+in an open pull request waiting on something it has nothing to do with. That happened once, for a
+day, on LUMN-13.
+
+Nothing was actually stuck: `jira-sync.yml` gates every transition on the expected source state, so
+merging could never have moved a blocked ticket. The pull request was simply pointless. Commit the
+dump alongside the work of the session that produced it and the question does not arise.
+
