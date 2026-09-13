@@ -3,7 +3,20 @@
   reproduit exactement le défaut qu'elle prétend éviter. Chacune vient d'un
   défaut réellement survenu sur ce projet.
 
-  Une case qui ne s'applique pas se barre (~~texte~~) plutôt que de se cocher.
+  Trois états, et trois seulement :
+
+    [x] fait
+    [ ] applicable, et pas fait — se justifie dans « Ce que je n'ai pas fait »
+    ~~barré~~ — ne s'applique pas à CETTE PR, suivi du motif sur la même ligne
+
+  Un barré sans motif est interdit. Barrer, c'est affirmer qu'une consigne du
+  projet ne concerne pas ce changement — jamais qu'on l'abandonne. Cette
+  affirmation se justifie, sinon la case la plus exigeante devient la plus facile
+  à faire disparaître.
+
+  Ne pas confondre les deux derniers états. « Aucune clé de traduction touchée »
+  se barre : la consigne ne s'applique pas. « Je n'ai pas écrit le test »
+  se laisse vide : elle s'applique, et il manque quelque chose.
 -->
 
 ## Ce que fait cette PR
@@ -22,8 +35,12 @@
 
 ## Ce que je n'ai pas fait
 
-<!-- La moitié honnête. Ce qui reste ouvert, ce qui a été repoussé dans un
-     ticket, ce qui n'est vérifié par rien.
+<!-- La moitié honnête, et la contrepartie obligatoire de toute case laissée
+     vide ci-dessus : chacune se justifie ici, en prose, où l'argument peut être
+     contesté.
+
+     Y figurent aussi ce qui reste ouvert, ce qui a été repoussé dans un ticket,
+     et ce qui n'est vérifié par rien.
 
      Une PR sans cette section affirme une complétude que presque aucune PR
      n'a. -->
