@@ -253,6 +253,7 @@ test.describe.configure({ mode: 'serial' });
 | `.auth/admin-editor.json` | `ADMIN_EDITOR_AUTH_FILE` | `admin/skills-editor.spec.js` |
 | `.auth/admin-identity.json` | `ADMIN_IDENTITY_AUTH_FILE` | `site-identity.spec.js` |
 | `.auth/admin-a11y.json` | `ADMIN_A11Y_AUTH_FILE` | `accessibility.spec.js` |
+| `.auth/admin-experiences.json` | `ADMIN_EXPERIENCES_AUTH_FILE` | `admin/experiences.spec.js` |
 
 **Why one per file**: `fullyParallel: true` runs spec files concurrently. Two browser contexts created from the same `storageState` send the same `laravel_session` cookie → the same server-side session store. A flash message set by one spec's submission is consumed by the next page load in *any* spec sharing that session, regardless of browser-context isolation.
 
