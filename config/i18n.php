@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Experience;
 use App\Models\HomepageContent;
 
 return [
@@ -29,10 +30,16 @@ return [
     | Models whose content `php artisan cms:translate` walks. A model listed
     | here must use HasTranslations and declare a non-empty $translatable.
     |
+    | The converse is the one that gets forgotten: a model that declares a
+    | non-empty $translatable and is *not* listed here is never translated,
+    | and nothing says so — cms:translate walks this list and only this list.
+    | Experience was in that state between LUMN-18 and 2026-09-13.
+    |
     | SiteIdentity is deliberately absent: none of its columns is translated.
     | See docs/site-identity.md.
     */
     'cms_models' => [
+        Experience::class,
         HomepageContent::class,
     ],
 

@@ -151,7 +151,7 @@ building alternates.
 | `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
 | `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
 | `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list |
-| `app/Models/SiteIdentity.php` | Single-row site identity. **Mixed model**: only `job_title` is translated |
+| `app/Models/SiteIdentity.php` | Single-row site identity. **Nothing is translated**, `job_title` included — it is a `sameAs` cross-reference key (LUMN-15) |
 | `app/Models/Experience.php` | One position in the CV timeline. Partially translated: prose only — `job_title` is a cross-reference key, not prose |
 | `app/Http/Controllers/Public/CvController.php` | Public CV page — queries, delegates shaping to `CvService` |
 | `app/Http/Controllers/Admin/ExperienceController.php` | CV timeline CRUD — validates, delegates to `ExperienceService`, persists |
@@ -618,7 +618,7 @@ Example: the `> LIST_` terminal-style header in `SkillsEditor.vue` — pure aest
 See `docs/site-identity.md` for the full reference.
 
 Key rules:
-- `SiteIdentity` is a **single-row, mixed model**: `spatie/laravel-translatable` works **column by column**, so only `job_title` is translated and the other five columns are ordinary. `HomepageContent` having identical `$translatable`/`$fillable` is a coincidence, not a constraint.
+- `SiteIdentity` is a **single-row, untranslated model**. It was designed as a mixed one — `spatie/laravel-translatable` works **column by column**, so translating `job_title` alone was possible — and LUMN-15 deliberately undid it on 2026-09-07, with its own migration: the title cross-references the GitHub, LinkedIn and Mastodon profiles a `sameAs` points at, and those carry one hand-typed title each. `Experience` repeats the same split for the same reason.
 - Profile URLs are validated on **three axes** — `url:https`, the host, **and the shape of the profile path**. A host check alone accepts `https://github.com/`, which would misinform a `sameAs` declaration.
 - Query strings and fragments are stripped in `prepareForValidation()` (LinkedIn's `?trk=…`)
 - Footer links carry `rel="me"` — Mastodon verifies identity by mutual link
@@ -769,6 +769,11 @@ education, certifications and skills.
 `ExperienceService` reads this split from the model's `$translatable` rather than repeating it, so
 changing the model alone changes the service's behaviour — and fails the two tests that guard the
 decision.
+
+Declaring `$translatable` is only half of it: `Experience::class` must also sit in
+`config('i18n.cms_models')`, or `cms:translate` never walks it. That second half was missed when
+LUMN-18 shipped and added on 2026-09-13 — the model was translatable and untranslated for a day,
+with nothing reporting it.
 
 ### A null `ended_at` means "still in this position"
 
