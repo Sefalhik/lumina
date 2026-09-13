@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Saavutused',
     'experience_hint_job_title' => 'Peab olema sama kui LinkedIn profiilis — see on ühenduspunkt.',
     'experience_hint_ended_at' => 'Jätke tühjaks, kui te olete endiselt sel positsioonil.',
-    'experience_current' => 'Praegusel tööl',
     'experience_save' => 'Salvestamine',
     'experience_delete' => 'Kustuta',
     'experience_back' => 'Tagasi loendisse',

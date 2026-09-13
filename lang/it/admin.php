@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Risultati',
     'experience_hint_job_title' => 'Deve essere identico al profilo LinkedIn — è il punto di corrispondenza.',
     'experience_hint_ended_at' => 'Lasciare vuoto se la posizione è ancora occupata.',
-    'experience_current' => 'Attuale',
     'experience_save' => 'Salva',
     'experience_delete' => 'Elimina',
     'experience_back' => 'Torna all\'elenco',

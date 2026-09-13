@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Постижения',
     'experience_hint_job_title' => 'Трябва да е еднакво с профила на LinkedIn — това е точката на съответствие.',
     'experience_hint_ended_at' => 'Оставете празно, ако позицията е активна в момента.',
-    'experience_current' => 'В позиция',
     'experience_save' => 'Запазване',
     'experience_delete' => 'Изтриване',
     'experience_back' => 'Обратно към списъка',

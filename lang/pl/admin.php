@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Osiągnięcia',
     'experience_hint_job_title' => 'Musi być identyczne z profilem LinkedIn — to punkt styku.',
     'experience_hint_ended_at' => 'Pozostaw puste, jeśli stanowisko jest aktualnie zajmowane.',
-    'experience_current' => 'Obecnie pracuję',
     'experience_save' => 'Zapisz',
     'experience_delete' => 'Usuń',
     'experience_back' => 'Powrót do listy',

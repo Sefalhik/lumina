@@ -19,16 +19,14 @@ class ExperienceController extends Controller
     public function index(): View
     {
         return view('admin.experiences.index', [
-            'experiences' => Experience::mostRecentFirst()->get(),
+            'rows' => $this->experiences->adminRows(Experience::mostRecentFirst()->get()),
         ]);
     }
 
     public function create(): View
     {
         // An unsaved model, so the shared form binds to something either way.
-        return view('admin.experiences.form', [
-            'experience' => new Experience,
-        ]);
+        return view('admin.experiences.form', $this->formData(new Experience));
     }
 
     public function store(ExperienceRequest $request): RedirectResponse
@@ -47,9 +45,7 @@ class ExperienceController extends Controller
 
     public function edit(Experience $experience): View
     {
-        return view('admin.experiences.form', [
-            'experience' => $experience,
-        ]);
+        return view('admin.experiences.form', $this->formData($experience));
     }
 
     public function update(ExperienceRequest $request, Experience $experience): RedirectResponse
@@ -78,6 +74,23 @@ class ExperienceController extends Controller
         return $this->backToIndex('admin.experience_deleted');
     }
 
+    /**
+     * The form edits one locale, and the view must not be the place that says
+     * which: ExperienceService writes that locale back, so it is also the one
+     * that names it. Hard-coding 'fr' in the template let the two drift apart
+     * silently — the service would write the new source locale while the form
+     * kept reading the old one.
+     *
+     * @return array{experience: Experience, sourceLocale: string}
+     */
+    private function formData(Experience $experience): array
+    {
+        return [
+            'experience' => $experience,
+            'sourceLocale' => ExperienceService::SOURCE_LOCALE,
+        ];
+    }
+
     /** Validate, hand the payload to the service, persist. */
     private function apply(Experience $experience, ExperienceRequest $request): void
     {
@@ -86,8 +99,12 @@ class ExperienceController extends Controller
 
     private function backToIndex(string $messageKey): RedirectResponse
     {
+        // No explicit 'lang': SetLocale sets it as a URL default for the whole
+        // request, so passing it again only invites it to drift from the locale
+        // actually in effect. Seven other call sites in app/ still repeat it —
+        // out of this ticket's scope, worth a sweep of its own.
         return redirect()
-            ->route('admin.experiences.index', ['lang' => app()->getLocale()])
+            ->route('admin.experiences.index')
             ->with('success', __($messageKey));
     }
 }

@@ -22,8 +22,8 @@
 
 <form method="POST"
       action="{{ $experience->exists
-          ? route('admin.experiences.update', ['lang' => app()->getLocale(), 'experience' => $experience])
-          : route('admin.experiences.store', ['lang' => app()->getLocale()]) }}">
+          ? route('admin.experiences.update', ['experience' => $experience])
+          : route('admin.experiences.store') }}">
     @csrf
     @if ($experience->exists)
     @method('PUT')
@@ -96,7 +96,7 @@
             › {{ __('admin.experience_field_description') }}
         </label>
         <textarea id="description" name="description" rows="5" maxlength="2000"
-                  class="textarea w-full bg-base-200 font-mono text-sm {{ $errors->has('description') ? 'border-error' : 'border-primary/20 focus:border-primary/60' }}">{{ old('description', $experience->getTranslation('description', 'fr', false)) }}</textarea>
+                  class="textarea w-full bg-base-200 font-mono text-sm {{ $errors->has('description') ? 'border-error' : 'border-primary/20 focus:border-primary/60' }}">{{ old('description', $experience->getTranslation('description', $sourceLocale, false)) }}</textarea>
     </div>
 
     <div class="mb-8">
@@ -105,7 +105,7 @@
             › {{ __('admin.experience_field_achievements') }}
         </label>
         <textarea id="achievements" name="achievements" rows="5" maxlength="2000"
-                  class="textarea w-full bg-base-200 font-mono text-sm {{ $errors->has('achievements') ? 'border-error' : 'border-primary/20 focus:border-primary/60' }}">{{ old('achievements', $experience->getTranslation('achievements', 'fr', false)) }}</textarea>
+                  class="textarea w-full bg-base-200 font-mono text-sm {{ $errors->has('achievements') ? 'border-error' : 'border-primary/20 focus:border-primary/60' }}">{{ old('achievements', $experience->getTranslation('achievements', $sourceLocale, false)) }}</textarea>
     </div>
 
     <div class="flex items-center gap-4">
@@ -113,7 +113,7 @@
                 class="btn btn-primary font-display tracking-widest uppercase text-sm glow-box">
             {{ __('admin.experience_save') }}
         </button>
-        <a href="{{ route('admin.experiences.index', ['lang' => app()->getLocale()]) }}"
+        <a href="{{ route('admin.experiences.index') }}"
            class="btn btn-ghost btn-sm font-display tracking-widest uppercase text-xs border border-primary/20 hover:border-primary/60">
             {{ __('admin.experience_back') }}
         </a>

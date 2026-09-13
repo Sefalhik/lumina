@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Gealladh',
     'experience_hint_job_title' => 'Ní mór go mbeidh sé comhionann ar an próifíl LinkedIn — is é seo an pointe trasnaithe.',
     'experience_hint_ended_at' => 'Fág folamh más ann don phost i gcónaí.',
-    'experience_current' => 'I bhfostú',
     'experience_save' => 'Sábháil',
     'experience_delete' => 'Scrios',
     'experience_back' => 'Ar ais chuig an liosta',

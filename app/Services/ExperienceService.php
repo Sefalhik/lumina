@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Experience;
+use Illuminate\Support\Collection;
 
 /**
  * Applies a validated admin submission onto an Experience.
@@ -23,6 +24,14 @@ class ExperienceService
      * and must survive an edit, so a submission only ever touches this one.
      */
     public const SOURCE_LOCALE = 'fr';
+
+    /**
+     * CvService owns how a position's period reads. The admin list needs the
+     * same sentence, so it borrows it rather than rebuilding it: the index view
+     * used to carry its own `isCurrent() ? label : ended_at->format()` ternary,
+     * which meant the rule lived in a Blade template as well as in a service.
+     */
+    public function __construct(private readonly CvService $cv) {}
 
     /**
      * Writes the submitted values onto the model, without saving.
@@ -60,5 +69,32 @@ class ExperienceService
         }
 
         return $experience;
+    }
+
+    /**
+     * The admin index, shaped so the view holds no logic at all.
+     *
+     * Returns ids rather than models on purpose — the template needs them only
+     * to build edit and delete URLs, and handing it a model invites the next
+     * ternary to be written in Blade again.
+     *
+     * @param  Collection<int, Experience>  $experiences
+     * @return list<array{id: int, job_title: string, employer: string, period: string}>
+     */
+    public function adminRows(Collection $experiences): array
+    {
+        $rows = $experiences
+            ->map(fn (Experience $experience): array => [
+                // getKey() is typed mixed; the column is a bigint identity.
+                'id' => (int) $experience->getKey(),
+                'job_title' => $experience->job_title,
+                'employer' => $experience->employer,
+                'period' => $this->cv->period($experience),
+            ])
+            ->all();
+
+        // array_values() rather than Collection::values(), for the reason
+        // CvService::timeline() records: only this proves the declared list.
+        return array_values($rows);
     }
 }

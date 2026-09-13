@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Realizări',
     'experience_hint_job_title' => 'Trebuie să fie identic cu profilul LinkedIn — acesta este punctul de intersecție.',
     'experience_hint_ended_at' => 'Lăsați gol dacă postul este în continuare ocupat.',
-    'experience_current' => 'În funcție',
     'experience_save' => 'Salvează',
     'experience_delete' => 'Șterge',
     'experience_back' => 'Înapoi la listă',

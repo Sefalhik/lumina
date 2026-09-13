@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Prestationer',
     'experience_hint_job_title' => 'Måste vara identisk med LinkedIn-profilen — det är skärningspunkten.',
     'experience_hint_ended_at' => 'Lämna tomt om positionen fortfarande är aktiv.',
-    'experience_current' => 'Nuvarande position',
     'experience_save' => 'Spara',
     'experience_delete' => 'Ta bort',
     'experience_back' => 'Tillbaka till lista',

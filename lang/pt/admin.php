@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Realizações',
     'experience_hint_job_title' => 'Deve ser idêntico ao perfil LinkedIn — este é o ponto de correspondência.',
     'experience_hint_ended_at' => 'Deixar em branco se o cargo ainda está ativo.',
-    'experience_current' => 'Em atividade',
     'experience_save' => 'Salvar',
     'experience_delete' => 'Excluir',
     'experience_back' => 'Voltar à lista',

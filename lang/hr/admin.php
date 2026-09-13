@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Dostignuća',
     'experience_hint_job_title' => 'Mora biti identičan LinkedInu — to je točka podudaranja.',
     'experience_hint_ended_at' => 'Ostavite prazno ako ste još uvijek na toj poziciji.',
-    'experience_current' => 'Trenutna pozicija',
     'experience_save' => 'Spremi',
     'experience_delete' => 'Obriši',
     'experience_back' => 'Povratak na popis',

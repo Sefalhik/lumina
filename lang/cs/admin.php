@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Dosažené výsledky',
     'experience_hint_job_title' => 'Musí být stejné jako na profilu LinkedIn — je to místo připojení.',
     'experience_hint_ended_at' => 'Nechte prázdné, pokud pozici stále vykonáváte.',
-    'experience_current' => 'Aktuální pozice',
     'experience_save' => 'Uložit',
     'experience_delete' => 'Smazat',
     'experience_back' => 'Zpět na seznam',

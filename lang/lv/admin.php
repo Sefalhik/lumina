@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Sasniegumi',
     'experience_hint_job_title' => 'Jābūt identiskam LinkedIn profilā — tas ir saskaņošanas punkts.',
     'experience_hint_ended_at' => 'Atstājiet tukšu, ja vieta joprojām ir aizņemta.',
-    'experience_current' => 'Pašlaik nodarbināts',
     'experience_save' => 'Saglabāt',
     'experience_delete' => 'Dzēst',
     'experience_back' => 'Atgriezties sarakstā',

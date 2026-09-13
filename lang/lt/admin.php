@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Pasiekimai',
     'experience_hint_job_title' => 'Turi sutapti su LinkedIn profiliu — tai yra atitikimo taškas.',
     'experience_hint_ended_at' => 'Palikite tuščią, jei vis dar užimate šią pareigą.',
-    'experience_current' => 'Esamoje pareigoje',
     'experience_save' => 'Išsaugoti',
     'experience_delete' => 'Ištrinti',
     'experience_back' => 'Grįžti į sąrašą',

@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Logros',
     'experience_hint_job_title' => 'Debe ser idéntico al perfil LinkedIn — es el punto de conexión.',
     'experience_hint_ended_at' => 'Dejar vacío si el puesto sigue ocupado.',
-    'experience_current' => 'En el puesto',
     'experience_save' => 'Guardar',
     'experience_delete' => 'Eliminar',
     'experience_back' => 'Volver a la lista',

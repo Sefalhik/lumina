@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Præstationer',
     'experience_hint_job_title' => 'Skal være identisk med LinkedIn-profilen — det er krydsreferencepunktet.',
     'experience_hint_ended_at' => 'Lad være tomt hvis stillingen stadig er aktuel.',
-    'experience_current' => 'Nuværende stilling',
     'experience_save' => 'Gem',
     'experience_delete' => 'Slet',
     'experience_back' => 'Tilbage til listen',

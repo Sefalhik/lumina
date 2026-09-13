@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Επιτεύγματα',
     'experience_hint_job_title' => 'Πρέπει να είναι ίδιο με το προφίλ LinkedIn — αυτό είναι το σημείο τομής.',
     'experience_hint_ended_at' => 'Αφήστε κενό εάν η θέση είναι ακόμα ενεργή.',
-    'experience_current' => 'Ενεργή θέση',
     'experience_save' => 'Αποθήκευση',
     'experience_delete' => 'Διαγραφή',
     'experience_back' => 'Επιστροφή στη λίστα',

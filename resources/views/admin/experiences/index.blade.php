@@ -13,30 +13,29 @@
 </div>
 
 <div class="mb-8">
-    <a href="{{ route('admin.experiences.create', ['lang' => app()->getLocale()]) }}"
+    <a href="{{ route('admin.experiences.create') }}"
        class="btn btn-primary font-display tracking-widest uppercase text-sm glow-box">
         + {{ __('admin.experience_create') }}
     </a>
 </div>
 
-@if ($experiences->isEmpty())
+@if (count($rows) === 0)
 <p class="font-mono text-sm text-base-content/70">{{ __('admin.experience_empty') }}</p>
 @else
 <ul class="space-y-4">
-    @foreach ($experiences as $experience)
+    @foreach ($rows as $row)
     <li class="border border-primary/20 bg-base-200 p-6 hover:border-primary/60 transition-all duration-300">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <p class="font-mono text-[10px] tracking-[0.3em] uppercase text-base-content/70 mb-2">
-                    {{ $experience->started_at->format('m/Y') }} —
-                    {{ $experience->isCurrent() ? __('admin.experience_current') : $experience->ended_at?->format('m/Y') }}
+                    {{ $row['period'] }}
                 </p>
-                <p class="font-display text-lg text-primary tracking-wide">{{ $experience->job_title }}</p>
-                <p class="font-mono text-sm text-base-content/70">{{ $experience->employer }}</p>
+                <p class="font-display text-lg text-primary tracking-wide">{{ $row['job_title'] }}</p>
+                <p class="font-mono text-sm text-base-content/70">{{ $row['employer'] }}</p>
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('admin.experiences.edit', ['lang' => app()->getLocale(), 'experience' => $experience]) }}"
+                <a href="{{ route('admin.experiences.edit', ['experience' => $row['id']]) }}"
                    class="btn btn-ghost btn-sm font-display tracking-widest uppercase text-xs border border-primary/20 hover:border-primary/60">
                     {{ __('admin.experience_edit_heading') }}
                 </a>
@@ -44,7 +43,7 @@
                 {{-- A plain form rather than a JS confirm: one less thing that
                      cannot be exercised by the E2E suite. --}}
                 <form method="POST"
-                      action="{{ route('admin.experiences.destroy', ['lang' => app()->getLocale(), 'experience' => $experience]) }}">
+                      action="{{ route('admin.experiences.destroy', ['experience' => $row['id']]) }}">
                     @csrf
                     @method('DELETE')
                     <button type="submit"

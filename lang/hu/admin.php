@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Teljesítmények',
     'experience_hint_job_title' => 'Azonosnak kell lennie a LinkedIn-profilban — ez az egyeztetési pont.',
     'experience_hint_ended_at' => 'Hagyja üresen, ha a pozíció még betöltött.',
-    'experience_current' => 'Jelenlegi pozíció',
     'experience_save' => 'Mentés',
     'experience_delete' => 'Törlés',
     'experience_back' => 'Vissza a listához',

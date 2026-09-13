@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Úspechy',
     'experience_hint_job_title' => 'Musí byť rovnaká ako na profile LinkedIn — to je styčný bod.',
     'experience_hint_ended_at' => 'Nechajte prázdne, ak ste stále na tejto pozícii.',
-    'experience_current' => 'Súčasne v pozícii',
     'experience_save' => 'Uložiť',
     'experience_delete' => 'Odstrániť',
     'experience_back' => 'Späť na zoznam',

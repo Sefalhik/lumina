@@ -80,7 +80,6 @@ return [
 
     'experience_hint_job_title' => 'Doit être identique au profil LinkedIn — c’est le point de recoupement.',
     'experience_hint_ended_at' => 'Laisser vide si le poste est toujours occupé.',
-    'experience_current' => 'En poste',
 
     'experience_save' => 'Enregistrer',
     'experience_delete' => 'Supprimer',

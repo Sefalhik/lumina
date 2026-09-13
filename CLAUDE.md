@@ -60,7 +60,7 @@ npm run update:frankenphp -- --force  # Update without prompt (CI/CD)
 | Auth | Laravel Sanctum (session-based) + TOTP 2FA enforced for admin |
 | Roles | `spatie/laravel-permission` — roles: `admin`, `maintainer`, `member`, public |
 | Frontend | Blade (structure/SEO) + Vue 3.5 islands (`<script setup>`) |
-| Assets | Vite 8 + SCSS + UnoCSS (presetWind3 + presetMini) |
+| Assets | Vite 8 + SCSS + Tailwind 4 (`@tailwindcss/vite`) + DaisyUI 5 |
 | Routes (JS) | `tightenco/ziggy` — `route('name')` helper available in all JS via `@routes` directive |
 | Testing (PHP) | PHPUnit 13, PCOV coverage driver |
 | Testing (JS) | Vitest 4 + `@vitest/coverage-v8`, Playwright for E2E |
@@ -150,7 +150,7 @@ building alternates.
 | `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
 | `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
 | `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
-| `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list |
+| `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list. Also shapes the admin index (`adminRows()`), borrowing `CvService::period()` so the period rule has one home |
 | `app/Models/SiteIdentity.php` | Single-row site identity. **Nothing is translated**, `job_title` included — it is a `sameAs` cross-reference key (LUMN-15) |
 | `app/Models/Experience.php` | One position in the CV timeline. Partially translated: prose only — `job_title` is a cross-reference key, not prose |
 | `app/Http/Controllers/Public/CvController.php` | Public CV page — queries, delegates shaping to `CvService` |
@@ -159,7 +159,8 @@ building alternates.
 | `resources/js/` | Vue island components + utilities |
 | `resources/js/utils/` | Pure JS utility modules (unit-tested) |
 | `resources/js/i18n/` | vue-i18n locale files — one JSON per locale (24 EU languages) |
-| `resources/css/app.scss` | Global styles (minimal — UnoCSS handles utilities) |
+| `resources/css/app.css` | Tailwind + DaisyUI entry point (`@import`/`@plugin`); utilities come from there |
+| `resources/css/scss/` | Hand-written SCSS — themes and the `_effects.scss` glow/glitch layer |
 | `config/geo.php` | Geo API proxy configuration (env-driven) |
 | `config/i18n.php` | Supported locales, **indexable locales**, default locale, native names, cache path, `cms_models` list |
 | `config/seo.php` | `public_routes` allowlist — route names allowed to carry canonical/`hreflang` |
@@ -790,6 +791,24 @@ survives.
 
 Both are load-bearing: the service sort makes the page correct whatever the caller hands over, the
 scope makes it deterministic. Swapping either for an unstable sort loses the tie-breaker silently.
+
+### The period sentence has one author
+
+`CvService::period()` writes "04/2024 — 09/2026", or "04/2024 — aujourd'hui" while the position is
+held, and **both** the public page and the admin index read it — the latter through
+`ExperienceService::adminRows()`. The index used to rebuild that ternary in Blade with its own
+label, so the same business rule lived in a service and in a template. Two tests now read the same
+string from both pages, so a format change on one side fails unless it is made on both.
+
+The views receive shaped arrays, never models: handing a template a model is what invited the
+ternary to be written there in the first place.
+
+### Route URLs take no explicit `lang`
+
+`SetLocale` sets `URL::defaults(['lang' => …])` for the whole request, so
+`route('admin.experiences.index')` already carries the locale. Passing `['lang' => app()->getLocale()]`
+is redundant, and it invites the argument to drift from the locale actually in effect. Seven call
+sites in `app/` still repeat it (auth, 2FA, homepage, identity) — pre-existing, worth a sweep.
 
 ### Query cost
 

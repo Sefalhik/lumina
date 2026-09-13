@@ -685,6 +685,38 @@ class ExperienceTest extends TestCase
             ->assertSee('&lt;script&gt;', false);
     }
 
+    public function test_the_admin_list_shows_the_same_period_as_the_public_page(): void
+    {
+        // The index used to build its own "start — end" string in Blade, next
+        // to CvService doing the same thing for the public page. Both are read
+        // here so the two cannot drift apart again without a failure: a format
+        // change on one side has to be a format change on both.
+        $this->makeExperience([
+            'job_title' => 'Principal Engineer',
+            'started_at' => '2024-04-01',
+            'ended_at' => '2026-09-01',
+        ]);
+
+        $expected = '04/2024 — 09/2026';
+
+        $this->actingAs($this->admin)
+            ->get('/fr/admin/experiences')
+            ->assertOk()
+            ->assertSee($expected);
+
+        $this->get('/fr/cv')->assertOk()->assertSee($expected);
+    }
+
+    public function test_the_admin_list_names_a_position_still_held(): void
+    {
+        $this->makeExperience(['started_at' => '2024-04-01', 'ended_at' => null]);
+
+        $this->actingAs($this->admin)
+            ->get('/fr/admin/experiences')
+            ->assertOk()
+            ->assertSee('04/2024 — '.__('cv.period_present'));
+    }
+
     // ── Length limits ─────────────────────────────────────────────────────────
 
     public function test_employer_must_not_exceed_120_characters(): void

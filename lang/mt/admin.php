@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Riżultati',
     'experience_hint_job_title' => 'Għandu jkun identiċi mal-profil LinkedIn — din hija l-punt ta\' qbil.',
     'experience_hint_ended_at' => 'Ħalli vojt jekk il-post għadu mħallef.',
-    'experience_current' => 'Fi pożizzjoni',
     'experience_save' => 'Ħażen',
     'experience_delete' => 'Ħassar',
     'experience_back' => 'Ritorn mal-lista',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Models\Experience;
+use App\Services\CvService;
 use App\Services\ExperienceService;
 use Tests\TestCase;
 
@@ -16,7 +17,7 @@ class ExperienceServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->service = new ExperienceService;
+        $this->service = new ExperienceService(new CvService);
     }
 
     /** @param array<string, mixed> $attributes */

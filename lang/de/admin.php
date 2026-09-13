@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Leistungen',
     'experience_hint_job_title' => 'Muss mit dem LinkedIn-Profil identisch sein — das ist der Verknüpfungspunkt.',
     'experience_hint_ended_at' => 'Leer lassen, wenn die Position noch besetzt ist.',
-    'experience_current' => 'Derzeit tätig',
     'experience_save' => 'Speichern',
     'experience_delete' => 'Löschen',
     'experience_back' => 'Zurück zur Liste',

@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Saavutukset',
     'experience_hint_job_title' => 'Tehtävänimikkeen on oltava sama LinkedIn-profiilissa — se on yhdistävä tekijä.',
     'experience_hint_ended_at' => 'Jätä tyhjäksi, jos olet edelleen kyseisessä tehtävässä.',
-    'experience_current' => 'Nykyinen tehtävä',
     'experience_save' => 'Tallenna',
     'experience_delete' => 'Poista',
     'experience_back' => 'Takaisin listaan',

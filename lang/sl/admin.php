@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Dosežki',
     'experience_hint_job_title' => 'Mora biti enak na profilu LinkedIn — to je točka ujemanja.',
     'experience_hint_ended_at' => 'Pustite prazno, če še vedno zasedaš to mesto.',
-    'experience_current' => 'Trenutno v službi',
     'experience_save' => 'Shrani',
     'experience_delete' => 'Izbriši',
     'experience_back' => 'Nazaj na seznam',

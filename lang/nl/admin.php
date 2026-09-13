@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Prestaties',
     'experience_hint_job_title' => 'Moet identiek zijn aan uw LinkedIn-profiel — dit is het overeenkomstpunt.',
     'experience_hint_ended_at' => 'Leeglaten als u de functie nog steeds vervult.',
-    'experience_current' => 'Huidige functie',
     'experience_save' => 'Opslaan',
     'experience_delete' => 'Verwijderen',
     'experience_back' => 'Terug naar lijst',

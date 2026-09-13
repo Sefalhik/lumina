@@ -65,7 +65,6 @@ return [
     'experience_field_achievements' => 'Achievements',
     'experience_hint_job_title' => 'Must be identical to your LinkedIn profile — it\'s the matching point.',
     'experience_hint_ended_at' => 'Leave empty if you currently hold this position.',
-    'experience_current' => 'Current position',
     'experience_save' => 'Save',
     'experience_delete' => 'Delete',
     'experience_back' => 'Back to list',
