@@ -4,10 +4,11 @@ return [
     'title' => 'Domov',
     'cta_projects' => 'Oglejte si moje projekte',
     'cta_cv' => 'Moj CV',
+    'about_heading' => 'O aplikaciji',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex actif',
-    'fallback_subtitle' => 'Lead Developer // Inženir programske opreme',
-    'fallback_bio' => 'Arhitekt sistemov, obrtnik čistega koda. Gradim robustne aplikacije in ekipe, ki trajajo — nekje med konzolo in zvezde.',
+    'fallback_tagline' => 'Inicializacija v teku',
+    'fallback_subtitle' => 'Vsebina se nalaganja',
+    'fallback_bio' => 'Vsebina te strani še ni bila inicializirana.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

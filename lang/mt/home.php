@@ -4,10 +4,11 @@ return [
     'title' => 'Paġna Inizjali',
     'cta_projects' => 'Ara l-projetti tiegħi',
     'cta_cv' => 'Il-CV tiegħi',
+    'about_heading' => 'Dwar',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex aktiv',
-    'fallback_subtitle' => 'Lead Developer // Inġinier tal-Software',
-    'fallback_bio' => 'Arkitett ta\' sistemi, artisan tal-kodiċi ħlieq. Nibni applikazzjonijiet qawwi u timijiet li jdumu — x\'imkien bejn il-console u l-istilel.',
+    'fallback_tagline' => 'Inizjalizzazzjoni fil-progress',
+    'fallback_subtitle' => 'Kontenut qed jiġi ċċarikad',
+    'fallback_bio' => 'Il-kontenut ta\' din il-paġna għadu ma ġiex inizjalizzat.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

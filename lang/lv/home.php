@@ -4,10 +4,11 @@ return [
     'title' => 'Sākumlapa',
     'cta_projects' => 'Skatīt manus projektus',
     'cta_cv' => 'Mans CV',
+    'about_heading' => 'Par mums',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex actif',
-    'fallback_subtitle' => 'Lead Developer // Programmatūras inženieris',
-    'fallback_bio' => 'Sistēmu arhitekts, tīra koda amatnieks. Es veidoju noturīgas lietojumprogrammas un komandas, kas ilgst — kaut kur starp konsoli un zvaigznēm.',
+    'fallback_tagline' => 'Inicializācija ir procesā',
+    'fallback_subtitle' => 'Saturs tiek ielādēts',
+    'fallback_bio' => 'Šīs lapas saturs vēl nav inicializēts.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

@@ -4,10 +4,11 @@ return [
     'title' => 'Kezdőlap',
     'cta_projects' => 'Projektek megtekintése',
     'cta_cv' => 'Az én CV-m',
+    'about_heading' => 'Névjegy',
     'skills_heading' => 'Stack & szakértelem',
-    'fallback_tagline' => 'Neuromatrix online — biocortex aktív',
-    'fallback_subtitle' => 'Lead Developer // Szoftver mérnök',
-    'fallback_bio' => 'Rendszerarchitekt, tiszta kód kézművese. Robusztus alkalmazásokat és hosszú életű csapatokat építek — valahol a konzol és a csillagok között.',
+    'fallback_tagline' => 'Inicializálás folyamatban',
+    'fallback_subtitle' => 'Tartalom betöltése folyamatban',
+    'fallback_bio' => 'Ennek az oldalnak a tartalma még nem inicializálva.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

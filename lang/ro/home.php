@@ -4,10 +4,11 @@ return [
     'title' => 'Acasă',
     'cta_projects' => 'Vezi proiectele mele',
     'cta_cv' => 'CV-ul meu',
+    'about_heading' => 'Despre',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex activ',
-    'fallback_subtitle' => 'Lead Developer // Inginer Software',
-    'fallback_bio' => 'Arhitect de sisteme, meșter al codului curat. Construiesc aplicații robuste și echipe care durează — undeva între consolă și stele.',
+    'fallback_tagline' => 'Inițializare în curs',
+    'fallback_subtitle' => 'Conținut în curs de încărcare',
+    'fallback_bio' => 'Conținutul acestei pagini nu a fost încă inițializat.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

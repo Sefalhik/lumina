@@ -4,10 +4,11 @@ return [
     'title' => 'Home',
     'cta_projects' => 'View my projects',
     'cta_cv' => 'My CV',
+    'about_heading' => 'About',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Neuromatrix online — biocortex actif',
-    'fallback_subtitle' => 'Lead Developer // Software Engineer',
-    'fallback_bio' => 'Systems architect, clean code craftsman. I build robust applications and teams that last — somewhere between the console and the stars.',
+    'fallback_tagline' => 'Initialization in progress',
+    'fallback_subtitle' => 'Content is loading',
+    'fallback_bio' => 'The content of this page has not been initialized yet.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

@@ -4,10 +4,11 @@ return [
     'title' => 'Hem',
     'cta_projects' => 'Se mina projekt',
     'cta_cv' => 'Mitt CV',
+    'about_heading' => 'Om',
     'skills_heading' => 'Stack & expertis',
-    'fallback_tagline' => 'Neuromatrix online — biocortex aktiv',
-    'fallback_subtitle' => 'Lead Developer // Programvaruingenjör',
-    'fallback_bio' => 'Systemarkitekt, hantverkare av ren kod. Jag bygger robusta applikationer och team som håller — någonstans mellan konsolen och stjärnorna.',
+    'fallback_tagline' => 'Initialisering pågår',
+    'fallback_subtitle' => 'Innehåll läses in',
+    'fallback_bio' => 'Innehållet på denna sida är ännu inte initialiserat.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
