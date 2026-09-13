@@ -60,7 +60,7 @@ npm run update:frankenphp -- --force  # Update without prompt (CI/CD)
 | Auth | Laravel Sanctum (session-based) + TOTP 2FA enforced for admin |
 | Roles | `spatie/laravel-permission` — roles: `admin`, `maintainer`, `member`, public |
 | Frontend | Blade (structure/SEO) + Vue 3.5 islands (`<script setup>`) |
-| Assets | Vite 8 + SCSS + UnoCSS (presetWind3 + presetMini) |
+| Assets | Vite 8 + SCSS + Tailwind 4 (`@tailwindcss/vite`) + DaisyUI 5 |
 | Routes (JS) | `tightenco/ziggy` — `route('name')` helper available in all JS via `@routes` directive |
 | Testing (PHP) | PHPUnit 13, PCOV coverage driver |
 | Testing (JS) | Vitest 4 + `@vitest/coverage-v8`, Playwright for E2E |
@@ -107,6 +107,20 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 - `redirectUsersTo` — authenticated users hitting guest routes → `/{lang}/home`
 - `redirectGuestsTo` — unauthenticated users hitting auth routes → `/{lang}/login`
 
+### Route parameters and the `{lang}` prefix
+
+Laravel passes route parameters to a controller **positionally**. Every public and admin route sits
+under `Route::prefix('{lang}')`, so `{lang}` would arrive as the *first* argument of any action — an
+action typed `edit(Experience $experience)` receives the locale string instead of the bound model.
+
+`SetLocale` therefore calls `$request->route()?->forgetParameter('lang')` once it has set the locale
+and the URL default. Without it, every controller taking a route-model-bound parameter would need a
+`string $lang` first argument, spreading a routing detail through the whole controller layer.
+
+Safe because nothing reads the parameter afterwards: URL generation goes through
+`URL::defaults(['lang' => …])`, and `LocalizedUrlService` always passes an explicit `lang` when
+building alternates.
+
 ### Roles & access
 | Role | Access |
 |------|--------|
@@ -135,12 +149,18 @@ The admin account is seeded via `AdminSeeder` from `.env` values (`ADMIN_EMAIL`,
 | `app/Services/TranslationCache.php` | File-checksum + per-key TTL cache for i18n and CMS translations |
 | `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
 | `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
-| `app/Models/SiteIdentity.php` | Single-row site identity. **Mixed model**: only `job_title` is translated |
+| `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
+| `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list. Also shapes the admin index (`adminRows()`), borrowing `CvService::period()` so the period rule has one home |
+| `app/Models/SiteIdentity.php` | Single-row site identity. **Nothing is translated**, `job_title` included — it is a `sameAs` cross-reference key (LUMN-15) |
+| `app/Models/Experience.php` | One position in the CV timeline. Partially translated: prose only — `job_title` is a cross-reference key, not prose |
+| `app/Http/Controllers/Public/CvController.php` | Public CV page — queries, delegates shaping to `CvService` |
+| `app/Http/Controllers/Admin/ExperienceController.php` | CV timeline CRUD — validates, delegates to `ExperienceService`, persists |
 | `resources/views/` | Blade templates |
 | `resources/js/` | Vue island components + utilities |
 | `resources/js/utils/` | Pure JS utility modules (unit-tested) |
 | `resources/js/i18n/` | vue-i18n locale files — one JSON per locale (24 EU languages) |
-| `resources/css/app.scss` | Global styles (minimal — UnoCSS handles utilities) |
+| `resources/css/app.css` | Tailwind + DaisyUI entry point (`@import`/`@plugin`); utilities come from there |
+| `resources/css/scss/` | Hand-written SCSS — themes and the `_effects.scss` glow/glitch layer |
 | `config/geo.php` | Geo API proxy configuration (env-driven) |
 | `config/i18n.php` | Supported locales, **indexable locales**, default locale, native names, cache path, `cms_models` list |
 | `config/seo.php` | `public_routes` allowlist — route names allowed to carry canonical/`hreflang` |
@@ -233,6 +253,7 @@ test.describe.configure({ mode: 'serial' });
 | `.auth/admin-editor.json` | `ADMIN_EDITOR_AUTH_FILE` | `admin/skills-editor.spec.js` |
 | `.auth/admin-identity.json` | `ADMIN_IDENTITY_AUTH_FILE` | `site-identity.spec.js` |
 | `.auth/admin-a11y.json` | `ADMIN_A11Y_AUTH_FILE` | `accessibility.spec.js` |
+| `.auth/admin-experiences.json` | `ADMIN_EXPERIENCES_AUTH_FILE` | `admin/experiences.spec.js` |
 
 **Why one per file**: `fullyParallel: true` runs spec files concurrently. Two browser contexts created from the same `storageState` send the same `laravel_session` cookie → the same server-side session store. A flash message set by one spec's submission is consumed by the next page load in *any* spec sharing that session, regardless of browser-context isolation.
 
@@ -599,7 +620,7 @@ Example: the `> LIST_` terminal-style header in `SkillsEditor.vue` — pure aest
 See `docs/site-identity.md` for the full reference.
 
 Key rules:
-- `SiteIdentity` is a **single-row, mixed model**: `spatie/laravel-translatable` works **column by column**, so only `job_title` is translated and the other five columns are ordinary. `HomepageContent` having identical `$translatable`/`$fillable` is a coincidence, not a constraint.
+- `SiteIdentity` is a **single-row, untranslated model**. It was designed as a mixed one — `spatie/laravel-translatable` works **column by column**, so translating `job_title` alone was possible — and LUMN-15 deliberately undid it on 2026-09-07, with its own migration: the title cross-references the GitHub, LinkedIn and Mastodon profiles a `sameAs` points at, and those carry one hand-typed title each. `Experience` repeats the same split for the same reason.
 - Profile URLs are validated on **three axes** — `url:https`, the host, **and the shape of the profile path**. A host check alone accepts `https://github.com/`, which would misinform a `sameAs` declaration.
 - Query strings and fragments are stripped in `prepareForValidation()` (LinkedIn's `?trk=…`)
 - Footer links carry `rel="me"` — Mastodon verifies identity by mutual link
@@ -733,6 +754,80 @@ Always inspect `bypass_actors` as well: a ruleset that can be bypassed is a remi
 protection. The previous ruleset had one in `always` mode, which is why it did not apply to the
 owner.
 
+## CV timeline (`Experience`)
+
+Delivered by LUMN-18. First entity of the CV page; the pattern below is meant to be replicated for
+education, certifications and skills.
+
+### Partial translation — decided at design time
+
+| Field | Translated | Why |
+|-------|-----------|-----|
+| `employer`, `location` | no | proper nouns and geography |
+| `started_at`, `ended_at` | no | dates |
+| **`job_title`** | **no** | it is what a `sameAs` statement cross-references with the LinkedIn profile, which carries one hand-typed title. A localised one would match in `fr` alone — the mistake LUMN-15 had to undo on `SiteIdentity` |
+| `description`, `achievements` | yes | prose |
+
+`ExperienceService` reads this split from the model's `$translatable` rather than repeating it, so
+changing the model alone changes the service's behaviour — and fails the two tests that guard the
+decision.
+
+Declaring `$translatable` is only half of it: `Experience::class` must also sit in
+`config('i18n.cms_models')`, or `cms:translate` never walks it. That second half was missed when
+LUMN-18 shipped and added on 2026-09-13 — the model was translatable and untranslated for a day,
+with nothing reporting it.
+
+### A null `ended_at` means "still in this position"
+
+A business state, not missing data. It is named rather than implied: `isCurrent()`,
+`scopeCurrent()`, a comment on the column, and tests asserting both. See the memory rule on
+explicit NULL semantics — an implicit one is re-explained at every reading.
+
+### Ordering lives in two places, deliberately
+
+`Experience::scopeMostRecentFirst()` orders by `started_at` then `id`; `CvService::timeline()`
+sorts by `started_at` alone. The second does not override the first — **PHP 8 sorts are stable**,
+so positions starting the same month keep the order the query gave them and the `id` tie-breaker
+survives.
+
+Both are load-bearing: the service sort makes the page correct whatever the caller hands over, the
+scope makes it deterministic. Swapping either for an unstable sort loses the tie-breaker silently.
+
+### The period sentence has one author
+
+`CvService::period()` writes "04/2024 — 09/2026", or "04/2024 — aujourd'hui" while the position is
+held, and **both** the public page and the admin index read it — the latter through
+`ExperienceService::adminRows()`. The index used to rebuild that ternary in Blade with its own
+label, so the same business rule lived in a service and in a template. Two tests now read the same
+string from both pages, so a format change on one side fails unless it is made on both.
+
+The views receive shaped arrays, never models: handing a template a model is what invited the
+ternary to be written there in the first place.
+
+### Route URLs take no explicit `lang`
+
+`SetLocale` sets `URL::defaults(['lang' => …])` for the whole request, so
+`route('admin.experiences.index')` already carries the locale. Passing `['lang' => app()->getLocale()]`
+is redundant, and it invites the argument to drift from the locale actually in effect. Seven call
+sites in `app/` still repeat it (auth, 2FA, homepage, identity) — pre-existing, worth a sweep.
+
+### Query cost
+
+The CV page issues **one query for the positions**, whatever their number — the model has no
+relation, so nothing can be lazily loaded. `ExperienceTest` pins this as an *invariance* rather
+than a fixed count, so the guard survives LUMN-19 adding a second section.
+
+The weight is elsewhere: **~94 KB of JSON per row** once `cms:translate` has run, since
+`spatie/laravel-translatable` stores all twenty-four locales in one column and the page loads them
+all to display one. Harmless at CV scale — worth settling before the blog engine reuses the pattern
+on article bodies.
+
+### Normalisation is the framework's job
+
+Inputs arrive trimmed: `TrimStrings` sits in the global middleware stack, immediately before
+`ConvertEmptyStringsToNull`. A `prepareForValidation()` that only trims is dead code — one was
+written here and removed once measured. `SiteIdentityRequest` still carries a half-dead one: its
+trimming is redundant, its query-string stripping is not.
 ## Session brain dumps
 
 `docs/blog-prep/` holds one Markdown file per working session — what was found, what resisted, and

@@ -33,16 +33,22 @@
         › {{ __('admin.quick_access') }}
     </p>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="{{ route('admin.homepage.edit', ['lang' => app()->getLocale()]) }}"
+        <a href="{{ route('admin.homepage.edit') }}"
            class="border border-primary/20 bg-base-200 p-6 hover:border-primary/60 hover:glow-box transition-all duration-300 group block">
             <p class="font-display text-sm text-primary group-hover:glow-primary transition-all">
                 ◈ {{ __('admin.homepage_nav') }}
             </p>
         </a>
-        <a href="{{ route('admin.identity.edit', ['lang' => app()->getLocale()]) }}"
+        <a href="{{ route('admin.identity.edit') }}"
            class="border border-primary/20 bg-base-200 p-6 hover:border-primary/60 hover:glow-box transition-all duration-300 group block">
             <p class="font-display text-sm text-primary group-hover:glow-primary transition-all">
                 ◈ {{ __('admin.identity_nav') }}
+            </p>
+        </a>
+        <a href="{{ route('admin.experiences.index') }}"
+           class="border border-primary/20 bg-base-200 p-6 hover:border-primary/60 hover:glow-box transition-all duration-300 group block">
+            <p class="font-display text-sm text-primary group-hover:glow-primary transition-all">
+                ◈ {{ __('admin.experience_nav') }}
             </p>
         </a>
     </div>
