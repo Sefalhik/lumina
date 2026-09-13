@@ -30,6 +30,11 @@ test.describe('Admin — SkillsEditor', () => {
     const addCategory = (page)       => page.getByRole('button',   { name: '+ Ajouter une catégorie' });
     const addTech     = (page)       => page.getByRole('button',   { name: '+ Ajouter une techno' });
     const rmCategory  = (page, n)    => page.getByRole('button',   { name: `Supprimer la catégorie ${n}` });
+    // Not unique across categories: unlike "Technologie {t} de la catégorie {n}"
+    // right above, the remove button's accessible name carries only the tech
+    // index, so every category exposes a "Supprimer la technologie 1". Callers
+    // must disambiguate — see the use below. The underlying WCAG 4.1.2 defect
+    // is filed separately; this locator only works around it.
     const rmTech      = (page, t)    => page.getByRole('button',   { name: `Supprimer la technologie ${t}` });
     const saveBtn     = (page)       => page.getByRole('button',   { name: /enregistrer/i });
     const errorBox    = (page)       => page.locator('[class*="border-error/40"]');
@@ -113,7 +118,9 @@ test.describe('Admin — SkillsEditor', () => {
         await addCategory(page).click();
         await nameInput(page, before + 1).fill('Backend');
         await addTech(page).last().click();
-        await rmTech(page, 1).click();
+        // .last(): the category just added is the final one, and the accessible
+        // name alone does not distinguish it from the seeded categories.
+        await rmTech(page, 1).last().click();
         await expect(techInput(page, 1, before + 1)).not.toBeVisible();
     });
 

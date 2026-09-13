@@ -47,7 +47,16 @@ const serialized = computed(() => JSON.stringify(categories.value.map(serializeC
             <div class="border border-primary/20 bg-base-200 p-5">
                 <!-- Category header row -->
                 <div class="flex items-center gap-2 mb-4">
-                    <span class="text-xs font-mono text-secondary/70 w-9 shrink-0 text-right select-none tabular-nums">
+                    <!-- BASIC-style line numbers: pure terminal skeuomorphism.
+                         Same exemption as the "> LIST_" header above — the
+                         controls already carry their own accessible names, so
+                         announcing "10 colon" adds nothing, and text-secondary
+                         cannot reach 4.5:1 in any theme at any opacity. -->
+                    <span
+                        aria-hidden="true"
+                        data-a11y-role="decorative"
+                        class="text-xs font-mono text-secondary/70 w-9 shrink-0 text-right select-none tabular-nums"
+                    >
                         {{ (catIndex + 1) * 10 }}:
                     </span>
                     <button
@@ -100,6 +109,8 @@ const serialized = computed(() => JSON.stringify(categories.value.map(serializeC
                     <template #item="{ element: tech, index: techIndex }">
                         <div class="flex items-center gap-2">
                             <span
+                                aria-hidden="true"
+                                data-a11y-role="decorative"
                                 class="text-xs font-mono text-secondary/70 w-9 shrink-0 text-right select-none tabular-nums"
                             >
                                 {{ (techIndex + 1) * 10 }}:
