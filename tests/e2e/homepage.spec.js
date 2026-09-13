@@ -4,30 +4,48 @@ import { ADMIN_AUTH_FILE } from './helpers/auth.js';
 /**
  * The public homepage and the admin form that feeds it, in one serial file.
  *
- * They cannot live apart. Under `fullyParallel: true` Playwright runs spec
- * files concurrently, and this admin form rewrites the French homepage content
- * for the length of its run — so a public spec in another file reads whatever
- * half-written state the form happens to be in. Measured: the About section
- * vanished because the form had replaced the bio with a single sentence.
+ * They cannot live apart. Under `fullyParallel: true` Playwright runs spec files
+ * concurrently, and this admin form rewrites the French homepage content for the
+ * length of its run. Restoring in afterAll is not enough — the window is the
+ * whole run, not its end. `site-identity.spec.js` pairs its footer and its form
+ * for exactly this reason.
  *
- * `site-identity.spec.js` keeps the footer and its admin form together for the
- * same reason. Restoring in afterAll is not enough: the window is the whole run,
- * not its end.
+ * Serialising this file is necessary and not sufficient: `admin/skills-editor`
+ * submits the same form from another file, and CI caught it doing so — it fills
+ * the bio with one sentence, which makes the About section disappear.
+ *
+ * So the public tests read **German**. The admin form writes the source locale
+ * and nothing else — five explicit `setTranslation($field, 'fr', …)` calls, and
+ * `test_update_does_not_erase_other_locale_translations()` guards that — so no
+ * admin spec can reach `/de/`. This is a property of the application, not a
+ * trick, and German is the stricter subject anyway: its bio runs 1055 characters
+ * against the French 1050.
+ *
+ * The day per-locale editing ships, that immunity ends and these tests need a
+ * fixture of their own. French rendering stays covered by HomepagePublicTest.
  */
 test.describe.configure({ mode: 'serial' });
 
 test.describe('Homepage', () => {
+    // The hero is the first section. Everything measured here is scoped to it:
+    // the navbar repeats both call-to-action labels.
+    const hero = (page) => page.locator('section').first();
+
     test.beforeEach(async ({ page }) => {
         await page.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
-        await page.goto('/fr/');
+        await page.goto('/de/');
     });
 
     test('both calls to action are visible without scrolling', async ({ page }) => {
         const viewport = page.viewportSize();
         expect(viewport).not.toBeNull();
 
-        for (const name of [/projets/i, /cv/i]) {
-            const cta = page.getByRole('link', { name }).first();
+        for (const name of [/Projekte/i, /Lebenslauf/i]) {
+            // Scoped to the hero, never .first() on the page: the navbar
+            // carries the same two labels and is sticky at top:0, so a page-wide
+            // locator measures an element that is above the fold by construction
+            // and the assertion below can never fail.
+            const cta = hero(page).getByRole('link', { name });
 
             await expect(cta).toBeVisible();
 
@@ -45,9 +63,7 @@ test.describe('Homepage', () => {
     });
 
     test('the hero shows one paragraph and the biography lives below', async ({ page }) => {
-        const hero = page.locator('section').first();
-
-        await expect(hero.locator('p.font-body')).toHaveCount(1);
+        await expect(hero(page).locator('p.font-body')).toHaveCount(1);
 
         const about = page.locator('section[aria-labelledby="about-heading"]');
         await expect(about).toBeVisible();
@@ -57,11 +73,17 @@ test.describe('Homepage', () => {
     });
 
     test('the about section sits after the calls to action', async ({ page }) => {
-        const ctaBox = await page
-            .getByRole('link', { name: /projets/i })
-            .first()
-            .boundingBox();
-        const aboutBox = await page.locator('section[aria-labelledby="about-heading"]').boundingBox();
+        const cta = hero(page).getByRole('link', { name: /Projekte/i });
+        const about = page.locator('section[aria-labelledby="about-heading"]');
+
+        // Asserted before measured: boundingBox() on a locator that resolves to
+        // nothing waits out the whole timeout and then reports a timeout, which
+        // says nothing about what is missing.
+        await expect(cta).toBeVisible();
+        await expect(about).toBeVisible();
+
+        const ctaBox = await cta.boundingBox();
+        const aboutBox = await about.boundingBox();
 
         expect(ctaBox).not.toBeNull();
         expect(aboutBox).not.toBeNull();
@@ -79,10 +101,11 @@ test.describe('Homepage', () => {
     });
 
     test('the page is served in the requested locale', async ({ page }) => {
-        await page.goto('/de/');
-
         await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-        await expect(page.locator('section[aria-labelledby="about-heading"]')).toBeVisible();
+
+        // The French page is rendered from the same code path; asserting it here
+        // would only measure whatever the admin specs left behind.
+        await expect(hero(page).getByRole('link', { name: /Lebenslauf/i })).toBeVisible();
     });
 });
 
