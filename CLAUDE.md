@@ -201,6 +201,32 @@ Only `resources/js/utils/**/*.js` is in scope for unit coverage:
 ### Coverage thresholds
 Both suites enforce **80% line coverage minimum** — commits are blocked by the pre-commit hook if the threshold is not met.
 
+### Boot-time decisions — `Tests\Concerns\RebootsInEnvironment`
+
+`bootstrap/app.php` decides at boot which routes exist and which providers are registered. Those
+decisions cannot be asserted by changing config: the app has already booted. The trait re-requires
+`bootstrap/app.php` under another `APP_ENV` via `refreshApplication()`, writing the value to `$_ENV`,
+`$_SERVER` **and** `putenv()` — Laravel's Env repository reads all three, and `phpunit.xml` populates
+the first two.
+
+It **fails loudly if the reboot stops taking effect**. Without that check, every test using it would
+keep observing the `testing` environment and report green — the defect being asserted against would
+be invisible, which is worse than having no test.
+
+Used by `tests/Feature/Deployment/`, which covers the five guards that only matter off a developer's
+machine: the e2e route allowlist, Telescope's conditional registration, `trustProxies`,
+`public/.htaccess`, and driver parity across environments.
+
+**Two traps recorded there, both found while writing those tests:**
+
+- **`$this->get('/path')` builds its URL from `APP_URL`, which is `https://`.** Two `trustProxies`
+  assertions passed with the middleware deleted entirely, because the request was already secure.
+  Any test about scheme, host or proxy headers must address an explicit `http://` root — and carry a
+  negative control, which is what caught it.
+- **"Absent in production" is not a test of an allowlist.** A denylist of `production` passes it.
+  The assertion that distinguishes them is *absent in an environment the codebase has never heard
+  of* — `preprod`, `staging`, `review-app-42`.
+
 ### Pre-commit hook
 Runs automatically on `git commit`:
 1. `lint-staged` — format checks
