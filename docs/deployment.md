@@ -57,7 +57,7 @@ this file answers *where each value comes from*.
 | `APP_URL` | the site's own https URL | Used by every generated absolute URL and by the sitemap |
 | `LOG_LEVEL` | `warning` | `debug` on a public site writes a lot, and writes things worth not writing |
 | `SESSION_DOMAIN` | the site's hostname | A mismatch here is a silent "login does nothing" |
-| `SESSION_SECURE_COOKIE` | `true` | Requires `trustProxies` — see *Traps* |
+| `SESSION_SECURE_COOKIE` | `true` | The host sets `HTTPS=on` itself; no trusted proxy is needed — see *Traps* |
 
 > ⚠️ **`APP_ENV` must be `production` on every internet-facing host, preprod included.**
 > `routes/e2e.php` defines `GET /e2e/admin-auth`, which creates an admin account, sets
@@ -79,8 +79,9 @@ this file answers *where each value comes from*.
 |---|---|
 | `DB_CONNECTION` | `pgsql` |
 | `DB_HOST`, `DB_PORT` | *Databases → PostgreSQL* |
-| `DB_DATABASE` | `cardascia_it_preprod` — alwaysdata forces the `cardascia_it_` prefix |
-| `DB_USERNAME` | `cardascia-it` |
+| `DB_HOST` | `postgresql-cardascia-it.alwaysdata.net` — resolves to the account's PostgreSQL server |
+| `DB_DATABASE` | **`cardascia-it_preprod`** — the forced prefix is the *account name*, hyphen included. Not `cardascia_it_`: that spelling cost a `database does not exist` on the first deployment |
+| `DB_USERNAME` | **One user per environment** — `cardascia-it_preprod` here, its own for production. A leaked preprod `.env` then grants nothing on production, and revoking one touches neither the other nor the account's own user |
 | `DB_PASSWORD` | Set from the panel; it is not displayed, only replaced |
 
 The database was created with locale **`C.UTF-8`** rather than a language-specific one.
@@ -181,10 +182,10 @@ LOG_DEPRECATIONS_CHANNEL=null
 LOG_LEVEL=warning
 
 DB_CONNECTION=pgsql
-DB_HOST=<alwaysdata PostgreSQL host>
+DB_HOST=postgresql-cardascia-it.alwaysdata.net
 DB_PORT=5432
-DB_DATABASE=cardascia_it_preprod
-DB_USERNAME=cardascia-it
+DB_DATABASE=cardascia-it_preprod
+DB_USERNAME=cardascia-it_preprod
 DB_PASSWORD=<from the alwaysdata panel>
 
 SESSION_DRIVER=database
@@ -238,6 +239,7 @@ chmod 600 .env
 | `APP_DEBUG` | `true` | `false` |
 | `LOG_LEVEL` | `debug` | `warning` |
 | `DB_PORT` | `5433` | `5432` — the local cluster runs on a non-default port, alwaysdata does not |
+| `DB_USERNAME` | the account user | a user dedicated to this environment alone |
 
 And four blocks are **absent on purpose**: `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` (no
 translation command runs on a server), `GEO_DEV_FALLBACK_IP` (there are no loopback
@@ -333,12 +335,84 @@ which reads as a circular dependency and is not one: point the DNS, wait, then t
 
 ---
 
+## The account environment — set this before anything else
+
+**This section is why the deployment sequence below is short.** The commands are bare
+(`php artisan …`, `npm run build`) and that only works because the account's default
+interpreters are correct. They are not, out of the box.
+
+Measured on a fresh account, 2026-09-14:
+
+```
+php   → 7.4.33     composer.json requires ^8.5
+node  → v6.17.1    Vite 8 will not start
+php -m → almost nothing; no php.ini loaded at all
+```
+
+The fix is not a wrapper script or absolute paths. It is **Admin → Environment**, at the
+*account* level:
+
+| Setting | Value | Why |
+|---|---|---|
+| PHP | **8.5** | Pick the *major*, not `8.5.10` — the panel then tracks the latest minor, so security fixes land without action |
+| Node.js | **24** | Same. `package.json` declares `"node": ">=24"` |
+| Python, Ruby, Elixir, Java, Deno, .NET | **leave alone** | Nothing in this project executes them. Changing a runtime nothing uses is risk without benefit |
+| Custom `php.ini` | **leave empty** (besides what the panel put there) | See below |
+
+**The custom `php.ini` field is a trap worth naming.** The bare binary at
+`/usr/alwaysdata/php/8.5/bin/php` loads no configuration, so `php -m` on it lists almost
+nothing and suggests every extension is missing. It is not: selecting PHP 8.5 in the panel
+makes the `php` on the `PATH` load `~/admin/config/php/php.ini`, which already provides
+`pdo`, `pdo_pgsql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `fileinfo`,
+`bcmath`, `curl` and `intl` — everything Laravel needs.
+
+Adding them by hand produces `Warning: Module "X" is already loaded` **on stdout, before
+anything else**, which truncates the output of every command that reads `php`'s — Composer
+first among them. Diagnose the `php` on the `PATH`, never the versioned binary.
+
+The account's SSH shell is **fish**, not bash. Loops and `$(…)` in a deployment snippet
+need to be written accordingly, or run through `bash -c`.
+
+---
+
+## Cloning: the repository is private
+
+The server authenticates to GitHub with a **deploy key** — a key pair generated on the
+server, whose public half is registered on the repository as read-only.
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_github -N "" -C "<account>@alwaysdata deploy key"
+# register ~/.ssh/id_ed25519_github.pub on the repository, read-only
+printf '\nHost github.com\n    IdentityFile ~/.ssh/id_ed25519_github\n    IdentitiesOnly yes\n' >> ~/.ssh/config
+git clone git@github.com:<owner>/<repo>.git ~/preprod
+```
+
+Read-only, scoped to one repository, revocable from its settings, and it never touches a
+personal GitHub credential. `ssh -T git@github.com` answers `Hi <owner>/<repo>!` rather
+than a username — that reply *is* the proof the key is repository-scoped.
+
+The passphrase is empty on purpose: a deployment cannot type one. The exposure is bounded
+by the scope — anyone able to read `~/.ssh` on this server already has the working copy and
+the `.env`.
+
+**Clone into `~/preprod`, not into an existing directory.** `git clone` refuses a non-empty
+target, which is why `.htpasswd` lives at the account root rather than beside the code.
+
+Note on SSH access to alwaysdata itself: the panel has **no field for SSH keys** outside
+Cloud Privé offerings. The key goes into `~/.ssh/authorized_keys` via `ssh-copy-id`, which
+needs password authentication enabled — so **do not disable it until key authentication is
+proven**, or the door closes with the key still inside.
+
+---
+
 ## Deploying
 
 ```bash
 # On the server, in /home/cardascia-it/preprod
 git pull
 composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
 php artisan migrate --force
 php artisan db:seed --class=AdminSeeder          # first deployment only
 php artisan db:seed --class=HomepageContentSeeder
@@ -347,9 +421,9 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-Built assets are **not versioned** (`/public/build` is in `.gitignore`), so
-`npm run build` has to run somewhere before the site can render a page. Until the
-pipeline exists, that is a manual step.
+`npm ci` and `npm run build` run **on the server**: `/public/build` is gitignored, so the
+assets exist nowhere else. Measured: 6 seconds, on a host with 32 GB of memory and 2 TB
+free — the "will the build fit" question has an answer, and it is yes.
 
 `HomepageContentSeeder` is safe to run on every deployment: its `confirm()` defaults to
 `false`, so a non-interactive run populates an empty row and otherwise changes nothing.
@@ -357,6 +431,33 @@ Editing live content is the admin form's job.
 
 **`config:cache` freezes `.env`.** After it runs, `env()` outside a config file returns
 `null`. Change a variable, and nothing takes effect until `config:cache` runs again.
+
+### Deploying a candidate, before it reaches `main`
+
+The sequence above deploys what is already released. A change that can only be *validated*
+on a server — anything about proxies, TLS, paths, or interpreter versions — has to be
+deployed before it is merged, or the pull request waits on a measurement the merge is a
+precondition for.
+
+```bash
+# 1. deploy the candidate
+git fetch origin && git checkout <branch>
+composer install --no-dev --optimize-autoloader && npm ci && npm run build
+php artisan config:cache && php artisan route:cache && php artisan view:cache
+
+# 2. measure. Anything found goes back onto the same branch — the squash merge
+#    still produces one commit, so the ticket keeps its single commit on main.
+
+# 3. once merged, bring the server back
+git checkout main && git pull
+# …then the normal sequence, and verify again on what is actually released.
+```
+
+**Step 3 is not optional.** A server left on a merged branch quietly stops receiving
+anything: the next `git pull` updates a branch nobody pushes to any more.
+
+This is safe here because preprod sits behind HTTP Basic authentication: a candidate
+carrying a known defect is unreachable while it is being measured.
 
 ---
 
@@ -371,42 +472,56 @@ Development runs on FrankenPHP, which routes every request to `public/index.php`
 and never reads that file. Apache does not. Without it, `/` resolves and **every other
 route 404s** — a failure that looks like broken routing rather than a missing file.
 
-### `trustProxies` was not configured
+### `trustProxies` was configured, and had to be removed
 
-alwaysdata terminates TLS at a front proxy, so PHP only ever sees plain HTTP. The visible
-symptom is `http://` links on an `https://` page; the expensive one is
-`SESSION_SECURE_COOKIE=true` producing a cookie the browser refuses to send back — which
-presents as an endless login loop, not as a configuration problem.
+**This entry is the one that was wrong.** It was written on 2026-09-14 alongside the
+change it describes, on the assumption that the host terminated TLS upstream and handed
+PHP a plain HTTP request. The first deployment measured the host, and the assumption did
+not survive it.
 
-`at: '*'` trusts any proxy, which is the workable choice when the front end's address is
-not contractually stable. The cost: `X-Forwarded-For` becomes caller-controlled, so
-`$request->ip()` is **not evidence**. Its only reader today is `GeoController`, which
-resolves a location for the caller's own boot sequence. Anything that gates access or
-counts attempts per IP must not rely on it as it stands.
-
-**Narrowing `at:` is not as simple as reading the panel.** alwaysdata publishes three
-ranges — `185.31.40.0/22`, `188.72.70.0/24`, `2a00:b6e0::/32` — but the page frames them
-as *"les plages d'adresses IP que les applications peuvent autoriser pour fonctionner"*:
-ranges to allowlist **at a third party** so an alwaysdata-hosted application can reach it.
-That is the outbound direction, and it says nothing about what Apache receives.
-
-*Admin → Advanced → Server status* is no better, for a subtler reason. It lists the site's
-HTTP server as `http14.paris1` at `185.31.40.24` / `2a00:b6e0:1:20:15::1`, and that is
-exactly what the site resolves to:
+What the probe returned, from a real browser-side request:
 
 ```
-preprod.cardascia-it.org → cardascia-it.alwaysdata.net → 185.31.40.24
-dig -x 185.31.40.24      → http14.paris1.alwaysdata.com
+HTTPS                   = on
+REMOTE_ADDR             = <the visitor's own public IP>
+HTTP_X_FORWARDED_PROTO  = https
 ```
 
-So the proxy and Apache are the **same machine**, and that address is where clients connect
-*to* — not the address Apache sees requests coming *from*, which is then almost certainly
-a loopback or private address. The column is labelled "IP"; it does not say which direction.
-Putting the public range into `trustProxies` would match nothing useful, and a `trustProxies`
-that matches nothing also stops honouring `X-Forwarded-Proto` — which silently breaks HTTPS
-detection, the very thing it was added for.
+And with the caller deliberately sending forged headers:
 
-**It has to be measured, not read.** Once anything at all is deployed:
+| Header sent by the caller | What PHP receives | |
+|---|---|---|
+| `X-Forwarded-Proto: http` | `https` | the proxy overwrites it — safe |
+| — | `REMOTE_ADDR` = the real visitor | `mod_remoteip` resolves it — safe |
+| `X-Forwarded-For: 1.2.3.4` | **`1.2.3.4`** | passed through verbatim |
+| `X-Forwarded-Host: evil.example` | **`evil.example`** | passed through verbatim |
+
+**Apache already does the work.** `HTTPS=on` is set by the host, so Laravel knows the
+request is secure without trusting anyone — which also means the correct `canonical` seen
+on the first deployment proved nothing about `trustProxies`. It was right *without* it.
+
+**And there is no proxy address left to trust.** `mod_remoteip` runs upstream and has
+already rewritten `REMOTE_ADDR` to the visitor. From PHP's side the connecting peer *is*
+the visitor, so `trustProxies(at: '*')` designates the visitor as a trusted proxy and hands
+them two things:
+
+- `$request->ip()` — whatever they put in `X-Forwarded-For`. Any rate limiter keyed on the
+  IP is then bypassed by changing a header (see LUMN-36, which keys the 2FA limiter on the
+  user id for exactly this reason).
+- `$request->getHost()` — whatever they put in `X-Forwarded-Host`. **This is host header
+  poisoning**, and it is the serious one: every absolute URL the application builds —
+  `canonical`, `hreflang`, redirects, a future password reset link — would carry a host the
+  attacker chose.
+
+There is no value of `at:` that is correct here. The middleware is gone, not narrowed.
+
+`tests/Feature/Deployment/TrustedProxyTest.php` now asserts the measured behaviour: forged
+`X-Forwarded-*` headers change nothing, and a request the server marks secure is still
+detected as secure. That last one is the counterpart — without it, "ignore every forwarded
+header" would be satisfied by an application that never detects HTTPS at all.
+
+**Before enabling `trustProxies` on any other host, run the probe.** Two sessions of
+reasoning produced the wrong answer; one HTTP request produced the right one.
 
 ```php
 <?php // public/_probe.php — delete immediately afterwards
@@ -418,12 +533,8 @@ foreach ($_SERVER as $k => $v) {
 }
 ```
 
-If `REMOTE_ADDR` comes back as the **visitor's own public IP**, alwaysdata applies
-`mod_remoteip` upstream — their GeoIP guide blocks countries from a plain `.htaccess`, which
-only works if Apache already holds the real client address. In that case `at: '*'` is wrong
-in the opposite direction: Laravel would treat the visitor as a trusted proxy and read the
-`X-Forwarded-For` they sent themselves. Whatever the probe returns, record it here and
-narrow `at:` to it — or write down why it stayed `'*'`.
+Send it twice: once plainly, once with `-H "X-Forwarded-For: 1.2.3.4" -H "X-Forwarded-Host:
+evil.example"`. The second request is the one that answers the question.
 
 ### Telescope made `--no-dev` fatal
 
@@ -444,14 +555,41 @@ forgotten denylist entry exposes something, a forgotten allowlist entry hides so
 
 ---
 
+## What the first deployment established
+
+Recorded so the next environment does not re-derive it. Everything below was measured on
+`preprod.cardascia-it.org`, 2026-09-14, not assumed.
+
+| | |
+|---|---|
+| PHP on the `PATH`, once the panel is set | 8.5.10, with all of Laravel's extensions |
+| Node / npm | 24.20.0 / 11.19.0 |
+| `composer install --no-dev` | succeeds — **and discovers packages without Telescope**, which is precisely where the unguarded provider used to be fatal |
+| `npm run build` | 6 s; host has 32 GB RAM, 2 TB free |
+| 13 migrations on a `C.UTF-8` database | all applied |
+| `/fr`, `/fr/cv` | `200` |
+| `canonical` | `https://preprod.cardascia-it.org/fr` |
+| **`/e2e/admin-auth`** | **`404`** — the allowlist guard, confronted with the machine it protects |
+| `ANTHROPIC_API_KEY` | absent from the running configuration |
+| `REMOTE_ADDR` | the visitor's own address; `mod_remoteip` runs upstream |
+| `HTTPS` | `on`, set by the host |
+| Forged `X-Forwarded-For` / `-Host` | reach PHP verbatim, and Laravel ignores them |
+
 ## Not done yet
 
-- **No deployment pipeline.** Everything above is manual.
+- **No deployment pipeline.** Everything above is manual, and that is now a specification
+  rather than a guess: each corrected line of this file is a line the pipeline will carry.
 - **No rate limiting anywhere.** `grep -rn throttle routes/ app/Http/` returns nothing, and
   `LoginRequest` does not call `ensureIsNotRateLimited()`. `/{lang}/login` accepts unlimited
-  password attempts. 2FA still stands between a correct password and the admin, but
-  password guessing is currently free and unobserved. This must be closed before
-  `cardascia-it.org` points here.
+  password attempts, and the six-digit TOTP challenge behind it accepts unlimited codes —
+  which is the more serious of the two, since a TOTP's entire security rests on a small
+  number of attempts. HTTP Basic authentication closes both on preprod. **This must be
+  closed before `cardascia-it.org` points here.** (LUMN-36)
+- **No security headers**, and `robots.txt` allows everything — preprod would be indexed if
+  it were reachable. (LUMN-37)
 - **Nameserver delegation to alwaysdata** is not done; `cardascia-it.org` still resolves
-  through one.com. It depends on settling the `contact@cardascia-it.org` mailbox first.
+  through one.com and still serves the previous site, untouched. It depends on settling the
+  `contact@cardascia-it.org` mailbox first.
 - **No backup of the preprod database.**
+- **Nothing distinguishes preprod from production in the logs**, since both run
+  `APP_ENV=production` deliberately. A dedicated variable is needed. (LUMN-40)

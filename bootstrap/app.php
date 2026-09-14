@@ -5,7 +5,6 @@ use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -35,25 +34,27 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // TLS is terminated by the hosting provider's front proxy, so PHP only
-        // ever sees a plain HTTP request. Without this, the app builds http://
-        // URLs on an https:// page and — worse — SESSION_SECURE_COOKIE=true
-        // produces a cookie the browser refuses to send back, which reads as an
-        // endless login loop rather than as a configuration problem.
+        // No proxy is trusted, and that is the measured configuration — not an
+        // oversight. Verified against the preprod host on 2026-09-14:
         //
-        // at: '*' trusts any proxy, which is the workable choice when the front
-        // end's address is not contractually stable. The cost is that
-        // X-Forwarded-For becomes caller-controlled, so $request->ip() is not
-        // evidence: today its only reader is GeoController, which resolves a
-        // location for the caller's own boot sequence. Anything that decides
-        // access or counts attempts per IP must not rely on it as it stands.
-        $middleware->trustProxies(
-            at: '*',
-            headers: Request::HEADER_X_FORWARDED_FOR
-                | Request::HEADER_X_FORWARDED_HOST
-                | Request::HEADER_X_FORWARDED_PORT
-                | Request::HEADER_X_FORWARDED_PROTO,
-        );
+        //   HTTPS                  = on                    Apache sets it itself
+        //   REMOTE_ADDR            = the visitor's real IP  mod_remoteip runs upstream
+        //   X-Forwarded-Proto      = https                 overwritten by the proxy,
+        //                                                   even when the client sends http
+        //   X-Forwarded-For / -Host = whatever the client sent, passed through verbatim
+        //
+        // Laravel therefore needs nothing to know the request is secure. And there is
+        // no proxy address left to trust: mod_remoteip has already rewritten
+        // REMOTE_ADDR to the visitor, so `trustProxies(at: '*')` would designate the
+        // visitor as a trusted proxy — handing them $request->ip() through
+        // X-Forwarded-For, and $request->getHost() through X-Forwarded-Host. The
+        // second is host header poisoning: every absolute URL the app builds —
+        // canonical, hreflang, redirects, a future password reset link — would carry
+        // an attacker-chosen host.
+        //
+        // trustProxies was added on 2026-09-14 under the assumption that TLS was
+        // terminated upstream and PHP saw plain HTTP. The assumption was wrong for
+        // this host. Re-measure before adding it back for another one.
 
         // RedirectIfAuthenticated (guest middleware) — send authenticated users to home
         $middleware->redirectUsersTo(fn () => route('home', ['lang' => app()->getLocale()]));
