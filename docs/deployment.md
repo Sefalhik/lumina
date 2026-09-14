@@ -57,7 +57,7 @@ this file answers *where each value comes from*.
 | `APP_URL` | the site's own https URL | Used by every generated absolute URL and by the sitemap |
 | `LOG_LEVEL` | `warning` | `debug` on a public site writes a lot, and writes things worth not writing |
 | `SESSION_DOMAIN` | the site's hostname | A mismatch here is a silent "login does nothing" |
-| `SESSION_SECURE_COOKIE` | `true` | Requires `trustProxies` — see *Traps* |
+| `SESSION_SECURE_COOKIE` | `true` | The host sets `HTTPS=on` itself; no trusted proxy is needed — see *Traps* |
 
 > ⚠️ **`APP_ENV` must be `production` on every internet-facing host, preprod included.**
 > `routes/e2e.php` defines `GET /e2e/admin-auth`, which creates an admin account, sets
@@ -371,42 +371,56 @@ Development runs on FrankenPHP, which routes every request to `public/index.php`
 and never reads that file. Apache does not. Without it, `/` resolves and **every other
 route 404s** — a failure that looks like broken routing rather than a missing file.
 
-### `trustProxies` was not configured
+### `trustProxies` was configured, and had to be removed
 
-alwaysdata terminates TLS at a front proxy, so PHP only ever sees plain HTTP. The visible
-symptom is `http://` links on an `https://` page; the expensive one is
-`SESSION_SECURE_COOKIE=true` producing a cookie the browser refuses to send back — which
-presents as an endless login loop, not as a configuration problem.
+**This entry is the one that was wrong.** It was written on 2026-09-14 alongside the
+change it describes, on the assumption that the host terminated TLS upstream and handed
+PHP a plain HTTP request. The first deployment measured the host, and the assumption did
+not survive it.
 
-`at: '*'` trusts any proxy, which is the workable choice when the front end's address is
-not contractually stable. The cost: `X-Forwarded-For` becomes caller-controlled, so
-`$request->ip()` is **not evidence**. Its only reader today is `GeoController`, which
-resolves a location for the caller's own boot sequence. Anything that gates access or
-counts attempts per IP must not rely on it as it stands.
-
-**Narrowing `at:` is not as simple as reading the panel.** alwaysdata publishes three
-ranges — `185.31.40.0/22`, `188.72.70.0/24`, `2a00:b6e0::/32` — but the page frames them
-as *"les plages d'adresses IP que les applications peuvent autoriser pour fonctionner"*:
-ranges to allowlist **at a third party** so an alwaysdata-hosted application can reach it.
-That is the outbound direction, and it says nothing about what Apache receives.
-
-*Admin → Advanced → Server status* is no better, for a subtler reason. It lists the site's
-HTTP server as `http14.paris1` at `185.31.40.24` / `2a00:b6e0:1:20:15::1`, and that is
-exactly what the site resolves to:
+What the probe returned, from a real browser-side request:
 
 ```
-preprod.cardascia-it.org → cardascia-it.alwaysdata.net → 185.31.40.24
-dig -x 185.31.40.24      → http14.paris1.alwaysdata.com
+HTTPS                   = on
+REMOTE_ADDR             = <the visitor's own public IP>
+HTTP_X_FORWARDED_PROTO  = https
 ```
 
-So the proxy and Apache are the **same machine**, and that address is where clients connect
-*to* — not the address Apache sees requests coming *from*, which is then almost certainly
-a loopback or private address. The column is labelled "IP"; it does not say which direction.
-Putting the public range into `trustProxies` would match nothing useful, and a `trustProxies`
-that matches nothing also stops honouring `X-Forwarded-Proto` — which silently breaks HTTPS
-detection, the very thing it was added for.
+And with the caller deliberately sending forged headers:
 
-**It has to be measured, not read.** Once anything at all is deployed:
+| Header sent by the caller | What PHP receives | |
+|---|---|---|
+| `X-Forwarded-Proto: http` | `https` | the proxy overwrites it — safe |
+| — | `REMOTE_ADDR` = the real visitor | `mod_remoteip` resolves it — safe |
+| `X-Forwarded-For: 1.2.3.4` | **`1.2.3.4`** | passed through verbatim |
+| `X-Forwarded-Host: evil.example` | **`evil.example`** | passed through verbatim |
+
+**Apache already does the work.** `HTTPS=on` is set by the host, so Laravel knows the
+request is secure without trusting anyone — which also means the correct `canonical` seen
+on the first deployment proved nothing about `trustProxies`. It was right *without* it.
+
+**And there is no proxy address left to trust.** `mod_remoteip` runs upstream and has
+already rewritten `REMOTE_ADDR` to the visitor. From PHP's side the connecting peer *is*
+the visitor, so `trustProxies(at: '*')` designates the visitor as a trusted proxy and hands
+them two things:
+
+- `$request->ip()` — whatever they put in `X-Forwarded-For`. Any rate limiter keyed on the
+  IP is then bypassed by changing a header (see LUMN-36, which keys the 2FA limiter on the
+  user id for exactly this reason).
+- `$request->getHost()` — whatever they put in `X-Forwarded-Host`. **This is host header
+  poisoning**, and it is the serious one: every absolute URL the application builds —
+  `canonical`, `hreflang`, redirects, a future password reset link — would carry a host the
+  attacker chose.
+
+There is no value of `at:` that is correct here. The middleware is gone, not narrowed.
+
+`tests/Feature/Deployment/TrustedProxyTest.php` now asserts the measured behaviour: forged
+`X-Forwarded-*` headers change nothing, and a request the server marks secure is still
+detected as secure. That last one is the counterpart — without it, "ignore every forwarded
+header" would be satisfied by an application that never detects HTTPS at all.
+
+**Before enabling `trustProxies` on any other host, run the probe.** Two sessions of
+reasoning produced the wrong answer; one HTTP request produced the right one.
 
 ```php
 <?php // public/_probe.php — delete immediately afterwards
@@ -418,12 +432,8 @@ foreach ($_SERVER as $k => $v) {
 }
 ```
 
-If `REMOTE_ADDR` comes back as the **visitor's own public IP**, alwaysdata applies
-`mod_remoteip` upstream — their GeoIP guide blocks countries from a plain `.htaccess`, which
-only works if Apache already holds the real client address. In that case `at: '*'` is wrong
-in the opposite direction: Laravel would treat the visitor as a trusted proxy and read the
-`X-Forwarded-For` they sent themselves. Whatever the probe returns, record it here and
-narrow `at:` to it — or write down why it stayed `'*'`.
+Send it twice: once plainly, once with `-H "X-Forwarded-For: 1.2.3.4" -H "X-Forwarded-Host:
+evil.example"`. The second request is the one that answers the question.
 
 ### Telescope made `--no-dev` fatal
 
