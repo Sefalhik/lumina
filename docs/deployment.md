@@ -79,8 +79,9 @@ this file answers *where each value comes from*.
 |---|---|
 | `DB_CONNECTION` | `pgsql` |
 | `DB_HOST`, `DB_PORT` | *Databases → PostgreSQL* |
-| `DB_DATABASE` | `cardascia_it_preprod` — alwaysdata forces the `cardascia_it_` prefix |
-| `DB_USERNAME` | `cardascia-it` |
+| `DB_HOST` | `postgresql-cardascia-it.alwaysdata.net` — resolves to the account's PostgreSQL server |
+| `DB_DATABASE` | **`cardascia-it_preprod`** — the forced prefix is the *account name*, hyphen included. Not `cardascia_it_`: that spelling cost a `database does not exist` on the first deployment |
+| `DB_USERNAME` | **One user per environment** — `cardascia-it_preprod` here, its own for production. A leaked preprod `.env` then grants nothing on production, and revoking one touches neither the other nor the account's own user |
 | `DB_PASSWORD` | Set from the panel; it is not displayed, only replaced |
 
 The database was created with locale **`C.UTF-8`** rather than a language-specific one.
@@ -181,10 +182,10 @@ LOG_DEPRECATIONS_CHANNEL=null
 LOG_LEVEL=warning
 
 DB_CONNECTION=pgsql
-DB_HOST=<alwaysdata PostgreSQL host>
+DB_HOST=postgresql-cardascia-it.alwaysdata.net
 DB_PORT=5432
-DB_DATABASE=cardascia_it_preprod
-DB_USERNAME=cardascia-it
+DB_DATABASE=cardascia-it_preprod
+DB_USERNAME=cardascia-it_preprod
 DB_PASSWORD=<from the alwaysdata panel>
 
 SESSION_DRIVER=database
@@ -238,6 +239,7 @@ chmod 600 .env
 | `APP_DEBUG` | `true` | `false` |
 | `LOG_LEVEL` | `debug` | `warning` |
 | `DB_PORT` | `5433` | `5432` — the local cluster runs on a non-default port, alwaysdata does not |
+| `DB_USERNAME` | the account user | a user dedicated to this environment alone |
 
 And four blocks are **absent on purpose**: `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` (no
 translation command runs on a server), `GEO_DEV_FALLBACK_IP` (there are no loopback
@@ -333,12 +335,84 @@ which reads as a circular dependency and is not one: point the DNS, wait, then t
 
 ---
 
+## The account environment — set this before anything else
+
+**This section is why the deployment sequence below is short.** The commands are bare
+(`php artisan …`, `npm run build`) and that only works because the account's default
+interpreters are correct. They are not, out of the box.
+
+Measured on a fresh account, 2026-09-14:
+
+```
+php   → 7.4.33     composer.json requires ^8.5
+node  → v6.17.1    Vite 8 will not start
+php -m → almost nothing; no php.ini loaded at all
+```
+
+The fix is not a wrapper script or absolute paths. It is **Admin → Environment**, at the
+*account* level:
+
+| Setting | Value | Why |
+|---|---|---|
+| PHP | **8.5** | Pick the *major*, not `8.5.10` — the panel then tracks the latest minor, so security fixes land without action |
+| Node.js | **24** | Same. `package.json` declares `"node": ">=24"` |
+| Python, Ruby, Elixir, Java, Deno, .NET | **leave alone** | Nothing in this project executes them. Changing a runtime nothing uses is risk without benefit |
+| Custom `php.ini` | **leave empty** (besides what the panel put there) | See below |
+
+**The custom `php.ini` field is a trap worth naming.** The bare binary at
+`/usr/alwaysdata/php/8.5/bin/php` loads no configuration, so `php -m` on it lists almost
+nothing and suggests every extension is missing. It is not: selecting PHP 8.5 in the panel
+makes the `php` on the `PATH` load `~/admin/config/php/php.ini`, which already provides
+`pdo`, `pdo_pgsql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `fileinfo`,
+`bcmath`, `curl` and `intl` — everything Laravel needs.
+
+Adding them by hand produces `Warning: Module "X" is already loaded` **on stdout, before
+anything else**, which truncates the output of every command that reads `php`'s — Composer
+first among them. Diagnose the `php` on the `PATH`, never the versioned binary.
+
+The account's SSH shell is **fish**, not bash. Loops and `$(…)` in a deployment snippet
+need to be written accordingly, or run through `bash -c`.
+
+---
+
+## Cloning: the repository is private
+
+The server authenticates to GitHub with a **deploy key** — a key pair generated on the
+server, whose public half is registered on the repository as read-only.
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_github -N "" -C "<account>@alwaysdata deploy key"
+# register ~/.ssh/id_ed25519_github.pub on the repository, read-only
+printf '\nHost github.com\n    IdentityFile ~/.ssh/id_ed25519_github\n    IdentitiesOnly yes\n' >> ~/.ssh/config
+git clone git@github.com:<owner>/<repo>.git ~/preprod
+```
+
+Read-only, scoped to one repository, revocable from its settings, and it never touches a
+personal GitHub credential. `ssh -T git@github.com` answers `Hi <owner>/<repo>!` rather
+than a username — that reply *is* the proof the key is repository-scoped.
+
+The passphrase is empty on purpose: a deployment cannot type one. The exposure is bounded
+by the scope — anyone able to read `~/.ssh` on this server already has the working copy and
+the `.env`.
+
+**Clone into `~/preprod`, not into an existing directory.** `git clone` refuses a non-empty
+target, which is why `.htpasswd` lives at the account root rather than beside the code.
+
+Note on SSH access to alwaysdata itself: the panel has **no field for SSH keys** outside
+Cloud Privé offerings. The key goes into `~/.ssh/authorized_keys` via `ssh-copy-id`, which
+needs password authentication enabled — so **do not disable it until key authentication is
+proven**, or the door closes with the key still inside.
+
+---
+
 ## Deploying
 
 ```bash
 # On the server, in /home/cardascia-it/preprod
 git pull
 composer install --no-dev --optimize-autoloader
+npm ci
+npm run build
 php artisan migrate --force
 php artisan db:seed --class=AdminSeeder          # first deployment only
 php artisan db:seed --class=HomepageContentSeeder
@@ -347,9 +421,9 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-Built assets are **not versioned** (`/public/build` is in `.gitignore`), so
-`npm run build` has to run somewhere before the site can render a page. Until the
-pipeline exists, that is a manual step.
+`npm ci` and `npm run build` run **on the server**: `/public/build` is gitignored, so the
+assets exist nowhere else. Measured: 6 seconds, on a host with 32 GB of memory and 2 TB
+free — the "will the build fit" question has an answer, and it is yes.
 
 `HomepageContentSeeder` is safe to run on every deployment: its `confirm()` defaults to
 `false`, so a non-interactive run populates an empty row and otherwise changes nothing.
@@ -357,6 +431,33 @@ Editing live content is the admin form's job.
 
 **`config:cache` freezes `.env`.** After it runs, `env()` outside a config file returns
 `null`. Change a variable, and nothing takes effect until `config:cache` runs again.
+
+### Deploying a candidate, before it reaches `main`
+
+The sequence above deploys what is already released. A change that can only be *validated*
+on a server — anything about proxies, TLS, paths, or interpreter versions — has to be
+deployed before it is merged, or the pull request waits on a measurement the merge is a
+precondition for.
+
+```bash
+# 1. deploy the candidate
+git fetch origin && git checkout <branch>
+composer install --no-dev --optimize-autoloader && npm ci && npm run build
+php artisan config:cache && php artisan route:cache && php artisan view:cache
+
+# 2. measure. Anything found goes back onto the same branch — the squash merge
+#    still produces one commit, so the ticket keeps its single commit on main.
+
+# 3. once merged, bring the server back
+git checkout main && git pull
+# …then the normal sequence, and verify again on what is actually released.
+```
+
+**Step 3 is not optional.** A server left on a merged branch quietly stops receiving
+anything: the next `git pull` updates a branch nobody pushes to any more.
+
+This is safe here because preprod sits behind HTTP Basic authentication: a candidate
+carrying a known defect is unreachable while it is being measured.
 
 ---
 
@@ -454,14 +555,41 @@ forgotten denylist entry exposes something, a forgotten allowlist entry hides so
 
 ---
 
+## What the first deployment established
+
+Recorded so the next environment does not re-derive it. Everything below was measured on
+`preprod.cardascia-it.org`, 2026-09-14, not assumed.
+
+| | |
+|---|---|
+| PHP on the `PATH`, once the panel is set | 8.5.10, with all of Laravel's extensions |
+| Node / npm | 24.20.0 / 11.19.0 |
+| `composer install --no-dev` | succeeds — **and discovers packages without Telescope**, which is precisely where the unguarded provider used to be fatal |
+| `npm run build` | 6 s; host has 32 GB RAM, 2 TB free |
+| 13 migrations on a `C.UTF-8` database | all applied |
+| `/fr`, `/fr/cv` | `200` |
+| `canonical` | `https://preprod.cardascia-it.org/fr` |
+| **`/e2e/admin-auth`** | **`404`** — the allowlist guard, confronted with the machine it protects |
+| `ANTHROPIC_API_KEY` | absent from the running configuration |
+| `REMOTE_ADDR` | the visitor's own address; `mod_remoteip` runs upstream |
+| `HTTPS` | `on`, set by the host |
+| Forged `X-Forwarded-For` / `-Host` | reach PHP verbatim, and Laravel ignores them |
+
 ## Not done yet
 
-- **No deployment pipeline.** Everything above is manual.
+- **No deployment pipeline.** Everything above is manual, and that is now a specification
+  rather than a guess: each corrected line of this file is a line the pipeline will carry.
 - **No rate limiting anywhere.** `grep -rn throttle routes/ app/Http/` returns nothing, and
   `LoginRequest` does not call `ensureIsNotRateLimited()`. `/{lang}/login` accepts unlimited
-  password attempts. 2FA still stands between a correct password and the admin, but
-  password guessing is currently free and unobserved. This must be closed before
-  `cardascia-it.org` points here.
+  password attempts, and the six-digit TOTP challenge behind it accepts unlimited codes —
+  which is the more serious of the two, since a TOTP's entire security rests on a small
+  number of attempts. HTTP Basic authentication closes both on preprod. **This must be
+  closed before `cardascia-it.org` points here.** (LUMN-36)
+- **No security headers**, and `robots.txt` allows everything — preprod would be indexed if
+  it were reachable. (LUMN-37)
 - **Nameserver delegation to alwaysdata** is not done; `cardascia-it.org` still resolves
-  through one.com. It depends on settling the `contact@cardascia-it.org` mailbox first.
+  through one.com and still serves the previous site, untouched. It depends on settling the
+  `contact@cardascia-it.org` mailbox first.
 - **No backup of the preprod database.**
+- **Nothing distinguishes preprod from production in the logs**, since both run
+  `APP_ENV=production` deliberately. A dedicated variable is needed. (LUMN-40)
