@@ -907,14 +907,29 @@ trimming is redundant, its query-string stripping is not.
 the article leads that came out of it. Named `session-YYYY-MM-DD.md`, with a `b`, `c`… suffix when a
 day has more than one.
 
-**A brain dump travels with the ticket in flight. It never gets a branch of its own.**
+**A brain dump travels with the ticket in flight — unless no ticket is in flight.**
 
-It is not a deliverable: it documents a session, not a feature. Giving it its own branch ties a
-piece of prose to a ticket it does not implement — and if that ticket is blocked, the writing sits
-in an open pull request waiting on something it has nothing to do with. That happened once, for a
-day, on LUMN-13.
+It is not a deliverable: it documents a session, not a feature. Attaching it to a ticket it does not
+implement ties a piece of prose to that ticket's fate — and if the ticket is blocked, the writing
+sits in an open pull request waiting on something it has nothing to do with. That happened once, for
+a day, on LUMN-13.
 
-Nothing was actually stuck: `jira-sync.yml` gates every transition on the expected source state, so
-merging could never have moved a blocked ticket. The pull request was simply pointless. Commit the
-dump alongside the work of the session that produced it and the question does not arise.
+Nothing was actually stuck there: `jira-sync.yml` gates every transition on the expected source
+state, so merging could never have moved a blocked ticket. The pull request was simply pointless.
+Commit the dump alongside the work of the session that produced it and the question does not arise.
 
+**The exception, and its condition.** When a session ends with nothing in flight — the last ticket
+merged, the next not started — the dump has nothing to travel with. Holding it until the next ticket
+opens is not what the rule asked for: the rule exists to keep prose off a ticket's critical path, and
+there is no critical path to stay off.
+
+It then ships alone, as a `docs:` pull request with no JIRA key, and the branch is named after the
+session rather than after a ticket: `docs/session-YYYY-MM-DD`.
+
+The condition is what makes this an exception rather than a loophole: **no ticket in flight** means
+none — not "none I feel like waiting for". If a ticket is open and the dump documents its session,
+the dump goes with it. The failure mode being avoided is a dump blocked by someone else's work, not a
+dump that has to wait its turn.
+
+Recorded 2026-09-14, the first time the case arose: the rule as written would have held a finished
+session's writing hostage to a ticket that did not exist yet.
