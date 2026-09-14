@@ -56,7 +56,8 @@ npm run update:frankenphp -- --force  # Update without prompt (CI/CD)
 | Layer | Choice |
 |-------|--------|
 | Backend | Laravel 13 (v13.9+), PHP 8.5 CLI + FrankenPHP, PostgreSQL |
-| Server | FrankenPHP via Laravel Octane (worker mode) |
+| Server | FrankenPHP via Laravel Octane (worker mode) in development; **Apache + PHP-FPM** on alwaysdata — see `docs/deployment.md` |
+| Session / cache / queue | `database` / `database` / `sync` — **the same in every environment that serves a browser**, see *Deployment* |
 | Auth | Laravel Sanctum (session-based) + TOTP 2FA enforced for admin |
 | Roles | `spatie/laravel-permission` — roles: `admin`, `maintainer`, `member`, public |
 | Frontend | Blade (structure/SEO) + Vue 3.5 islands (`<script setup>`) |
@@ -200,6 +201,32 @@ Only `resources/js/utils/**/*.js` is in scope for unit coverage:
 ### Coverage thresholds
 Both suites enforce **80% line coverage minimum** — commits are blocked by the pre-commit hook if the threshold is not met.
 
+### Boot-time decisions — `Tests\Concerns\RebootsInEnvironment`
+
+`bootstrap/app.php` decides at boot which routes exist and which providers are registered. Those
+decisions cannot be asserted by changing config: the app has already booted. The trait re-requires
+`bootstrap/app.php` under another `APP_ENV` via `refreshApplication()`, writing the value to `$_ENV`,
+`$_SERVER` **and** `putenv()` — Laravel's Env repository reads all three, and `phpunit.xml` populates
+the first two.
+
+It **fails loudly if the reboot stops taking effect**. Without that check, every test using it would
+keep observing the `testing` environment and report green — the defect being asserted against would
+be invisible, which is worse than having no test.
+
+Used by `tests/Feature/Deployment/`, which covers the five guards that only matter off a developer's
+machine: the e2e route allowlist, Telescope's conditional registration, `trustProxies`,
+`public/.htaccess`, and driver parity across environments.
+
+**Two traps recorded there, both found while writing those tests:**
+
+- **`$this->get('/path')` builds its URL from `APP_URL`, which is `https://`.** Two `trustProxies`
+  assertions passed with the middleware deleted entirely, because the request was already secure.
+  Any test about scheme, host or proxy headers must address an explicit `http://` root — and carry a
+  negative control, which is what caught it.
+- **"Absent in production" is not a test of an allowlist.** A denylist of `production` passes it.
+  The assertion that distinguishes them is *absent in an environment the codebase has never heard
+  of* — `preprod`, `staging`, `review-app-42`.
+
 ### Pre-commit hook
 Runs automatically on `git commit`:
 1. `lint-staged` — format checks
@@ -235,9 +262,9 @@ Admin tests use `storageState` to authenticate once and reuse the session — **
 test.use({ storageState: ADMIN_AUTH_FILE }); // tests/e2e/.auth/admin.json — gitignored
 ```
 
-The session is created once by `tests/e2e/auth.setup.js` via `GET /e2e/admin-auth` (non-production helper route in `routes/e2e.php`).
+The session is created once by `tests/e2e/auth.setup.js` via `GET /e2e/admin-auth` (helper route in `routes/e2e.php`, loaded in `local` and `testing` only).
 
-The e2e routes require `session()->save()` after setting session data — with `SESSION_DRIVER=redis`, `StartSession::terminate()` writes Redis *after* the response is sent. The browser can follow a redirect before Redis is written, resulting in an empty session on the next request.
+The e2e routes call `session()->save()` explicitly after setting session data. It was required under `SESSION_DRIVER=redis`, which writes in `StartSession::terminate()` — after the response is sent — so the browser could follow the redirect before the session existed. The `database` driver adopted on 2026-09-14 writes during the request, so the call is now belt and braces; it is kept because an explicit save before a redirect is never wrong and it keeps the helper independent of the driver in use.
 
 Form-submission tests must run in serial mode to prevent session flash interference between parallel workers:
 ```js
@@ -262,7 +289,18 @@ test.describe.configure({ mode: 'serial' });
 **When adding a spec that loads admin pages**, give it its own auth file: add a constant in `helpers/auth.js`, add it to `SESSIONS` in `auth.setup.js`, and `test.use()` it. Reusing an existing one produces failures in a *different* spec, which is a miserable thing to debug.
 
 ### Playwright — e2e helper routes (`routes/e2e.php`)
-Loaded only in non-production environments (guarded in `bootstrap/app.php`).
+Loaded in `local` and `testing` **only** — an allowlist in `bootstrap/app.php`.
+
+`GET /e2e/admin-auth` creates an admin, sets the 2FA session flag and logs the caller in: no
+password, no TOTP. It is a backdoor, and it must exist nowhere anyone else can reach.
+
+Until 2026-09-14 the guard was the denylist `! app()->environment('production')`, which published
+that route on **every environment name nobody had anticipated** — starting with the preprod site,
+which is on the public internet. Same reasoning as `config/seo.php` → `public_routes`: a forgotten
+denylist entry exposes something, a forgotten allowlist entry hides something.
+
+Consequence for `.env` on any internet-facing host, preprod included: **`APP_ENV=production`**.
+Naming an environment after its role rather than its exposure is how the backdoor gets published.
 
 | Route | Purpose |
 |-------|---------|
@@ -646,6 +684,41 @@ Key rules:
 - Exceptions must be passed as `['exception' => $e]` (full `Throwable`, not just the message)
 - Never log PII, passwords, tokens, or full request/response bodies
 
+## Deployment
+See `docs/deployment.md` for the full reference — environments, where each secret comes from, the
+server settings, and the deploy sequence.
+
+Key rules:
+- **`APP_ENV=production` on every internet-facing host, preprod included.** Any other value is what
+  publishes the `/e2e/admin-auth` backdoor. Name the environment after its exposure, not its role.
+- **Secrets have three homes, none of them the repository**: a password manager (human), the
+  server-side `.env` at `/home/cardascia-it/preprod/.env` — above the `preprod/public` docroot by
+  construction — and GitHub repository secrets (pipeline). `.env.example` documents *which*
+  variables exist; `docs/deployment.md` documents *where each value comes from*, with no values.
+- **`ANTHROPIC_API_KEY` does not exist in preprod or production.** Since LUMN-29 the translated
+  content ships with the deployment, so neither translation command runs on a server. A key that is
+  never used can only be leaked.
+- **One driver everywhere a browser or a deployment is involved.** `database`/`database`/`sync` for
+  session, cache and queue in dev, CI E2E, preprod and prod. `phpunit.xml` keeps `array` drivers on
+  purpose — in-memory doubles in a single process are what a unit harness is for, and they have no
+  behaviour a real driver lacks. Redis was dropped on 2026-09-14: no job, no queue, no `Redis::`
+  call anywhere in `app/`, and its asynchronous write had already cost two workarounds.
+- **`public/build` is gitignored**, so `npm run build` has to run somewhere before a deployment can
+  render a page.
+- `config:cache` freezes `.env` — after it runs, `env()` outside a config file returns `null`.
+
+Four defects found on 2026-09-14, before the first deployment, none reproducible on a development
+machine: a missing `public/.htaccess` (Octane never reads it, Apache needs it), a missing
+`trustProxies` (TLS terminated upstream → an endless login loop, not an obvious misconfiguration),
+`laravel/telescope` in `require-dev` while its provider was registered unconditionally
+(`composer install --no-dev` fatal at boot), and the E2E denylist above. All four are written up in
+`docs/deployment.md`.
+
+**Known gap, not yet closed**: there is no rate limiting anywhere — `grep -rn throttle routes/
+app/Http/` returns nothing and `LoginRequest` never calls `ensureIsNotRateLimited()`. Password
+guessing on `/{lang}/login` is currently free and unobserved. 2FA still stands between a correct
+password and the admin. This must be closed before `cardascia-it.org` points at the new site.
+
 ## Environment variables
 | Variable | Default | Description |
 |---|---|---|
@@ -697,7 +770,7 @@ Three jobs — `php` and `js` run in parallel, `e2e` runs after `php` passes:
 
 **Coverage** : `coverage: pcov` in the PHP job + `composer test:coverage` enforces the 80% line coverage threshold in CI, not just locally.
 
-**E2E session driver** : the E2E job sets `SESSION_DRIVER: file` to avoid the async Redis write issue present in the dev setup. `session()->save()` in the e2e helper routes works correctly with the file driver.
+**E2E drivers** : the job used to force `SESSION_DRIVER: file`, `CACHE_STORE: file`, `QUEUE_CONNECTION: sync` and `APP_MAINTENANCE_DRIVER: file`, because `.env.example` put them all on Redis and this job has no Redis server — which made CI the one place running a different session driver from development. Since 2026-09-14 all four read `database`/`database`/`sync`/`file` straight from `.env.example`, and the overrides were removed rather than updated: restating a value that already matches is how the two drift apart again. Only `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`, `APP_URL`, the `DB_*` block and `ANTHROPIC_API_KEY` are still overridden.
 
 **`needs: [php]`** on the E2E job : no point running the full browser suite if the backend is already broken.
 
