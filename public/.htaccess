@@ -1,0 +1,31 @@
+# Apache front controller rules.
+#
+# Absent from this repository until 2026-09-14 because development runs on
+# FrankenPHP/Octane, which routes every request to public/index.php by itself
+# and never reads this file. Shared hosting (alwaysdata) serves the site with
+# Apache: without these rules only "/" resolves and every other route 404s.
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    # Routes are declared as Route::prefix('{lang}'), so route('home') generates
+    # "/fr" with no trailing slash. This rule makes "/fr/" resolve to the same
+    # canonical URL instead of becoming a second address for one page.
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>

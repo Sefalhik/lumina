@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\View;
+use Laravel\Telescope\Telescope;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +21,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // laravel/telescope is a require-dev package, so a production install
+        // (`composer install --no-dev`) ships neither the package nor the
+        // parent class App\Providers\TelescopeServiceProvider extends. Listing
+        // it in bootstrap/providers.php therefore made deployment fatal at
+        // boot, before a single route was matched. Both conditions are needed:
+        // class_exists() covers the missing package, the environment check
+        // keeps debugging tooling off any machine but a developer's.
+        if ($this->app->environment('local') && class_exists(Telescope::class)) {
+            $this->app->register(TelescopeServiceProvider::class);
+        }
+
         $this->app->bind(TranslationCache::class, fn () => new TranslationCache(
             (string) config('i18n.cache_path', storage_path('app/i18n')),
         ));

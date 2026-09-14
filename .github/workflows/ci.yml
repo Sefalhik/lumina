@@ -131,15 +131,14 @@ jobs:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       APP_URL: http://localhost:8001
-      # No Redis in this job — switch every Redis-dependent driver to a local alternative.
-      # APP_MAINTENANCE_STORE=redis (from .env.example) would make the maintenance middleware
-      # attempt a Redis connection on every request, crashing before any route runs.
-      APP_MAINTENANCE_DRIVER: file
-      SESSION_DRIVER: file
+      # Only what genuinely differs from .env.example is overridden here. The session,
+      # cache, queue and maintenance drivers used to be forced to file/sync because
+      # .env.example put them on Redis, which this job has no server for — and that
+      # override made CI the one place exercising a different session driver than
+      # development. Since 2026-09-14 those four all read database/database/sync/file
+      # straight from .env.example, so restating them would only re-open the gap.
       SESSION_DOMAIN: localhost
       SESSION_SECURE_COOKIE: 'false'
-      CACHE_STORE: file
-      QUEUE_CONNECTION: sync
       ANTHROPIC_API_KEY: test_key
 
     steps:

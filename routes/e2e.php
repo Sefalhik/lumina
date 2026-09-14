@@ -37,9 +37,12 @@ Route::get('/e2e/admin-auth', function () {
     Auth::login($user);
     request()->session()->put('auth.two_factor_verified', true);
     request()->session()->regenerate();
-    // Explicit save required: SESSION_DRIVER=redis writes in StartSession::terminate(),
-    // which runs after the response is sent. The browser can follow the redirect before
-    // Redis is written, resulting in an empty session on the next request.
+    // Kept deliberately, though no longer strictly required. It was added for
+    // SESSION_DRIVER=redis, which writes in StartSession::terminate() — after the
+    // response is sent — so the browser could follow the redirect before the session
+    // existed. The database driver writes during the request, but an explicit save
+    // before a redirect the caller will immediately follow is never wrong, and it is
+    // what keeps this helper independent of whichever driver the run happens to use.
     request()->session()->save();
 
     return redirect()->route('admin.dashboard', ['lang' => 'fr']);
