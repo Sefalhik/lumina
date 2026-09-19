@@ -17,8 +17,16 @@
     ignorePresets: [':pinDevDependencies'],
 
     timezone: 'Europe/Paris',
-    // Routine updates arrive on Monday morning. Vulnerability fixes ignore this (see below).
-    schedule: ['* 4-7 * * 1'],
+    // Routine updates arrive on Mondays. The window is the whole day on purpose: the free hosted
+    // app visits an active repository every 4 hours and an inactive one once a day, at a time it
+    // chooses. A narrower window would be missed, and no PR would ever be opened.
+    // Vulnerability fixes ignore the schedule (see below).
+    schedule: ['* * * * 1'],
+    // :maintainLockFilesWeekly, from config:best-practices, opens a 4-hour window (0-4am): the
+    // same trap, so it gets the same day.
+    lockFileMaintenance: {
+        schedule: ['* * * * 1'],
+    },
     prConcurrentLimit: 3,
     prHourlyLimit: 2,
 
