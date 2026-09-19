@@ -164,6 +164,11 @@ class DocumentationIndexTest extends TestCase
     {
         // Inline code only. A path inside a fenced block may be an example, or the very file a
         // ticket is about to create — docs/logging-conventions.md shows one for LUMN-30.
+        //
+        // A gitignored path is skipped: the documentation may name what the project generates —
+        // public/build, public/hot — and those exist on a developer machine but never in a fresh
+        // checkout. Asking the filesystem alone made this test pass locally and fail in CI, whose
+        // PHP job builds no assets. Asking git makes the answer the same everywhere.
         $absent = [];
 
         foreach ($this->documentation() as $document) {
@@ -174,7 +179,7 @@ class DocumentationIndexTest extends TestCase
                 if (preg_match('/[*{<]/', $path) === 1) {
                     continue;
                 }
-                if (! file_exists(base_path(rtrim($path, '/')))) {
+                if (! file_exists(base_path(rtrim($path, '/'))) && ! $this->isGitignored($path)) {
                     $absent[] = "{$document} → {$path}";
                 }
             }
@@ -252,6 +257,16 @@ class DocumentationIndexTest extends TestCase
         }
 
         $this->assertSame([], $broken, 'Links in the documentation that lead nowhere.');
+    }
+
+    /**
+     * Whether git ignores a path — a build or runtime artifact rather than a file of the repository.
+     */
+    private function isGitignored(string $path): bool
+    {
+        $status = shell_exec('cd '.escapeshellarg(base_path()).' && git check-ignore -q -- '.escapeshellarg(rtrim($path, '/')).'; echo $?');
+
+        return trim((string) $status) === '0';
     }
 
     private function withoutCodeBlocks(string $markdown): string
