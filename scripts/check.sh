@@ -65,7 +65,8 @@ step "PHPStan (tests)" bash -c "PHP_INI_SCAN_DIR=/etc/php/8.5/cli/conf.d ./vendo
 
 step "PHPUnit"         bash -c "php artisan config:clear --ansi --quiet && php artisan test"
 step "Vitest"          npm run --silent test:unit:run
-step "Playwright E2E"  npm run --silent test:e2e
+# The preflight refuses to run the suite against stale assets or a missing browser (LUMN-12).
+step "Playwright E2E"  bash -c "node scripts/e2e-preflight.js && npm run --silent test:e2e"
 
 # ─── Summary ─────────────────────────────────────────────────────────────────
 

@@ -169,7 +169,7 @@ building alternates.
 | `storage/app/i18n/` | TranslationCache storage — checksums + per-key translations (gitignored) |
 | `docs/` | Technical documentation |
 | `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
-| `scripts/` | Dev tooling scripts (coverage check, etc.) |
+| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
 
@@ -365,6 +365,9 @@ Config file: `eslint.config.js` (ESLint v9 flat config).
 
 ### Scope
 `resources/js/**/*.{js,vue}` — source files and Vitest unit tests at the same level (no separate config for tests).
+
+`scripts/**/*.js` — dev tooling, with Node globals instead of browser ones. Added by LUMN-12: until then
+the tooling that decides whether the audit can be trusted was the one JS nobody linted.
 
 ### Rule sets (in order)
 1. `@eslint/js` — `eslint:recommended`
@@ -751,6 +754,32 @@ password and the admin. This must be closed before `cardascia-it.org` points at 
 Exits 0 on success, 1 on any failure (shows the relevant output for the failing step).
 
 **Prerequisite for E2E** : the `cardascia_it_e2e` database must exist — see *Playwright — dedicated E2E database* above.
+
+### E2E preflight — the audit refuses rather than lies (LUMN-12)
+
+The Playwright step runs `node scripts/e2e-preflight.js` first. It **detects and never repairs**:
+each refusal names the exact command to run, and the suite does not start.
+
+| Precondition | Refused when | Fix it names |
+|---|---|---|
+| `public/hot` exists | nothing listens at the URL it holds — a Vite that died leaves the file behind, and every page would be tested without CSS | `npm run dev`, or delete `public/hot` |
+| `public/hot` absent | `public/build/manifest.json` is missing, or older than any file in `resources/`, `vite.config.js` or `package-lock.json` | `npm run build` |
+| always | the browser build the installed Playwright expects is not in `~/.cache/ms-playwright` | `npx playwright install chromium` |
+
+Why those inputs: **Blade views** change the compiled CSS, because Tailwind scans them; the
+**lockfile** changes the bundle without touching a source file — which is what every dependency
+update, Renovate's included, does.
+
+Why the browser check: nothing ties Playwright's npm version to the binary on disk. A dependency
+PR that moves Playwright passes CI — whose E2E job installs the browser itself — and breaks the
+next local run, possibly days later.
+
+The comparison is on modification times, so a file touched without being changed (switching
+branches back and forth) makes it refuse. That errs the safe way: the cost is a 6-second build.
+Measured cost when everything is current: about half a second, almost all of it
+`playwright install --dry-run`.
+
+CI is untouched: its E2E job builds and installs the browser explicitly, and does not run `check.sh`.
 
 ## Continuous integration (GitHub Actions)
 

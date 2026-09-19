@@ -6,7 +6,7 @@ export default defineConfig({
     test: {
         environment: 'happy-dom',
         globals: true,
-        include: ['resources/js/**/*.test.js'],
+        include: ['resources/js/**/*.test.js', 'scripts/**/*.test.js'],
         coverage: {
             provider: 'v8',
             reporter: ['text', 'html'],
