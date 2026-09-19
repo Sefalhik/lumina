@@ -132,7 +132,7 @@ class CmsExportSeed extends Command
             ' * here rather than calling the API during deployment makes a deploy offline,',
             ' * free and reproducible, and puts every translated string through code review.',
             ' *',
-            ' * @see CLAUDE.md — "Homepage content and the seed pipeline"',
+            ' * @see docs/homepage-content.md',
             ' */',
             'return [',
         ];
