@@ -27,6 +27,17 @@ export default [
         },
     },
     {
+        // Dev tooling run by Node, not by the browser — scripts/check.sh and its helpers.
+        files: ['scripts/**/*.js'],
+        languageOptions: {
+            globals: globals.node,
+        },
+        rules: {
+            'no-var': 'error',
+            'prefer-const': 'error',
+        },
+    },
+    {
         ignores: [
             'vendor/**',
             'node_modules/**',
