@@ -1,0 +1,77 @@
+// Renovate — dependency updates for Lumina (LUMN-21).
+// JSON5 rather than JSON so each decision carries its reason next to it.
+// Documentation: https://docs.renovatebot.com/configuration-options/
+{
+    $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+
+    extends: [
+        // Adds to config:recommended: action and Docker digest pinning, a 14-day release age on
+        // npm, weekly lockfile maintenance, abandoned-package warnings, config migration.
+        'config:best-practices',
+        // One PR per major version, never two majors bundled together.
+        ':separateMultipleMajorReleases',
+    ],
+
+    // config:best-practices pins devDependencies to exact versions. This project keeps every npm
+    // constraint on ^: the committed lockfile and `npm ci` already guarantee what gets installed.
+    ignorePresets: [':pinDevDependencies'],
+
+    timezone: 'Europe/Paris',
+    // Routine updates arrive on Monday morning. Vulnerability fixes ignore this (see below).
+    schedule: ['* 4-7 * * 1'],
+    prConcurrentLimit: 3,
+    prHourlyLimit: 2,
+
+    // Both are Renovate 42 defaults, restated so the intent survives a change of default:
+    // a release with no publication date is treated as too young, and no branch is created
+    // before the release age is met.
+    minimumReleaseAgeBehaviour: 'timestamp-required',
+    internalChecksFilter: 'strict',
+
+    packageRules: [
+        {
+            description: 'npm routine updates: one grouped PR per week.',
+            matchManagers: ['npm'],
+            matchUpdateTypes: ['minor', 'patch'],
+            groupName: 'npm (minor and patch)',
+        },
+        {
+            description: 'Composer routine updates: one grouped PR per week.',
+            matchManagers: ['composer'],
+            matchUpdateTypes: ['minor', 'patch'],
+            groupName: 'composer (minor and patch)',
+        },
+        {
+            description: 'Majors call for a decision: held until approved from the Dependency Dashboard.',
+            matchUpdateTypes: ['major'],
+            dependencyDashboardApproval: true,
+        },
+        {
+            // Renovate would move the CI alone to Node 26 or PostgreSQL 19, while the developer
+            // machine and alwaysdata stay behind: CI would then test a runtime production does not
+            // run. A runtime major is a coordinated change across every environment, with its own
+            // ticket — see LUMN-55 for PostgreSQL. Patches, minors and image digests still flow.
+            description: 'Runtime majors in CI are coordinated changes, never a Renovate PR.',
+            matchManagers: ['github-actions'],
+            matchDepNames: ['node', 'postgres'],
+            matchUpdateTypes: ['major'],
+            enabled: false,
+        },
+        {
+            // composer.json's "php" constraint is the runtime, not a library. ^8.5 already admits
+            // 8.6, so the default strategy proposes nothing today — but that is a side effect of the
+            // range strategy, not a guarantee. Moving PHP is a coordinated change across every
+            // environment, like the rule above.
+            description: 'The PHP runtime constraint is never a Renovate PR.',
+            matchManagers: ['composer'],
+            matchDepNames: ['php'],
+            enabled: false,
+        },
+    ],
+
+    // Security fixes bypass the release age and the schedule, and are raised immediately.
+    vulnerabilityAlerts: {
+        labels: ['security'],
+        schedule: ['at any time'],
+    },
+}
