@@ -16,7 +16,7 @@ value *comes from*, so that a new environment can be rebuilt without hunting.
 | dev | `dev.cardascia-it.org` | FrankenPHP / Octane, local | Development |
 | **preprod** | `preprod.cardascia-it.org` | alwaysdata, Apache | The new site, until it is validated |
 | prod (current) | `cardascia-it.org` | one.com, previous technology | Stays online and untouched |
-| prod (target) | `cardascia-it.org` | alwaysdata, Apache | Not yet — see *Not done yet* |
+| prod (target) | `cardascia-it.org` | alwaysdata, Apache | Not yet — see [Not done yet](#not-done-yet) |
 
 The old site keeps its address while the new one is built at a temporary one. No
 cutover happens until the editorial content is ready.
@@ -57,7 +57,7 @@ this file answers *where each value comes from*.
 | `APP_URL` | the site's own https URL | Used by every generated absolute URL and by the sitemap |
 | `LOG_LEVEL` | `warning` | `debug` on a public site writes a lot, and writes things worth not writing |
 | `SESSION_DOMAIN` | the site's hostname | A mismatch here is a silent "login does nothing" |
-| `SESSION_SECURE_COOKIE` | `true` | The host sets `HTTPS=on` itself; no trusted proxy is needed — see *Traps* |
+| `SESSION_SECURE_COOKIE` | `true` | The host sets `HTTPS=on` itself; no trusted proxy is needed — see [Traps](#traps-this-file-exists-because-of) |
 
 > ⚠️ **`APP_ENV` must be `production` on every internet-facing host, preprod included.**
 > `routes/e2e.php` defines `GET /e2e/admin-auth`, which creates an admin account, sets
@@ -94,7 +94,7 @@ the application's job, not the database's.
 
 | Variable | Value | Why |
 |---|---|---|
-| `SESSION_DRIVER` | `database` | See *One driver everywhere* |
+| `SESSION_DRIVER` | `database` | See [One driver everywhere](#one-driver-everywhere) |
 | `CACHE_STORE` | `database` | Same |
 | `QUEUE_CONNECTION` | `sync` | There is not one job in this application |
 | `APP_MAINTENANCE_DRIVER` | `file` | Maintenance mode is often engaged *because* the database is unavailable. A maintenance page that needs the database to render is a maintenance page that will not render |
@@ -159,7 +159,7 @@ untouched in `config/database.php`, `config/session.php`, `config/cache.php` and
 ## The preprod `.env`, ready to fill
 
 Create it at `/home/cardascia-it/preprod/.env` — **not** inside `preprod/public`. Every
-`<…>` is a placeholder: fill it from the source named in the tables above, never from
+`<…>` is a placeholder: fill it from the source named in [the tables](#the-environment-file-variable-by-variable), never from
 another environment's file.
 
 ```dotenv
@@ -337,7 +337,7 @@ which reads as a circular dependency and is not one: point the DNS, wait, then t
 
 ## The account environment — set this before anything else
 
-**This section is why the deployment sequence below is short.** The commands are bare
+**This section is why [the deployment sequence](#deploying) is short.** The commands are bare
 (`php artisan …`, `npm run build`) and that only works because the account's default
 interpreters are correct. They are not, out of the box.
 

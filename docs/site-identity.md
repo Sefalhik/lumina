@@ -34,7 +34,7 @@ way. Every column is untranslated today:
 
 | Field | Translated? | Why |
 |-------|-------------|-----|
-| `job_title` | no | It is a cross-reference key, not prose — see the section below |
+| `job_title` | no | It is a cross-reference key, not prose — see [Why `job_title` is not translated](#why-job_title-is-not-translated) |
 | `full_name` | no | A proper noun does not get translated |
 | `contact_email` | no | An address is an address |
 | `github_url`, `linkedin_url`, `mastodon_url` | no | So is a URL |
@@ -161,7 +161,7 @@ The footer needs no change: `SiteIdentityService::NETWORKS` drives display order
 the Blade template just loops. Add the entry there and it appears.
 
 Then add it to the admin view, and extend the E2E seeder (`E2eSiteIdentitySeeder`) — otherwise the
-axe-core scan will never see the new link. See `CLAUDE.md`, Playwright section.
+axe-core scan will never see the new link. See `docs/testing-conventions.md`, Playwright sections.
 
 ## Tests
 

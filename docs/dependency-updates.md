@@ -15,7 +15,7 @@ same ruleset as every other one — three required checks, squash only, no bypas
 | npm minor + patch | one grouped PR per week |
 | Composer minor + patch | one grouped PR per week |
 | Any major | held until approved from the **Dependency Dashboard** issue |
-| **Node and PostgreSQL majors in CI** | **disabled** — see *Runtime majors* |
+| **Node and PostgreSQL majors in CI** | **disabled** — see [Runtime majors](#runtime-majors) |
 | **`"php"` constraint of `composer.json`** | **disabled** — same reason |
 | GitHub Actions, CI Docker images | pinned to a SHA / digest, digests kept current |
 | Lockfiles | refreshed weekly |
@@ -26,19 +26,25 @@ same ruleset as every other one — three required checks, squash only, no bypas
 
 ## Why the configuration looks the way it does
 
-**The schedule window is a whole day.** The free app visits an *active* repository every 4 hours
+### The schedule window is a whole day
+
+The free app visits an *active* repository every 4 hours
 and an *inactive* one once a day, at a time it chooses. A window narrower than a day — the 4–7am
 first drafted in LUMN-21, or the 0–4am of the `:maintainLockFilesWeekly` preset — would usually be
 missed, and no PR would ever be opened. Both schedules are set to the whole of Monday. Never narrow
 them below 24 hours.
 
-**Release age.** `config:best-practices` holds npm releases for 14 days: a malicious version is
+### Release age
+
+`config:best-practices` holds npm releases for 14 days: a malicious version is
 usually unpublished within hours, so waiting means never installing it. `minimumReleaseAgeBehaviour:
 timestamp-required` treats a release with no publication date as too young. **Composer has no such
 delay** — the preset targets npm only. Extending it needs Packagist to expose publication dates
 first; without them, `timestamp-required` would hold every PHP update forever. Not decided yet.
 
-**Runtime majors.** Renovate can only change the version written in `ci.yml`. Accepting "Node 26" or
+### Runtime majors
+
+Renovate can only change the version written in `ci.yml`. Accepting "Node 26" or
 "postgres 19" would move CI alone while the developer machine and alwaysdata stay behind — CI would
 then test a runtime production does not run. A runtime major is a coordinated change across every
 environment, with its own ticket (LUMN-55 for PostgreSQL 18). Patches and image digests still flow.
@@ -47,15 +53,21 @@ The `"php"` constraint is disabled for the same reason. `^8.5` already admits 8.
 be proposed today — but only as a side effect of the range strategy, which is not a guarantee.
 Renovate does not read `setup-php`'s `php-version` at all.
 
-**`:pinDevDependencies` is ignored.** The preset pins devDependencies to exact versions; this project
+### `:pinDevDependencies` is ignored
+
+The preset pins devDependencies to exact versions; this project
 keeps every constraint on `^` because the committed lockfile and `npm ci` already fix what is
 installed.
 
-**Routine updates carry no JIRA key.** `jira-sync.yml` finds none in a Renovate branch or title and
+### Routine updates carry no JIRA key
+
+`jira-sync.yml` finds none in a Renovate branch or title and
 exits cleanly. Removing those tickets is the point: LUMN-2, 8, 16 and 20 were one task filed four
 times. A major keeps a human ticket, because it calls for a decision.
 
-**No auto-merge.** Every PR waits for a human merge. The repository's *Allow auto-merge* setting is
+### No auto-merge
+
+Every PR waits for a human merge. The repository's *Allow auto-merge* setting is
 off, so even a misconfigured rule cannot merge anything. Enabling it is a separate decision, to take
 after observing a few cycles.
 

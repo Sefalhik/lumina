@@ -103,4 +103,4 @@ alternates must keep it. Only the `lang` parameter is substituted, overriding th
 | Feature | `tests/Feature/Seo/HreflangTest.php` |
 
 The Feature suite asserts on rendered HTML, including the **absence** of tags on auth pages —
-that assertion is the regression guard for the allowlist rule above. Do not weaken it.
+that assertion is the regression guard for [the allowlist rule](#public-routes-are-an-allowlist). Do not weaken it.
