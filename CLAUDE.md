@@ -169,6 +169,7 @@ building alternates.
 | `storage/app/i18n/` | TranslationCache storage — checksums + per-key translations (gitignored) |
 | `docs/` | Technical documentation |
 | `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
+| `renovate.json5` | Renovate configuration — dependency update rules, see *Dependency updates (Renovate)* |
 | `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
@@ -802,6 +803,63 @@ Three jobs — `php` and `js` run in parallel, `e2e` runs after `php` passes:
 **E2E drivers** : the job used to force `SESSION_DRIVER: file`, `CACHE_STORE: file`, `QUEUE_CONNECTION: sync` and `APP_MAINTENANCE_DRIVER: file`, because `.env.example` put them all on Redis and this job has no Redis server — which made CI the one place running a different session driver from development. Since 2026-09-14 all four read `database`/`database`/`sync`/`file` straight from `.env.example`, and the overrides were removed rather than updated: restating a value that already matches is how the two drift apart again. Only `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`, `APP_URL`, the `DB_*` block and `ANTHROPIC_API_KEY` are still overridden.
 
 **`needs: [php]`** on the E2E job : no point running the full browser suite if the backend is already broken.
+
+## Dependency updates (Renovate)
+
+Delivered by LUMN-21. Configuration: `renovate.json5` — JSON5 so every rule carries its reason in
+place. Renovate runs as the hosted **Mend Renovate GitHub App**, installed on this repository only;
+nothing runs in CI, and its PRs go through the same ruleset as any other (three required checks,
+squash only, no bypass).
+
+| What | Behaviour |
+|---|---|
+| npm minor + patch | one grouped PR per week |
+| Composer minor + patch | one grouped PR per week |
+| Any major | held until approved from the **Dependency Dashboard** issue |
+| **Node and PostgreSQL majors in CI** | **disabled** — see below |
+| GitHub Actions, CI Docker images | pinned to SHA / digest, digests kept current |
+| Lockfile | refreshed weekly |
+| Vulnerability fixes | immediately, bypassing schedule and release age |
+
+Schedule: Monday 4–7am Europe/Paris. At most 3 open PRs, 2 per hour.
+
+**Release age.** `config:best-practices` holds npm releases for 14 days: a malicious version is
+usually unpublished within hours, so waiting means never installing it. Composer has no such delay
+— the preset targets npm only. `minimumReleaseAgeBehaviour: timestamp-required` treats a release
+with no publication date as too young.
+
+**Runtime majors are not Renovate PRs.** Renovate can only change the version written in `ci.yml`.
+Accepting "Node 26" or "postgres 19" would move CI alone while the developer machine and alwaysdata
+stay behind — CI would then test a runtime production does not run. A runtime major is a coordinated
+change with its own ticket (LUMN-55 for PostgreSQL). Patches and digests still flow. PHP gets the
+same treatment: the `"php"` constraint of `composer.json` is disabled outright — `^8.5` already admits
+8.6, so nothing would be proposed today, but only as a side effect of the range strategy. Renovate
+does not read `setup-php`'s `php-version` at all.
+
+**`:pinDevDependencies` is ignored.** The preset pins devDependencies to exact versions; this project
+keeps every constraint on `^` because the committed lockfile and `npm ci` already fix what is
+installed.
+
+**Routine updates carry no JIRA key.** `jira-sync.yml` finds none in a Renovate branch or title and
+exits cleanly. That is the point of automating them. A major keeps a human ticket, because it calls
+for a decision.
+
+### Checking a change to the configuration before merging it
+
+```bash
+npx --yes --package renovate -- renovate-config-validator --strict      # syntax and options
+git add renovate.json5                                                  # Renovate lists files with git:
+                                                                        # an untracked config is invisible
+GITHUB_COM_TOKEN=$(gh auth token) npx --yes renovate --platform=local --dry-run=lookup
+```
+
+The dry run reads the repository and queries the registries, writes nothing and pushes nothing.
+**Without `git add` it silently ignores the config and falls back to onboarding defaults** — found
+while writing LUMN-21, when a first run proposed `postgres-18.x` and one branch per package. Without
+the token it skips every GitHub-hosted lookup (actions, Node, PHP) with a single warning.
+
+The `local` platform stops before branch processing, even with `--dry-run=full`: approval gating and
+PR creation can only be observed on the real repository.
 
 ## Branch protection and merge policy
 
