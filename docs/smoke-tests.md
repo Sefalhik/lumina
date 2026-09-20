@@ -51,6 +51,10 @@ php artisan deploy:smoke --url=https://cardascia-it.org --expect-release=<sha> -
 Credentials are read from `SMOKE_BASIC_USER` / `SMOKE_BASIC_PASSWORD` (`config/smoke.php`) and never
 rendered, in any format or log. Thresholds and the warm-up live in `config/smoke.php`.
 
+**Those variables belong on the machine that probes, never on the one being probed** — this command
+is the outside view, so it runs from a developer's machine or a CI runner. See
+[Deliberately absent from preprod and production](environment-variables.md#deliberately-absent-from-preprod-and-production).
+
 ## The probes
 
 | # | Probe | Level | Why it exists |

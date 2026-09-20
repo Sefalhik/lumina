@@ -44,76 +44,20 @@ this file answers *where each value comes from*.
 
 ---
 
-## The environment file, variable by variable
+## The environment file
 
-51 variables. Grouped by where the value originates.
+Which variables exist, what each one means and where its value comes from:
+**[Environment variables](environment-variables.md)** — including
+[the ones that must never exist on a server](environment-variables.md#deliberately-absent-from-preprod-and-production).
 
-### Decided per environment
+They used to live here. They moved out on 2026-09-20, because the grouping is by *origin* and half
+of it has nothing to do with deploying: `SMOKE_*` belongs to a command that runs from outside, and
+documenting it inside a file called Deployment is what made someone reasonably ask whether it
+belonged on the server.
 
-| Variable | Preprod value | Notes |
-|---|---|---|
-| `APP_ENV` | `production` | **See the warning below.** Not `preprod` |
-| `APP_DEBUG` | `false` | A stack trace on a public URL names paths, packages and queries |
-| `APP_URL` | the site's own https URL | Used by every generated absolute URL and by the sitemap |
-| `LOG_LEVEL` | `warning` | `debug` on a public site writes a lot, and writes things worth not writing |
-| `SESSION_DOMAIN` | the site's hostname | A mismatch here is a silent "login does nothing" |
-| `SESSION_SECURE_COOKIE` | `true` | The host sets `HTTPS=on` itself; no trusted proxy is needed — see [Traps](#traps-this-file-exists-because-of) |
-
-> ⚠️ **`APP_ENV` must be `production` on every internet-facing host, preprod included.**
-> `routes/e2e.php` defines `GET /e2e/admin-auth`, which creates an admin account, sets
-> the 2FA session flag and logs the caller in — no password, no TOTP. It is loaded on
-> an **allowlist** of `local` and `testing` (`bootstrap/app.php`). Any other value keeps
-> it off, but `production` is the one that also turns off debug output and matches what
-> the framework itself expects. Naming the environment after its role instead of its
-> exposure is how a backdoor ends up on a public URL.
-
-### Generated on the machine
-
-| Variable | How |
-|---|---|
-| `APP_KEY` | `php artisan key:generate` — **once per environment**, never copied between them. Changing it invalidates every session and every encrypted column |
-
-### From the alwaysdata admin panel
-
-| Variable | Where |
-|---|---|
-| `DB_CONNECTION` | `pgsql` |
-| `DB_HOST`, `DB_PORT` | *Databases → PostgreSQL* |
-| `DB_HOST` | `postgresql-cardascia-it.alwaysdata.net` — resolves to the account's PostgreSQL server |
-| `DB_DATABASE` | **`cardascia-it_preprod`** — the forced prefix is the *account name*, hyphen included. Not `cardascia_it_`: that spelling cost a `database does not exist` on the first deployment |
-| `DB_USERNAME` | **One user per environment** — `cardascia-it_preprod` here, its own for production. A leaked preprod `.env` then grants nothing on production, and revoking one touches neither the other nor the account's own user |
-| `DB_PASSWORD` | Set from the panel; it is not displayed, only replaced |
-
-The database was created with locale **`C.UTF-8`** rather than a language-specific one.
-The site serves 24 languages, so no single collation is the right one for its content,
-and `C.UTF-8` is the only choice immune to the glibc collation-version breakage that
-silently corrupts indexes when the host upgrades its C library. Sorting for display is
-the application's job, not the database's.
-
-### Chosen once, and the same everywhere
-
-| Variable | Value | Why |
-|---|---|---|
-| `SESSION_DRIVER` | `database` | See [One driver everywhere](#one-driver-everywhere) |
-| `CACHE_STORE` | `database` | Same |
-| `QUEUE_CONNECTION` | `sync` | There is not one job in this application |
-| `APP_MAINTENANCE_DRIVER` | `file` | Maintenance mode is often engaged *because* the database is unavailable. A maintenance page that needs the database to render is a maintenance page that will not render |
-
-### Personal, from the password manager
-
-| Variable | Notes |
-|---|---|
-| `ADMIN_EMAIL`, `ADMIN_NAME` | Read by `AdminSeeder` |
-| `ADMIN_PASSWORD` | Read by `AdminSeeder` at first seed. **Change it after the first login** — it stays in the file otherwise |
-
-### Deliberately absent from preprod and production
-
-| Variable | Why |
-|---|---|
-| `ANTHROPIC_API_KEY` | Since LUMN-29 the translated content ships **with the deployment**, in `database/data/homepage-content.php`. Neither `i18n:translate` nor `cms:translate` runs on a server. A key that is never used can only be leaked |
-| `GEO_DEV_FALLBACK_IP` | Substitutes a public IP for a loopback address. There are no loopback visitors in production |
-| `OCTANE_SERVER`, `OCTANE_HTTPS` | Octane is the development server. alwaysdata serves through Apache |
-| `PHP_INI_SCAN_DIR` | Points at a local FrankenPHP build |
+What stays here is what a deployment does with that file:
+[the preprod `.env` ready to fill](#the-preprod-env-ready-to-fill) and
+[One driver everywhere](#one-driver-everywhere).
 
 ---
 
@@ -159,7 +103,7 @@ untouched in `config/database.php`, `config/session.php`, `config/cache.php` and
 ## The preprod `.env`, ready to fill
 
 Create it at `/home/cardascia-it/preprod/.env` — **not** inside `preprod/public`. Every
-`<…>` is a placeholder: fill it from the source named in [the tables](#the-environment-file-variable-by-variable), never from
+`<…>` is a placeholder: fill it from the source named in [the tables](environment-variables.md), never from
 another environment's file.
 
 ```dotenv
@@ -305,6 +249,29 @@ The rules go in the site's **Apache directives** field in the alwaysdata panel �
   a problem. In Apache 2.4 a `<Location>` overrides another `<Location>`, so the exemption
   wins.
 
+**This table no longer describes the current state — and the reason is the interesting part.**
+Measured 2026-09-20, with the panel directives unchanged and correct:
+
+| Request, no credentials | Then | Now |
+|---|---|---|
+| `/.well-known/acme-challenge/<a file that exists>` | `404` (nothing existed) | **`200`** |
+| `/.well-known/acme-challenge/<a file that does not>` | `404` | **`401`** |
+
+Read the emphasis in the line below: **before any code was deployed**. With no application
+there was no `public/.htaccess`, so Apache looked for the file and answered `404`. Now the
+front controller rewrites anything that is neither a file nor a directory to `index.php` —
+an *internal redirect*, which Apache re-evaluates against the new URI. `/index.php` does not
+match `<Location "/.well-known">`, so `<Location "/">` applies and Basic auth answers `401`.
+
+The exemption itself works, which the first row proves: a challenge file that exists is
+served without credentials, and that is what an ACME client fetches. The fix belongs to this
+repository, not to the panel — see LUMN-61.
+
+**The lesson is not that the check drifted; it is that it was verified in conditions that
+stopped existing the same day**, and nothing replayed it for six days. `deploy:smoke` did
+replay it, saw the anomaly, and attributed it to the wrong cause — which is its own lesson,
+recorded in LUMN-61.
+
 Verified 2026-09-14, before any code was deployed:
 
 | Request | Expected | Got |
@@ -375,10 +342,21 @@ need to be written accordingly, or run through `bash -c`.
 
 ---
 
-## Cloning: the repository is private
+## Cloning: the server uses a deploy key
+
+**The repository is public** — verified 2026-09-17, `gh repo view` answers `PUBLIC`. This
+section said the opposite until 2026-09-20, and justified the deploy key by the repository
+being private. The justification was wrong; the key is not.
 
 The server authenticates to GitHub with a **deploy key** — a key pair generated on the
-server, whose public half is registered on the repository as read-only.
+server, whose public half is registered on the repository as read-only. It stays worth
+having on a public repository: it is scoped to one repository, revocable on its own, and
+carries no personal identity — so a compromised server exposes a key, not an account. It is
+also what a private fork or a future private repository would need anyway.
+
+A public repository has its own consequence, and it belongs to the pipeline rather than
+here: no deployment workflow may trigger on `pull_request_target`, or on any event an
+outside contribution can fire (LUMN-50).
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_github -N "" -C "<account>@alwaysdata deploy key"
@@ -420,6 +398,19 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
+
+Then, **from your own machine and not from the server** — it is the outside view that
+matters:
+
+```bash
+SMOKE_BASIC_USER=… SMOKE_BASIC_PASSWORD=… \
+  php artisan deploy:smoke --url=https://preprod.cardascia-it.org
+```
+
+Nineteen probes, under a minute, read-only: it replays what the first deployment checked by
+hand in `docs/smoke-tests.md`. Exit code 1 means the release must not be promoted. Until the
+pipeline runs it (LUMN-53), running it by hand is the last step of a deployment, not an
+optional extra.
 
 `npm ci` and `npm run build` run **on the server**: `/public/build` is gitignored, so the
 assets exist nowhere else. Measured: 6 seconds, on a host with 32 GB of memory and 2 TB
@@ -559,6 +550,10 @@ forgotten denylist entry exposes something, a forgotten allowlist entry hides so
 
 Recorded so the next environment does not re-derive it. Everything below was measured on
 `preprod.cardascia-it.org`, 2026-09-14, not assumed.
+
+Most of these checks are now a command rather than a session at a terminal: `deploy:smoke`
+(LUMN-49) exists because this table was produced by hand, and an automatic deployment has
+nobody watching. Six of its probes come straight from the four defects below.
 
 | | |
 |---|---|
