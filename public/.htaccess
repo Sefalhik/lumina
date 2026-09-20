@@ -25,6 +25,15 @@
     RewriteRule ^ %1 [L,R=301]
 
     # Send Requests To Front Controller...
+    #
+    # /.well-known/ is excluded. It is a reserved namespace (RFC 8615) served as static
+    # files, and this application declares no route under it — so handing it to the front
+    # controller does nothing useful and one harmful thing: a missing challenge file becomes
+    # an internal redirect to /index.php, which Apache re-evaluates against the new URI. The
+    # preprod panel exempts <Location "/.well-known"> from Basic auth, but /index.php does
+    # not match it, so the request is challenged and Let's Encrypt would see a 401 where it
+    # expects a 404. Measured on preprod 2026-09-20: with this line, 404; without it, 401.
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]

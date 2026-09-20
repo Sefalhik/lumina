@@ -82,7 +82,7 @@ is the outside view, so it runs from a developer's machine or a CI runner. See
 Security headers and `noindex` on preprod are not probed yet: LUMN-37 adds them, and their probes
 with them.
 
-### Five probes that are easy to get wrong
+### Six probes that are easy to get wrong
 
 **Probe 10 cannot rely on a 404.** Laravel ships a page for 404 and renders it even with
 `APP_DEBUG=true` — measured on 2026-09-19: a 404-only probe passed on a machine in debug mode. A 405
@@ -115,6 +115,22 @@ day it is added rather than the day someone remembers. Two lists would drift, an
 be forgotten is this one — nothing fails when a page merely goes unprobed. Routes needing more than
 `{lang}` are skipped: `blog.show` has no legitimate slug to invent. `DeployedSitePathsTest` asserts
 the derivation rather than the result.
+
+**Probe 17 measures authorisation only as long as nothing rewrites its request.** It asks for a
+challenge path that deliberately does not exist, so the answer describes how the server treats an
+*unmatched* request under `/.well-known/`. On 2026-09-20 the front controller turned that request
+into an internal redirect to `/index.php`, which Apache re-evaluated against `<Location "/">` — and
+the probe read the resulting `401` as a missing Basic auth exemption. The exemption was correct all
+along; the defect was in `public/.htaccess`, and the first diagnosis sent the reader to the hosting
+panel (LUMN-61).
+
+The probe is worth keeping, with its limits written down: `public/.htaccess` now excludes
+`/.well-known/` from the rewrite, and `tests/Feature/Documentation/AcmeChallengeRewriteTest.php`
+fails if that exclusion is removed or separated from the rule it guards. **A probe that goes red for
+the wrong reason is worse than one that stays silent** — it carries a remedy, and the remedy points
+somewhere else. What no outside probe can check either way is that a challenge file which *does*
+exist is served: that is the request a renewal actually makes, and a smoke test cannot create a file
+on the host it probes.
 
 **Probe 5 needs a stable marker.** Comparing whole pages proves nothing: the interface strings differ
 between locales even when the biography stayed in French. The homepage's hook paragraph carries
