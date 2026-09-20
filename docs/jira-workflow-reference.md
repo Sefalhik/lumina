@@ -15,7 +15,7 @@ Workflow strict à 9 statuts. Référence des IDs pour les automatisations
 | En cours | 10039 | En cours |
 | En review | 10040 | En cours |
 | PR approuvée | 10041 | En cours |
-| En déploiement | 10042 | En cours |
+| En préproduction | 10042 | En cours |
 | En production | 10043 | Terminé |
 | Bloqué | 10044 | En cours |
 | Annulé | 10077 | Terminé |
@@ -28,8 +28,8 @@ Workflow strict à 9 statuts. Référence des IDs pour les automatisations
 | 3 | Démarrer | Prêt → En cours | Manuel / création de branche |
 | 4 | Ouvrir PR | En cours → En review | GitHub Actions — `pull_request: opened` |
 | 5 | PR approuvée | En review → PR approuvée | GitHub Actions — PR mergée + CI verte |
-| 6 | Déployer | PR approuvée → En déploiement | GitHub Actions — job deploy déclenché |
-| 7 | Mettre en production | En déploiement → En production | GitHub Actions — smoke tests OK (ferme l'issue) |
+| 6 | Déployer | PR approuvée → En préproduction | GitHub Actions — job deploy déclenché |
+| 7 | Mettre en production | En préproduction → En production | GitHub Actions — smoke tests OK (ferme l'issue) |
 | 8 | Bloquer | (actifs) → Bloqué | Manuel |
 | 9 | Débloquer (replanifier) | Bloqué → Prêt | Manuel |
 | 10 | Débloquer (reprendre) | Bloqué → En cours | Manuel |
@@ -37,7 +37,7 @@ Workflow strict à 9 statuts. Référence des IDs pour les automatisations
 | 12 | Abandonner | En cours → Backlog | Manuel |
 | 13 | Demander corrections | En review → En cours | GitHub Actions — changes requested (optionnel) |
 | 14 | Rejeter (CI) | PR approuvée → En cours | GitHub Actions — CI rouge post-merge |
-| 15 | Rollback | En déploiement → En cours | GitHub Actions — échec déploiement / smoke tests |
+| 15 | Rollback | En préproduction → En cours | GitHub Actions — échec déploiement / smoke tests |
 | 16 | Annulé | **globale** (tous statuts) → Annulé | Manuel |
 | 17 | Réactivation | Annulé → Backlog | Manuel |
 
@@ -54,6 +54,39 @@ curl -s -X POST \
 Les transitions `Bloquer` (8) et ses sorties (9, 10, 11) ne sont valides que depuis/vers
 les états actifs — voir le workflow. `Bloquer` n'est pas joignable depuis `Backlog`
 ni `En production`.
+
+## « En préproduction » — renommé le 2026-09-20
+
+Le statut 10042 s'appelait `En déploiement`. Il désignait pourtant, depuis sa création, *« passé la
+préproduction, pas encore en production, en attente de validation »* — un séjour qui dure le temps
+qu'une décision humaine prenne, pas le temps d'un déploiement.
+
+**Un statut de workflow répond à « où est ce code ? », pas à « que fait le robot en ce moment ? ».**
+Un nom de lieu reste vrai tant que le code y est ; un nom d'action ment dès que l'action est finie,
+et ment deux fois quand elle a échoué. `En déploiement` nommait une activité de deux minutes pour
+décrire un état qui dure des jours.
+
+C'est aussi ce qui a clos la question des statuts intermédiaires — « déploiement préprod à faire »,
+« en cours », et les mêmes pour la production. Trois arguments les ont écartés :
+
+* **La valeur d'un statut est proportionnelle au temps qu'on y passe.** Quatre statuts pour deux
+  activités de deux minutes, c'est du bruit dans le tableau.
+* **Chaque statut a besoin d'une entrée *et* d'une sortie câblées.** Sinon il devient le nouveau
+  `PR approuvée`, la seule colonne dont la sortie ne l'était pas — onze tickets y ont stationné.
+* **Un statut posé par un job qui plante ensuite est un mensonge que personne ne nettoie.** L'état
+  d'une activité en cours a déjà un meilleur domicile : le run GitHub, lié depuis la PR, avec ses
+  logs et son temps réel.
+
+`PR approuvée` reste le créneau « fusionnée, pas encore déployée » : étendre `En préproduction` pour
+le couvrir ferait mentir le statut dans l'autre sens.
+
+**Le renommage est sans effet sur les automatisations** : `jira-sync.yml` ne référence que des IDs
+de transition, l'ID du statut ne change pas, et les noms n'y apparaissent que dans des messages
+`echo`. Attention en revanche : dans Jira, un statut est un **objet global** — le renommer le
+renomme dans tout projet qui l'utilise.
+
+Les brain dumps de `docs/blog-prep/` gardent l'ancien nom : ce sont des comptes rendus datés, pas
+des références, et les réécrire effacerait ce qui était vrai ce jour-là.
 
 ## Annulation — ajouté le 2026-09-12
 
