@@ -151,3 +151,11 @@ When asserting on `[role="option"]`, always scope to the target listbox to avoid
 ```js
 page.getByRole('listbox', { name: 'Changer de langue' }).getByRole('option')
 ```
+
+## Faking a deployed site — `Tests\Concerns\FakesDeployedSite`
+
+The smoke tests (LUMN-49) run against a healthy deployed site faked at the HTTP layer, shared by
+`SmokeTestServiceTest` and `DeploySmokeTest`. Each test breaks one route and nothing else, and
+`Http::preventStrayRequests()` makes any request the fake does not know throw: a probe hitting an
+unexpected URL fails loudly, and no test reaches the network. Details in
+[Smoke tests](smoke-tests.md#where-the-code-lives).

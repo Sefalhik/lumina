@@ -26,7 +26,10 @@
         {{-- The hook only. The rest of the bio lives in its own section below,
              so identity, hook and call to action all fit above the fold. --}}
         @if ($prose['lead'] !== '')
-        <p class="text-base-content/70 text-base md:text-lg leading-relaxed max-w-2xl mb-12 font-body">
+        {{-- data-smoke: the smoke test compares this text across locales to prove the translations
+             shipped (LUMN-49). Comparing whole pages proves nothing — the interface strings differ
+             even when the biography stayed in French. --}}
+        <p data-smoke="bio" class="text-base-content/70 text-base md:text-lg leading-relaxed max-w-2xl mb-12 font-body">
             {{ $prose['lead'] }}
         </p>
         @endif

@@ -16,6 +16,15 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | The commit SHA of the release being served, written into RELEASE by the
+    | deployment script (LUMN-50/51) and sent back as the X-Release header so
+    | the smoke test can tell which release answered (LUMN-49). Read here so
+    | that config:cache freezes it: no file read per request. Null on a
+    | developer machine, where no RELEASE file exists.
+    */
+    'release' => App\Services\Release::fromFile(base_path('RELEASE')),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

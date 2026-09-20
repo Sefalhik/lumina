@@ -17,6 +17,8 @@
 /node_modules
 /public/build
 /public/hot
+# Written by the deployment script: the SHA of the release being served (LUMN-49)
+/RELEASE
 /public/storage
 /storage/*.key
 /storage/app/i18n
