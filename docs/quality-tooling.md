@@ -111,6 +111,9 @@ The `analyse` script in `composer.json` always exports `PHP_INI_SCAN_DIR=/etc/ph
 so that `phar.so` (and other extensions) are loaded in child processes too.
 Without this, child workers fail with `Class "Phar" not found`.
 
+It points at a local FrankenPHP build and has no business on a server:
+[Environment variables](environment-variables.md#deliberately-absent-from-preprod-and-production).
+
 ## Continuous integration (GitHub Actions)
 
 Workflow: `.github/workflows/ci.yml` — triggered on every push and every PR targeting `main`.

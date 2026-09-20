@@ -18,6 +18,7 @@ This file holds what must be known in every session. Each domain below has its o
 | CV timeline | `docs/cv-timeline.md` | touching `Experience` or adding a CV section |
 | Dependency updates | `docs/dependency-updates.md` | changing `renovate.json5`, handling a Renovate PR |
 | Deployment | `docs/deployment.md` | touching environments, secrets, the server, the deploy sequence |
+| Environment variables | `docs/environment-variables.md` | adding a variable, or asking where a value comes from |
 | Git workflow | `docs/git-workflow.md` | changing the ruleset, re-keying a PR, diagnosing a blocked merge |
 | Homepage content | `docs/homepage-content.md` | touching the homepage copy, its seeder, `cms:export-seed` |
 | Internationalisation | `docs/i18n.md` | adding a locale, a key, a translatable model |
@@ -311,17 +312,17 @@ guessing on `/{lang}/login` is currently free and unobserved. 2FA still stands b
 password and the admin. This must be closed before `cardascia-it.org` points at the new site.
 
 ## Environment variables
-| Variable | Default | Description |
-|---|---|---|
-| `GEO_API_BASE_URL` | `http://ip-api.com/json` | Geo API base URL |
-| `GEO_FETCH_TIMEOUT` | `3` | HTTP timeout in seconds |
-| `GEO_CACHE_TTL` | `86400` | Success cache duration (seconds) |
-| `GEO_FAILURE_CACHE_TTL` | `60` | Failure/rate-limit retry window (seconds) |
-| `GEO_DEV_FALLBACK_IP` | _(empty)_ | Public IP substitute for local dev (127.0.0.1 → this value) |
-| `ANTHROPIC_API_KEY` | _(empty)_ | API key for `i18n:translate` command |
-| `ADMIN_EMAIL` | _(empty)_ | Admin account email — used by `AdminSeeder` |
-| `ADMIN_NAME` | _(empty)_ | Admin account display name — used by `AdminSeeder` |
-| `ADMIN_PASSWORD` | _(empty)_ | Admin account password — used by `AdminSeeder` (never commit a value) |
+
+One file answers both questions a variable raises — what it means, and where its value comes from:
+[Environment variables](docs/environment-variables.md). It is grouped by **origin**, so the table
+that matters most has a name of its own:
+[Deliberately absent from preprod and production](docs/environment-variables.md#deliberately-absent-from-preprod-and-production),
+where `ANTHROPIC_API_KEY` and the `SMOKE_*` credentials live — a value a host never uses can only
+leak from it.
+
+`.env.example` declares which variables exist; that document says what each one means.
+`tests/Feature/Documentation/EnvironmentVariablesTest.php` fails on a variable declared in the first
+and missing from the second.
 
 ## Quality tooling
 See `docs/quality-tooling.md` before changing the audit script, a linter config, PHPStan or the CI workflow.
