@@ -25,6 +25,7 @@ This file holds what must be known in every session. Each domain below has its o
 | Logging | `docs/logging-conventions.md` | writing any log call |
 | Quality tooling | `docs/quality-tooling.md` | changing the audit, a linter, PHPStan, CI |
 | SEO | `docs/seo-conventions.md` | adding a public route, touching canonical / `hreflang` |
+| Smoke tests | `docs/smoke-tests.md` | adding a probe, running `deploy:smoke`, touching `/up` or `X-Release` |
 | Site identity | `docs/site-identity.md` | touching `SiteIdentity`, the footer links, `sameAs` |
 | Testing | `docs/testing-conventions.md` | writing or changing a PHPUnit or Playwright test |
 
@@ -48,6 +49,7 @@ php artisan migrate             # Run migrations — requires explicit confirmat
 php artisan i18n:translate      # Translate lang/fr/*.php + resources/js/i18n/fr.json via Anthropic API
 php artisan cms:translate       # Translate CMS DB content from French to EU locales via Anthropic API
 php artisan cms:export-seed     # Freeze the translated homepage row into its versioned seed file
+php artisan deploy:smoke --url=https://…   # Smoke-test a deployed environment — see docs/smoke-tests.md
 
 # Static analysis — PHPStan
 composer analyse                # Run both configs: app/ (level 8) then tests/ (level 5)
@@ -156,6 +158,7 @@ building alternates.
 | `app/Services/AnthropicTranslator.php` | Anthropic API call + JSON flatten/unflatten helpers — shared by both translation commands |
 | `app/Services/TranslationCache.php` | File-checksum + per-key TTL cache for i18n and CMS translations |
 | `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
+| `app/Services/Smoke/` | `deploy:smoke` — probes a deployed environment from the outside; see `docs/smoke-tests.md` |
 | `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
 | `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
 | `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list. Also shapes the admin index (`adminRows()`), borrowing `CvService::period()` so the period rule has one home |

@@ -29,6 +29,12 @@ class DocumentationIndexTest extends TestCase
      * Directories of docs/ that are not references and deliberately stay out of the index.
      * Any other subdirectory is a reference: a new one must be indexed, or added here with a reason.
      */
+    /**
+     * Families whose classes the documentation names one by one: a contract each, and few enough
+     * that naming them is a line, not a chore.
+     */
+    private const DOCUMENTED_FAMILIES = ['app/Enums', 'app/Http/Middleware', 'app/Listeners', 'app/Rules'];
+
     private const NOT_REFERENCES = [
         'docs/blog-prep/', // session brain dumps — raw material for the blog
         'docs/plans/',     // working plans
@@ -328,6 +334,34 @@ class DocumentationIndexTest extends TestCase
         }
 
         return $anchors;
+    }
+
+    public function test_every_class_of_a_documented_family_is_named_in_the_documentation(): void
+    {
+        // Only the families the documentation names class by class. Measured on 2026-09-20: these
+        // four have zero undocumented classes, while the same rule applied to app/Services or
+        // app/Console/Commands is noise — the documentation names a command by its signature
+        // ("php artisan cms:translate") and a probe by its behaviour, never by its class.
+        //
+        // What this guards is presence, not accuracy: a stale line still passes. It replaces
+        // "remember to document it" with "the suite says so".
+        $documentation = implode("\n", array_map(fn (string $path): string => $this->read($path), $this->documentation()));
+
+        $undocumented = [];
+        foreach (self::DOCUMENTED_FAMILIES as $family) {
+            foreach ($this->filesUnder($family) as $file) {
+                $class = basename($file, '.php');
+                if (! str_contains($documentation, $class)) {
+                    $undocumented[] = $family.'/'.$class;
+                }
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $undocumented,
+            'Classes nobody documented — name each one where its domain is documented.',
+        );
     }
 
     public function test_claude_md_stays_under_its_ceiling(): void

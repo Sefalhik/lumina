@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddReleaseHeader;
 use App\Http\Middleware\EnsureTwoFactorVerified;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -60,6 +61,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn () => route('home', ['lang' => app()->getLocale()]));
         // Authenticate (auth middleware) — send unauthenticated users to the localised login page
         $middleware->redirectGuestsTo(fn () => route('login', ['lang' => app()->getLocale()]));
+
+        // Every response names the release that produced it, for the smoke test (LUMN-49).
+        $middleware->append(AddReleaseHeader::class);
 
         $middleware->alias([
             'locale' => SetLocale::class,

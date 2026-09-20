@@ -7,6 +7,8 @@ use App\Services\AnthropicTranslator;
 use App\Services\LocaleResolver;
 use App\Services\Seo\LocalizedUrlService;
 use App\Services\SiteIdentityService;
+use App\Services\Smoke\Site\CertificateInspector;
+use App\Services\Smoke\Site\StreamCertificateInspector;
 use App\Services\TranslationCache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View as ViewFacade;
@@ -31,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('local') && class_exists(Telescope::class)) {
             $this->app->register(TelescopeServiceProvider::class);
         }
+
+        $this->app->bind(CertificateInspector::class, fn () => new StreamCertificateInspector(
+            (float) config('smoke.timeout', 10),
+        ));
 
         $this->app->bind(TranslationCache::class, fn () => new TranslationCache(
             (string) config('i18n.cache_path', storage_path('app/i18n')),
