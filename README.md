@@ -6,7 +6,7 @@ Personal website and portfolio of **Laurent Bernard-Cardascia** — Lead Develop
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Laravel 13, PHP 8.5, PostgreSQL 16, Redis 7 |
+| Backend | Laravel 13, PHP 8.5, PostgreSQL 16 |
 | Server | FrankenPHP via Laravel Octane (worker mode) |
 | Auth | Laravel Sanctum (session-based) + TOTP 2FA enforced for admin |
 | Roles | `spatie/laravel-permission` — `admin`, `maintainer`, `member`, `public` |
@@ -17,10 +17,9 @@ Personal website and portfolio of **Laurent Bernard-Cardascia** — Lead Develop
 
 ## Requirements
 
-- PHP 8.5+ with `phpredis` extension
+- PHP 8.5+
 - PostgreSQL 16 (local port: 5433)
-- Redis 7+
-- Node.js 22+ (Vite 8 requires Node 22)
+- Node.js 24+ (`engines` in `package.json`)
 - [mkcert](https://github.com/FiloSottile/mkcert) for local HTTPS
 
 ## Installation
@@ -92,7 +91,7 @@ The boot sequence overlay fetches visitor location through a **Laravel proxy** (
 to avoid browser CORS and rate-limit issues with the upstream provider (ip-api.com).
 The controller delegates to `GeoService`, which:
 
-- Returns data directly from a **Redis success cache** (24 h TTL).
+- Returns data directly from a **success cache** (24 h TTL).
 - Short-circuits with a **negative cache** (60 s TTL) after any failure, to avoid hammering a rate-limited API.
 - Substitutes `GEO_DEV_FALLBACK_IP` in local dev, where the request IP is always `127.0.0.1`.
 
@@ -206,7 +205,7 @@ The script detects the current platform, fetches the latest release from GitHub,
 
 ## Continuous integration
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and every PR targeting `main`.
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every PR targeting `main`, on every push to `main`, and on demand from the Actions tab.
 
 Three jobs — `php` and `js` in parallel, `e2e` after `php` passes:
 
