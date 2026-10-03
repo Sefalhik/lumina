@@ -73,14 +73,36 @@
             // ReleaseAgeParityTest fails when the two disagree. Composer has no delay: Packagist
             // exposes no publication date, so timestamp-required would hold every PHP update
             // forever.
-            description: 'npm releases wait 3 days before being proposed.',
-            matchDatasources: ['npm'],
+            // github-tags is where actions come from. A compromised release of an action runs with
+            // access to the repository and its secrets, and CI cannot tell: only waiting can. For
+            // a tag Renovate reads the commit date, not the day the tag was pushed, and cannot see
+            // a tag that was moved — pinning by SHA is what covers that.
+            description: 'npm and GitHub Actions releases wait 3 days before being proposed.',
+            matchDatasources: ['npm', 'github-tags'],
             minimumReleaseAge: '3 days',
         },
         {
             description: 'Majors call for a decision: held until approved from the Dependency Dashboard.',
             matchUpdateTypes: ['major'],
             dependencyDashboardApproval: true,
+        },
+        {
+            // An action runs nowhere but in CI, and the pull request that updates it runs the new
+            // version: a breaking change is a red check before the merge. A major is therefore no
+            // more of a decision than a patch — LUMN-68 read the five that were pending and none
+            // changed anything here. What CI cannot see is a compromised release, which is what
+            // the release age above is for.
+            // This holds only while every action is exercised by a pull request. An action used by
+            // a deployment workflow alone would not be: narrow this rule the day one exists.
+            // `action` leaves out the postgres service image and the Node version, which the next
+            // rule keeps disabled.
+            description: 'GitHub Actions: one grouped PR for every update, majors included, without approval.',
+            matchManagers: ['github-actions'],
+            matchDepTypes: ['action'],
+            groupName: 'github actions',
+            dependencyDashboardApproval: false,
+            separateMajorMinor: false,
+            separateMultipleMajor: false,
         },
         {
             // Renovate would move the CI alone to Node 26 or PostgreSQL 19, while the developer

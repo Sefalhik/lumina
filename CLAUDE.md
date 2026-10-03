@@ -339,11 +339,11 @@ test a configuration change before merging it.
 
 Key rules:
 - Configuration lives in `renovate.json5`; Renovate runs as the hosted Mend GitHub App, never in CI
-- Minor and patch updates are grouped per ecosystem; **every major waits for approval** on the Dependency Dashboard
+- Minor and patch updates are grouped per ecosystem; **every major of a library waits for approval** on the Dependency Dashboard. GitHub Actions are the exception: one grouped PR, majors included — valid only while every action runs on pull requests
 - **Runtime majors are never Renovate PRs** — Node and PostgreSQL in CI, and the `"php"` constraint, are disabled: moving CI alone would test a runtime production does not run
 - **Schedule windows stay at 24 hours or more**: the free app visits once a day on an inactive repository
-- Routine Renovate PRs carry no JIRA key, on purpose; a major gets a human ticket
-- **An npm release waits 3 days**, written in `renovate.json5` and in `.npmrc` and held together by `ReleaseAgeParityTest`; 14 days is for automerge, which is off. A ticked box with a green job and no PR means `lock file error` in the job log
+- Routine Renovate PRs carry no JIRA key, on purpose; a major of a library gets a human ticket
+- **An npm or GitHub Actions release waits 3 days**, written in `renovate.json5` and, for npm, in `.npmrc` and held together by `ReleaseAgeParityTest`; 14 days is for automerge, which is off. A ticked box with a green job and no PR means `lock file error` in the job log
 - Testing a config change locally: **`git add` it first**, or the dry run silently ignores it
 
 ## Branch protection and merge policy
