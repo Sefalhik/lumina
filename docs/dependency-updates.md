@@ -19,6 +19,7 @@ same ruleset as every other one — three required checks, squash only, no bypas
 | **`"php"` constraint of `composer.json`** | **disabled** — same reason |
 | GitHub Actions, CI Docker images | pinned to a SHA / digest, digests kept current |
 | Lockfiles | refreshed weekly |
+| npm release age | 3 days, in Renovate and in `.npmrc` — see [Release age](#release-age) |
 | Vulnerability fixes | immediately, bypassing schedule and release age |
 | Abandoned packages | flagged on the dashboard (`abandonments:recommended`) |
 
@@ -36,11 +37,96 @@ them below 24 hours.
 
 ### Release age
 
-`config:best-practices` holds npm releases for 14 days: a malicious version is
-usually unpublished within hours, so waiting means never installing it. `minimumReleaseAgeBehaviour:
-timestamp-required` treats a release with no publication date as too young. **Composer has no such
-delay** — the preset targets npm only. Extending it needs Packagist to expose publication dates
-first; without them, `timestamp-required` would hold every PHP update forever. Not decided yet.
+**An npm release waits 3 days**, and the number is written twice because nothing can read it from
+one place:
+
+| Where | Setting | What it governs |
+|---|---|---|
+| `renovate.json5` | `minimumReleaseAge: '3 days'`, on the npm datasource | what Renovate proposes |
+| `.npmrc` | `min-release-age=3` | what an `npm install` or an `npx` typed by hand resolves |
+
+A malicious version is usually pulled from the registry within hours, so waiting means never
+installing it; three days also cover the 72 hours during which npm lets an author unpublish.
+`minimumReleaseAgeBehaviour: timestamp-required` treats a release with no publication date as too
+young. Security fixes are exempt: see [Renovate does not read `.npmrc`](#renovate-does-not-read-npmrc).
+
+**Why 3 and not 14.** This document said 14 days from LUMN-21 until LUMN-64, and credited
+`config:best-practices` with it. The preset sets 3: it was read in a job log on 2026-10-03, which is
+the only place the applied value can be read. Fourteen days is what Renovate recommends *when
+updates are automerged*, to make up for the reviewer who is not there — and nothing is automerged
+here. Three days is also Dependabot's default; pnpm and Yarn ship one. The value is restated in
+`renovate.json5` so that it no longer depends on what a preset decides.
+
+**Two copies, one test.** Renovate's documentation recommends setting the delay in both places and
+states that it cannot derive one from the other. `tests/Feature/Documentation/ReleaseAgeParityTest.php`
+therefore fails when `.npmrc`, `renovate.json5` and the table above stop agreeing. Change the number
+in all three, or the suite says which one was forgotten.
+
+**Composer has no such delay.** Extending it needs Packagist to expose publication dates first;
+without them, `timestamp-required` would hold every PHP update forever. Not decided yet.
+
+Sources: [Renovate — minimum release age](https://docs.renovatebot.com/key-concepts/minimum-release-age/),
+[Renovate — upgrade best practices](https://docs.renovatebot.com/upgrade-best-practices/) for the
+14 days tied to automerge, and
+[GitHub — the case for a cooldown](https://github.blog/security/supply-chain-security/the-case-for-a-cooldown-why-dependabot-now-waits-before-issuing-version-updates/).
+
+### What the delay does to an install typed by hand
+
+Measured on 2026-10-03 with npm 12.0.2 and 12.2.0:
+
+| Command | Result |
+|---|---|
+| `npm ci`, or `npm install` on an up-to-date lockfile | unaffected — locked versions are not re-checked, even with a delay of ten years |
+| a range, `npm install eslint@^10` | installs the newest version older than three days |
+| an exact version younger than three days, for a package nothing else depends on | refused, `ETARGET` |
+| the same for a package others peer-depend on (`eslint@10.12.0` that day) | **npm never answers** — interrupt it |
+| `npx <package>@latest` | runs the newest version older than three days |
+
+CI only runs `npm ci`, so it does not see the delay, and a security PR carrying a one-day-old fix
+installs there as usual. To install a release that is too young once it has been read, pass
+`--min-release-age=0` to that one command.
+
+### Renovate does not read `.npmrc`
+
+`renovate.json5` sets an `npmrc` option, and any string there **replaces** the repository file for
+Renovate's own npm runs (`npmrcMerge` is `false` by default).
+
+Without it, npm would apply `min-release-age` while Renovate rebuilds the lockfile — including for a
+security fix, which Renovate deliberately exempts from the release age. A fix published the day
+before would be refused by npm, or send it spinning, and the job would end like the one described in
+[A ticked box, a green job, no PR](#a-ticked-box-a-green-job-no-pr). That path was deduced from
+Renovate's source and from npm's measured behaviour; it cannot be exercised before a real alert.
+
+Nothing is lost for routine updates: Renovate passes `--before=<now − 3 days>` to npm itself, which
+protects transitive dependencies exactly as `min-release-age` would. The job log shows it — `Repo
+.npmrc file is ignored due to config.npmrc`, then `Setting npm --before based on
+minimumReleaseAge`.
+
+**A setting added to `.npmrc` later — a private registry, for instance — has to be repeated in
+that option**, or Renovate will not see it.
+
+### Lock files are rebuilt by a full install
+
+`skipInstalls: false` makes Renovate run a real `npm install` in its temporary clone instead of
+`npm install --package-lock-only`. Only the lockfile is committed.
+
+It works around [npm/cli#9800](https://github.com/npm/cli/issues/9800). npm 12 refuses by default
+any dependency served from a URL (`allow-remote=none`), and wrongly takes a registry tarball for one
+when the package declares `bundleDependencies` — but only in the modes that install nothing.
+`@tailwindcss/oxide-wasm32-wasi`, an optional dependency of Tailwind 4, is such a package, so from
+2026-10-03 every npm branch failed, without an error anywhere.
+
+Two other ways out were rejected. Pinning Renovate to npm 11 with `constraints` ages if it is
+forgotten, and has the bot write the lockfile with another npm than the developer machine.
+`allow-remote=all` switches a protection off to get around a false positive.
+
+The lockfile keeps the form a developer machine produces. Compared under npm 12.2.0, the two modes
+differ by 7 entries out of 489: a full install does not record the six dependencies bundled inside
+that wasm32-only package, which no real machine installs. **Remove the setting once #9800 is
+fixed** — the first Renovate PR afterwards will add those six entries, and that is expected.
+
+The workaround stops at Renovate: `npm install --package-lock-only` typed by hand still fails under
+npm 12.
 
 ### Runtime majors
 
@@ -69,7 +155,8 @@ times. A major keeps a human ticket, because it calls for a decision.
 
 Every PR waits for a human merge. The repository's *Allow auto-merge* setting is
 off, so even a misconfigured rule cannot merge anything. Enabling it is a separate decision, to take
-after observing a few cycles.
+after observing a few cycles. **The day it is enabled, the npm release age goes to 14 days in the
+same change** — see [Release age](#release-age).
 
 ## Installing — once
 
@@ -102,6 +189,16 @@ next visit, not immediately.
 **Logs and manual runs**: the Mend developer portal, **https://developer.mend.io/** (sign in with
 GitHub), lists the installed repositories, shows every job's log, and can trigger a run without
 waiting for the next visit. That is where to look when a PR that should exist does not.
+
+### A ticked box, a green job, no PR
+
+Renovate reports a lockfile it could not rebuild at **debug** level. When `package.json` does not
+change — the usual case, since the `^` ranges already admit the new versions — there is then
+nothing to commit: the branch result is `no-work`, the job exits 0, and the dashboard moves the
+update to *Other Branches* without a word.
+
+Download the job log from the Mend portal and search for `lock file error`; the npm error is in the
+`stderr` of that entry. This is how LUMN-64 was found, after several ticks that produced nothing.
 
 ## Checking a configuration change before merging it
 

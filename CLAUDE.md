@@ -343,6 +343,7 @@ Key rules:
 - **Runtime majors are never Renovate PRs** — Node and PostgreSQL in CI, and the `"php"` constraint, are disabled: moving CI alone would test a runtime production does not run
 - **Schedule windows stay at 24 hours or more**: the free app visits once a day on an inactive repository
 - Routine Renovate PRs carry no JIRA key, on purpose; a major gets a human ticket
+- **An npm release waits 3 days**, written in `renovate.json5` and in `.npmrc` and held together by `ReleaseAgeParityTest`; 14 days is for automerge, which is off. A ticked box with a green job and no PR means `lock file error` in the job log
 - Testing a config change locally: **`git add` it first**, or the dry run silently ignores it
 
 ## Branch protection and merge policy
