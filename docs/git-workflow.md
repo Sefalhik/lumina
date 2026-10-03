@@ -10,20 +10,38 @@ repository owner.
 | `non_fast_forward` | no force-push |
 | `required_linear_history` | no merge commits |
 | `pull_request` | direct pushes blocked; **0 required approvals**; squash is the only allowed merge method |
-| `required_status_checks` (**strict**) | the three quality checks must pass, and the branch must be up to date |
+| `required_status_checks` (**strict**) | the [required checks](#required-checks) must pass, and the branch must be up to date |
 
-Required checks, by exact context name — a typo here produces a requirement that is never
-satisfied, and the PR hangs forever:
+## Required checks
+
+**This is the only list.** Other documents link here instead of repeating the names or their
+number: a count written in three files was wrong in three files the day a fourth check arrived.
+
+By exact context name — a typo here produces a requirement that is never satisfied, and the PR
+hangs forever:
 
 ```
 PHP — PHPStan + PHPUnit
 JS — ESLint + Stylelint + Vitest
 E2E — Playwright
+Security — Dependency review
 ```
+
+**`Security — Dependency review` judges what a pull request introduces, not the state of `main`**
+(LUMN-65). It fails when the PR brings in a package with a known vulnerability of high severity or
+worse; a flaw already present is reported by Dependabot alerts instead. That split is deliberate:
+on 2026-10-03 an advisory with no fixed version would have blocked every merge had the gate been a
+plain `npm audit`. See [Known vulnerabilities](quality-tooling.md#known-vulnerabilities).
+
+**A check can only be required once its job exists on `main`.** Requiring it earlier leaves every
+pull request opened before it waiting for a check its own workflow never runs. Merge the job first,
+then edit the ruleset.
 
 **`JIRA Sync` is deliberately excluded.** It is not a quality gate: it only runs on pull-request
 events, and it cannot fail by design — a refused transition is a `::warning::` (see LUMN-17).
 Requiring it would prove nothing.
+
+## Approvals, strict mode and merge method
 
 **Zero required approvals is not an oversight.** GitHub forbids approving your own pull request, so
 on a solo repository requiring even one approval locks the owner out permanently.

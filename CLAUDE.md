@@ -331,7 +331,7 @@ Key rules:
 - `npm run check:full` runs the 7 checks; its Playwright step first runs the **E2E preflight**, which refuses — with the command to run — on stale assets, a dead Vite server or a missing browser
 - PHPStan: level 8 on `app/`, level 5 on `tests/`; **never** `@phpstan-ignore` without a written justification; `PHP_INI_SCAN_DIR` must be exported or workers fail with `Class "Phar" not found`
 - ESLint covers `resources/js/` and `scripts/`; its accessibility rules block commits on a missing label
-- CI: three required checks — `PHP — PHPStan + PHPUnit`, `JS — ESLint + Stylelint + Vitest`, `E2E — Playwright`; the E2E job builds assets and installs the browser itself
+- CI: the required checks are listed once, in [Required checks](docs/git-workflow.md#required-checks) — PHP, JS, E2E and a dependency review that fails a PR *introducing* a vulnerable package. Dependabot alerts, CodeQL and secret scanning are **repository settings**; PHP has no security analysis (LUMN-66)
 
 ## Dependency updates (Renovate)
 See `docs/dependency-updates.md` for the full reference — installation, day-to-day use, and how to
@@ -350,7 +350,7 @@ Key rules:
 See `docs/git-workflow.md` before changing the ruleset, re-keying a pull request, or diagnosing a blocked merge.
 
 Key rules:
-- `main` is protected by one ruleset with **no bypass actor**: no direct push, no force-push, squash only, three required checks in strict mode
+- `main` is protected by one ruleset with **no bypass actor**: no direct push, no force-push, squash only, [required checks](docs/git-workflow.md#required-checks) in strict mode
 - **One intention, one ticket, one PR, one commit.** Several PRs sharing a JIRA key break the rule; a ticket spanning two intentions is at the wrong level — split it
 - Strict mode: once a PR merges, rebase the others before merging them
 - Re-keying a PR means **renaming the branch and opening a new PR** — `jira-sync.yml` reads the branch name first

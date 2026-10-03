@@ -11,6 +11,11 @@ on:
   # A branch without a pull request no longer runs on push: start it by hand instead.
   workflow_dispatch:
 
+# Read-only is already the repository default, but that default is a setting anyone with admin
+# rights can change without touching the code. Stated here, it is versioned and reviewed.
+permissions:
+  contents: read
+
 jobs:
   # ─── PHP ──────────────────────────────────────────────────────────────────
   php:
@@ -188,3 +193,23 @@ jobs:
 
       - name: Run Playwright E2E tests
         run: npm run test:e2e
+
+  # ─── Security ─────────────────────────────────────────────────────────────
+  dependency-review:
+    name: Security — Dependency review
+    runs-on: ubuntu-latest
+    # The action compares a branch with its base, so it has nothing to compare on a push to
+    # main or on a manual run.
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      # Fails a pull request that *introduces* a package with a known vulnerability, in
+      # composer.lock or package-lock.json. A flaw already on main is not this job's business —
+      # Dependabot alerts report those — so an advisory with no fix cannot block every merge.
+      # To exempt one advisory, add `allow-ghsas` with the reason in a comment.
+      - name: Dependency review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
