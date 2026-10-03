@@ -6,7 +6,8 @@ JSON so every rule carries its reason in place.
 Renovate runs as the hosted **Mend Renovate GitHub App** (free "Community Cloud" tier), installed on
 this repository only. Nothing runs in CI: the app reads the repository on Mend's servers, pushes its
 own `renovate/*` branches and opens pull requests like any contributor. Those PRs go through the
-same ruleset as every other one — three required checks, squash only, no bypass.
+same ruleset as every other one — the [required checks](git-workflow.md#required-checks), squash
+only, no bypass.
 
 ## What it does
 
@@ -20,7 +21,7 @@ same ruleset as every other one — three required checks, squash only, no bypas
 | GitHub Actions, CI Docker images | pinned to a SHA / digest, digests kept current |
 | Lockfiles | refreshed weekly |
 | npm release age | 3 days, in Renovate and in `.npmrc` — see [Release age](#release-age) |
-| Vulnerability fixes | immediately, bypassing schedule and release age |
+| Vulnerability fixes | immediately, bypassing schedule and release age — **only while Dependabot alerts are enabled**, see [Installing — once](#installing--once) |
 | Abandoned packages | flagged on the dashboard (`abandonments:recommended`) |
 
 **Schedule: all day Monday, Europe/Paris.** At most 3 open PRs, 2 created per hour.
@@ -169,6 +170,19 @@ same change** — see [Release age](#release-age).
 Because `renovate.json5` is already on `main`, Renovate skips its generic onboarding PR and starts
 with this configuration. Install **after** a configuration change is merged, never before, or the
 onboarding PR arrives with defaults and no JIRA key.
+
+**Dependabot alerts have to be enabled on the repository**, or Renovate never raises a security
+fix: GitHub's alerts are the only place it learns that a vulnerability exists. This document
+promised immediate fixes from LUMN-21 to LUMN-65 while the alerts were off, and nothing said so
+but one debug line in a job log — `No vulnerability alerts enabled for repo`.
+
+```bash
+gh api repos/Sefalhik/lumina/dependabot/alerts          # 403 "disabled" when they are off
+gh api -X PUT repos/Sefalhik/lumina/vulnerability-alerts # turns them on
+```
+
+Leave *Dependabot security updates* **off**: it opens its own pull requests, which would duplicate
+Renovate's.
 
 To change the repository selection or uninstall: GitHub → *Settings* → *Applications* →
 *Installed GitHub Apps* → *Renovate* → *Configure*.

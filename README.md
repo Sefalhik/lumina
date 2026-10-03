@@ -207,10 +207,11 @@ The script detects the current platform, fetches the latest release from GitHub,
 
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every PR targeting `main`, on every push to `main`, and on demand from the Actions tab.
 
-Three jobs — `php` and `js` in parallel, `e2e` after `php` passes:
+`php`, `js` and a dependency review in parallel, `e2e` after `php` passes:
 
 | Job | What runs |
 |-----|-----------|
 | PHP | PHPStan (app level 8 + tests level 5) → PHPUnit + PCOV coverage (80% threshold enforced) |
 | JS | ESLint → Stylelint → Vitest |
 | E2E | Playwright Chromium against a dedicated `cardascia_it_e2e` PostgreSQL database |
+| Security | On pull requests: fails when the change introduces a dependency with a known vulnerability |

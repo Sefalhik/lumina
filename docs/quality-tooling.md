@@ -127,13 +127,14 @@ because a cache written there is readable from every branch, while a cache writt
 that PR alone. A branch pushed **without** a PR therefore runs nothing — start the workflow by hand
 from the Actions tab, or with `gh workflow run ci.yml --ref <branch>`.
 
-Three jobs — `php` and `js` run in parallel, `e2e` runs after `php` passes:
+`php`, `js` and `dependency-review` run in parallel, `e2e` runs after `php` passes:
 
 | Job | Steps |
 |-----|-------|
 | `PHP — PHPStan + PHPUnit` | setup-php 8.5 (pcov) → composer install → key:generate → PHPStan app (level 8) → PHPStan tests (level 5) → `composer test:coverage` (80% threshold enforced) |
 | `JS — ESLint + Stylelint + Vitest` | Node 24 → npm ci → ESLint → Stylelint → Vitest |
 | `E2E — Playwright` | setup-php 8.5 + Node 24 → composer + npm install → `npm run build` → Playwright Chromium → key:generate → `npm run test:e2e` |
+| `Security — Dependency review` | pull requests only → fails when the PR introduces a package with a known vulnerability, severity high or worse |
 
 **PostgreSQL** : each PHP-dependent job spins up its own `postgres:16` service. The PHP job uses `cardascia_it_test`; the E2E job uses `cardascia_it_e2e`. The workflow sets `DB_PORT: 5432` which overrides the phpunit.xml default (5433).
 
@@ -144,3 +145,43 @@ Three jobs — `php` and `js` run in parallel, `e2e` runs after `php` passes:
 **E2E drivers** : the job used to force `SESSION_DRIVER: file`, `CACHE_STORE: file`, `QUEUE_CONNECTION: sync` and `APP_MAINTENANCE_DRIVER: file`, because `.env.example` put them all on Redis and this job has no Redis server — which made CI the one place running a different session driver from development. Since 2026-09-14 all four read `database`/`database`/`sync`/`file` straight from `.env.example`, and the overrides were removed rather than updated: restating a value that already matches is how the two drift apart again. Only `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`, `APP_URL`, the `DB_*` block and `ANTHROPIC_API_KEY` are still overridden.
 
 **`needs: [php]`** on the E2E job : no point running the full browser suite if the backend is already broken.
+
+**`permissions: contents: read`** : declared at the top of the workflow. It is already the
+repository default, but that default is a setting, changeable without a commit. `jira-sync.yml`
+declares `permissions: {}` — it never uses the GitHub token, only its own JIRA secrets. CodeQL's
+first analysis, on 2026-10-03, reported exactly this: four `actions/missing-workflow-permissions`
+results, one per job, and nothing else.
+
+## Known vulnerabilities
+
+Four things watch for them, and **three of the four are repository settings, not code** — no test in
+this project can tell that one was switched off. The commands below read their state.
+
+| What | Where it lives | What it covers |
+|---|---|---|
+| Dependabot alerts | repository setting | every known flaw in `composer.lock`, `package-lock.json` and the workflows; also what lets Renovate raise security fixes |
+| `Security — Dependency review` | `ci.yml`, a [required check](git-workflow.md#required-checks) | what a pull request *introduces* |
+| CodeQL, default setup | repository setting | JavaScript and the GitHub Actions workflows, on pull requests and weekly |
+| Secret scanning with push protection | repository setting | a credential committed by mistake, refused at push |
+
+```bash
+gh api repos/Sefalhik/lumina/dependabot/alerts --jq 'length'             # 403 when alerts are off
+gh api repos/Sefalhik/lumina/code-scanning/default-setup --jq '.state'   # configured
+gh api repos/Sefalhik/lumina --jq '.security_and_analysis'               # secret scanning
+```
+
+**PHP has no security analysis.** CodeQL does not support it, and PHPStan checks types, not flaws.
+Whether Psalm's taint analysis or Semgrep is worth adding is LUMN-66.
+
+**The job log names only the first vulnerable package.** The action stops printing after the first
+package it finds, even though it fails on any of them: fix that one and the next appears. Found
+during the negative control of LUMN-65, where a PR adding `lodash@4.17.20` and
+`dompdf/dompdf:1.2.0` reported dompdf alone; with dompdf removed, the same job failed on lodash.
+Both lockfiles are therefore covered, and a red job with one name in it may hide others.
+
+**Why no `npm audit` or `composer audit` in CI.** They report the whole tree, so they duplicate the
+alerts and fail on flaws nobody can fix. `npm audit` also counts one advisory once per package that
+depends on it: the "12 high severity vulnerabilities" of 2026-10-03 were a single advisory on
+`braces`, with no fixed version, reached through `stylelint`. Read the distinct advisories before
+reading the total, and never run `npm audit fix --force` without reading what it proposes — that day
+it was a downgrade of `stylelint-order` from 8 to 0.2.2.

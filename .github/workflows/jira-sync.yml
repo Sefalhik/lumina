@@ -12,6 +12,10 @@ on:
   pull_request:
     types: [opened, reopened, closed]
 
+# Ce workflow n'utilise pas le jeton GitHub : il lit l'événement et appelle l'API JIRA avec ses
+# propres secrets. Aucune permission n'est donc accordée, plutôt que d'hériter du défaut du dépôt.
+permissions: {}
+
 jobs:
   jira-transition:
     name: Transition JIRA
