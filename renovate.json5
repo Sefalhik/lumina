@@ -5,7 +5,7 @@
     $schema: 'https://docs.renovatebot.com/renovate-schema.json',
 
     extends: [
-        // Adds to config:recommended: action and Docker digest pinning, a 14-day release age on
+        // Adds to config:recommended: action and Docker digest pinning, a 3-day release age on
         // npm, weekly lockfile maintenance, abandoned-package warnings, config migration.
         'config:best-practices',
         // One PR per major version, never two majors bundled together.
@@ -36,6 +36,22 @@
     minimumReleaseAgeBehaviour: 'timestamp-required',
     internalChecksFilter: 'strict',
 
+    // npm 12 cannot rebuild package-lock.json without installing. With its default
+    // allow-remote=none, `npm install --package-lock-only` rejects a registry tarball as soon as
+    // a package declares bundleDependencies — @tailwindcss/oxide-wasm32-wasi here (npm/cli#9800).
+    // Renovate logs that at debug level, commits nothing and exits 0: no branch, no PR, no error.
+    // A full install is not affected, so Renovate is told to run one. Remove once #9800 is fixed;
+    // the first PR afterwards adds six bundled entries to the lockfile, which is expected.
+    skipInstalls: false,
+
+    // The repository .npmrc holds min-release-age for installs typed by hand. Renovate must not
+    // inherit it: npm would apply that delay to security fixes too, which Renovate deliberately
+    // exempts, and a fix published yesterday would fail to lock — silently, as above. Any string
+    // here replaces the repository file for Renovate's own npm runs (npmrcMerge is false by
+    // default), and Renovate keeps passing --before itself for routine updates.
+    // A setting added to .npmrc later, a registry for instance, has to be repeated here.
+    npmrc: '# Renovate ignores the repository .npmrc on purpose: see renovate.json5',
+
     packageRules: [
         {
             description: 'npm routine updates: one grouped PR per week.',
@@ -48,6 +64,18 @@
             matchManagers: ['composer'],
             matchUpdateTypes: ['minor', 'patch'],
             groupName: 'composer (minor and patch)',
+        },
+        {
+            // config:best-practices already sets this. It is restated because the delay was once
+            // documented as 14 days without anyone reading it in a job log. 14 days is what
+            // Renovate recommends for automerged updates, and nothing is automerged here.
+            // .npmrc carries the same number for installs typed by hand, and
+            // ReleaseAgeParityTest fails when the two disagree. Composer has no delay: Packagist
+            // exposes no publication date, so timestamp-required would hold every PHP update
+            // forever.
+            description: 'npm releases wait 3 days before being proposed.',
+            matchDatasources: ['npm'],
+            minimumReleaseAge: '3 days',
         },
         {
             description: 'Majors call for a decision: held until approved from the Dependency Dashboard.',
