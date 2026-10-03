@@ -147,7 +147,10 @@ from the Actions tab, or with `gh workflow run ci.yml --ref <branch>`.
 **`needs: [php]`** on the E2E job : no point running the full browser suite if the backend is already broken.
 
 **`permissions: contents: read`** : declared at the top of the workflow. It is already the
-repository default, but that default is a setting, changeable without a commit.
+repository default, but that default is a setting, changeable without a commit. `jira-sync.yml`
+declares `permissions: {}` — it never uses the GitHub token, only its own JIRA secrets. CodeQL's
+first analysis, on 2026-10-03, reported exactly this: four `actions/missing-workflow-permissions`
+results, one per job, and nothing else.
 
 ## Known vulnerabilities
 
