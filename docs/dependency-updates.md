@@ -15,12 +15,13 @@ only, no bypass.
 |---|---|
 | npm minor + patch | one grouped PR per week |
 | Composer minor + patch | one grouped PR per week |
-| Any major | held until approved from the **Dependency Dashboard** issue |
+| Any major of a library | held until approved from the **Dependency Dashboard** issue |
+| GitHub Actions | one grouped PR for every update, **majors included**, no approval — see [GitHub Actions are routine](#github-actions-are-routine-majors-included) |
 | **Node and PostgreSQL majors in CI** | **disabled** — see [Runtime majors](#runtime-majors) |
 | **`"php"` constraint of `composer.json`** | **disabled** — same reason |
 | GitHub Actions, CI Docker images | pinned to a SHA / digest, digests kept current |
 | Lockfiles | refreshed weekly |
-| npm release age | 3 days, in Renovate and in `.npmrc` — see [Release age](#release-age) |
+| Release age | 3 days for npm and for GitHub Actions; npm also in `.npmrc` — see [Release age](#release-age) |
 | Vulnerability fixes | immediately, bypassing schedule and release age — **only while Dependabot alerts are enabled**, see [Installing — once](#installing--once) |
 | Abandoned packages | flagged on the dashboard (`abandonments:recommended`) |
 
@@ -38,12 +39,12 @@ them below 24 hours.
 
 ### Release age
 
-**An npm release waits 3 days**, and the number is written twice because nothing can read it from
-one place:
+**A release of an npm package or of a GitHub Action waits 3 days**, and the number is written twice
+because nothing can read it from one place:
 
 | Where | Setting | What it governs |
 |---|---|---|
-| `renovate.json5` | `minimumReleaseAge: '3 days'`, on the npm datasource | what Renovate proposes |
+| `renovate.json5` | `minimumReleaseAge: '3 days'`, on the `npm` and `github-tags` datasources | what Renovate proposes |
 | `.npmrc` | `min-release-age=3` | what an `npm install` or an `npx` typed by hand resolves |
 
 A malicious version is usually pulled from the registry within hours, so waiting means never
@@ -62,6 +63,13 @@ here. Three days is also Dependabot's default; pnpm and Yarn ship one. The value
 states that it cannot derive one from the other. `tests/Feature/Documentation/ReleaseAgeParityTest.php`
 therefore fails when `.npmrc`, `renovate.json5` and the table above stop agreeing. Change the number
 in all three, or the suite says which one was forgotten.
+
+**Actions wait too, since LUMN-68.** A compromised release of an action runs with access to the
+repository and its secrets, and CI cannot tell a compromised action from a healthy one — only
+waiting can. Two different attacks, two different guards: a **newly published** malicious release
+is what the delay is for; an **existing tag moved** to malicious code, as happened to
+`tj-actions/changed-files` in March 2025, is what pinning by SHA is for. Renovate cannot see the
+second — for a tag it reads the commit date, not the day the tag was pushed.
 
 **Composer has no such delay.** Extending it needs Packagist to expose publication dates first;
 without them, `timestamp-required` would hold every PHP update forever. Not decided yet.
@@ -150,7 +158,26 @@ installed.
 
 `jira-sync.yml` finds none in a Renovate branch or title and
 exits cleanly. Removing those tickets is the point: LUMN-2, 8, 16 and 20 were one task filed four
-times. A major keeps a human ticket, because it calls for a decision.
+times. A major of a library keeps a human ticket, because it calls for a decision.
+
+### GitHub Actions are routine, majors included
+
+Every update of an action arrives in one grouped pull request, `renovate/github-actions`, without
+approval and without a ticket — a major like a patch, and straight to the latest major rather than
+one at a time.
+
+An action runs nowhere but in CI, and the pull request that updates it runs the new version: a
+breaking change is a red check before the merge. LUMN-68 read the five majors that were waiting —
+`checkout` 6 and 7, `setup-node` 6 and 7, `cache` 6 — and none changed anything here. They were
+internal rewrites, and there was no decision for a ticket to record.
+
+**This holds only while every action is exercised by a pull request.** That is true today: every
+job of `ci.yml` runs on pull requests, and `jira-sync.yml` uses no action. An action used by a
+deployment workflow alone would be updated without ever being run before the merge — **narrow the
+rule the day one exists** (LUMN-50 to 54).
+
+The rule matches `depType: action`, which leaves out the `postgres` service image and the Node
+version: see [Runtime majors](#runtime-majors).
 
 ### No auto-merge
 
@@ -198,7 +225,8 @@ next visit, not immediately.
 | `Update npm (minor and patch)` / `Update composer (minor and patch)` | CI green → squash merge. No ticket. Run `npm run check:full` locally after pulling — the E2E preflight (LUMN-12) will ask for `npm run build` or a Playwright browser if needed |
 | `Pin dependencies` / `Lock file maintenance` | same |
 | labelled `security` | read the advisory, then same — may arrive any day |
-| a major, after approval | open a ticket first — it is a decision, not routine |
+| `Update github actions` | same — a major included, see [GitHub Actions are routine](#github-actions-are-routine-majors-included) |
+| a major of a library, after approval | open a ticket first — it is a decision, not routine |
 
 **Logs and manual runs**: the Mend developer portal, **https://developer.mend.io/** (sign in with
 GitHub), lists the installed repositories, shows every job's log, and can trigger a run without
