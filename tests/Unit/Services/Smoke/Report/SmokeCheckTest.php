@@ -50,7 +50,7 @@ class SmokeCheckTest extends TestCase
     public function test_a_failure_without_a_remedy_is_refused(string $remedy): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('the-probe');
+        $this->expectExceptionMessageIsOrContains('the-probe');
 
         SmokeCheck::fail('the-probe', 'label', 'something is wrong', $remedy);
     }

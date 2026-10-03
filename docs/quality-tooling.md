@@ -97,6 +97,16 @@ Two separate configs run in sequence via `composer analyse`:
 
 Controllers and models are **included** in the app analysis (no `excludePaths` shortcut).
 
+### Deprecated code is an error
+
+`phpstan/phpstan-deprecation-rules` is included in both configs: calling a method, instantiating a
+class or reading a constant annotated `@deprecated` fails `composer analyse`. Most packages
+deprecate with that annotation alone, which raises nothing at runtime — no test can see it.
+
+Its first run, in LUMN-71, found two calls to PHPUnit's `expectExceptionMessage()`, deprecated in
+favour of `expectExceptionMessageIsOrContains()`; nothing had reported them. The runtime half is in
+[PHP — a deprecation fails the suite](testing-conventions.md#php--a-deprecation-fails-the-suite).
+
 ### Stub file
 `phpstan-stubs.php` overrides `artisan()` to return `PendingCommand` (not `PendingCommand|int`) — the framework annotation is misleading; the implementation always wraps in `PendingCommand`.
 

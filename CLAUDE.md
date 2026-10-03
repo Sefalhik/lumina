@@ -329,7 +329,7 @@ See `docs/quality-tooling.md` before changing the audit script, a linter config,
 
 Key rules:
 - `npm run check:full` runs the 7 checks; its Playwright step first runs the **E2E preflight**, which refuses — with the command to run — on stale assets, a dead Vite server or a missing browser
-- PHPStan: level 8 on `app/`, level 5 on `tests/`; **never** `@phpstan-ignore` without a written justification; `PHP_INI_SCAN_DIR` must be exported or workers fail with `Class "Phar" not found`
+- PHPStan: level 8 on `app/`, level 5 on `tests/`, and **deprecated code is an error** — statically here, and at runtime in the test suite, where Laravel would otherwise drop it; **never** `@phpstan-ignore` without a written justification; `PHP_INI_SCAN_DIR` must be exported or workers fail with `Class "Phar" not found`
 - ESLint covers `resources/js/` and `scripts/`; its accessibility rules block commits on a missing label
 - CI: the required checks are listed once, in [Required checks](docs/git-workflow.md#required-checks) — PHP, JS, E2E and a dependency review that fails a PR *introducing* a vulnerable package. Dependabot alerts, CodeQL and secret scanning are **repository settings**; PHP has no security analysis (LUMN-66)
 
