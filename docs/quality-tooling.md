@@ -116,15 +116,24 @@ It points at a local FrankenPHP build and has no business on a server:
 
 ## Continuous integration (GitHub Actions)
 
-Workflow: `.github/workflows/ci.yml` — triggered on every push and every PR targeting `main`.
+Workflow: `.github/workflows/ci.yml` — triggered on every PR targeting `main`, on every push to
+`main`, and by hand (`workflow_dispatch`).
+
+**One run per push, not two** (LUMN-63). The workflow used to listen to `push` on every branch as
+well, so a push to a branch with an open PR fired both events and ran the suite twice on the same
+code. The `pull_request` run is the one that counts: it tests the branch merged with `main`, and
+the ruleset's strict mode already requires the branch to be up to date. `push` is kept on `main`
+because a cache written there is readable from every branch, while a cache written by a PR serves
+that PR alone. A branch pushed **without** a PR therefore runs nothing — start the workflow by hand
+from the Actions tab, or with `gh workflow run ci.yml --ref <branch>`.
 
 Three jobs — `php` and `js` run in parallel, `e2e` runs after `php` passes:
 
 | Job | Steps |
 |-----|-------|
 | `PHP — PHPStan + PHPUnit` | setup-php 8.5 (pcov) → composer install → key:generate → PHPStan app (level 8) → PHPStan tests (level 5) → `composer test:coverage` (80% threshold enforced) |
-| `JS — ESLint + Stylelint + Vitest` | Node 22 → npm ci → ESLint → Stylelint → Vitest |
-| `E2E — Playwright` | setup-php + Node → composer + npm install → Playwright Chromium → `npm run test:e2e` |
+| `JS — ESLint + Stylelint + Vitest` | Node 24 → npm ci → ESLint → Stylelint → Vitest |
+| `E2E — Playwright` | setup-php 8.5 + Node 24 → composer + npm install → `npm run build` → Playwright Chromium → key:generate → `npm run test:e2e` |
 
 **PostgreSQL** : each PHP-dependent job spins up its own `postgres:16` service. The PHP job uses `cardascia_it_test`; the E2E job uses `cardascia_it_e2e`. The workflow sets `DB_PORT: 5432` which overrides the phpunit.xml default (5433).
 
