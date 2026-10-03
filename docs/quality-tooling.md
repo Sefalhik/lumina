@@ -170,6 +170,12 @@ gh api repos/Sefalhik/lumina --jq '.security_and_analysis'               # secre
 **PHP has no security analysis.** CodeQL does not support it, and PHPStan checks types, not flaws.
 Whether Psalm's taint analysis or Semgrep is worth adding is LUMN-66.
 
+**The job log names only the first vulnerable package.** The action stops printing after the first
+package it finds, even though it fails on any of them: fix that one and the next appears. Found
+during the negative control of LUMN-65, where a PR adding `lodash@4.17.20` and
+`dompdf/dompdf:1.2.0` reported dompdf alone; with dompdf removed, the same job failed on lodash.
+Both lockfiles are therefore covered, and a red job with one name in it may hide others.
+
 **Why no `npm audit` or `composer audit` in CI.** They report the whole tree, so they duplicate the
 alerts and fail on flaws nobody can fix. `npm audit` also counts one advisory once per package that
 depends on it: the "12 high severity vulnerabilities" of 2026-10-03 were a single advisory on
