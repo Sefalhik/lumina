@@ -16,7 +16,7 @@ class SmokeTargetTest extends TestCase
         // Accepting them, even to strip them, would teach the habit that puts a password in shell
         // history and CI logs.
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('SMOKE_BASIC_USER');
+        $this->expectExceptionMessageIsOrContains('SMOKE_BASIC_USER');
 
         new SmokeTarget('https://laurent:s3cret@preprod.example');
     }

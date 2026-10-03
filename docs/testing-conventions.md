@@ -22,6 +22,31 @@ Only `resources/js/utils/**/*.js` is in scope for unit coverage:
 ## Coverage thresholds
 Both suites enforce **80% line coverage minimum** — commits are blocked by the pre-commit hook if the threshold is not met.
 
+## PHP — a deprecation fails the suite
+
+A deprecation is the only notice a package gives before removing something. Until LUMN-71 this
+suite printed *0 deprecations* and saw almost none: **Laravel's error handler drops every
+deprecation while the application runs in tests** (`HandleExceptions::shouldIgnoreDeprecationErrors()`),
+so PHPUnit only ever heard about the ones raised by tests that never boot Laravel — and stayed
+green on those too. Three probes out of four went through unseen.
+
+Two settings close it, one for each kind of test:
+
+| Where | Setting | What it catches |
+|---|---|---|
+| `Tests\TestCase::setUp()` | `$this->withoutDeprecationHandling()` | a deprecation raised while Laravel runs — in the test, in application code, during a request. It becomes an `ErrorException` |
+| `phpunit.xml` | `failOnDeprecation`, `failOnPhpunitDeprecation` | a deprecation raised by a test that extends PHPUnit's own `TestCase` |
+
+`Tests\Feature\Testing\DeprecationsAreErrorsTest` fails the day the first one is removed — which
+nothing else would notice, since a suite that stops seeing deprecations stays green.
+
+**The way out.** A deprecation raised by a package, which this code cannot fix, would fail every
+test that reaches it. Call `$this->withDeprecationHandling()` in that test, with the reason in a
+comment — never in `Tests\TestCase`, which would switch the whole suite back to silence.
+
+Runtime deprecations are half of it: code merely annotated `@deprecated` raises nothing, and is
+caught by static analysis instead — see [Deprecated code is an error](quality-tooling.md#deprecated-code-is-an-error).
+
 ## Boot-time decisions — `Tests\Concerns\RebootsInEnvironment`
 
 `bootstrap/app.php` decides at boot which routes exist and which providers are registered. Those
