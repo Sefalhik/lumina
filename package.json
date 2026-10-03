@@ -54,6 +54,7 @@
     "@tailwindcss/vite": "^4.2.2",
     "@vitejs/plugin-vue": "^6.0.5",
     "daisyui": "^5.5.19",
+    "lodash": "^4.17.20",
     "pinia": "^3.0.4",
     "sass": "^1.99.0",
     "tailwindcss": "^4.2.2",
