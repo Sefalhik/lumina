@@ -226,7 +226,7 @@ next visit, not immediately.
 | `Pin dependencies` / `Lock file maintenance` | same |
 | labelled `security` | read the advisory, then same — may arrive any day |
 | `Update github actions` | same — a major included, see [GitHub Actions are routine](#github-actions-are-routine-majors-included) |
-| a major of a library, after approval | open a ticket first — it is a decision, not routine |
+| a major of a library, after approval | open a ticket first — it is a decision, not routine. Move the ticket to *En review* by hand, and put its key in the PR title before merging: the squash commit takes that title, and `jira-sync.yml` reads it on merge. Or do the bump on a branch of your own, named after the ticket, when the PR has to carry anything else |
 
 **Logs and manual runs**: the Mend developer portal, **https://developer.mend.io/** (sign in with
 GitHub), lists the installed repositories, shows every job's log, and can trigger a run without

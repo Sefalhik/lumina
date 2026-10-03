@@ -53,6 +53,13 @@ seconds, and it is what catches a branch that no longer passes against the new b
 At the repository level, **squash is the only merge method** (`allow_merge_commit` and
 `allow_rebase_merge` are off), and `delete_branch_on_merge` is on.
 
+**The squash commit takes the pull request title** (`squash_merge_commit_title: PR_TITLE`, set on
+2026-10-03). GitHub's default, `COMMIT_OR_PR_TITLE`, uses the title of the *commit* when a pull
+request holds only one — which is every Renovate pull request. LUMN-69 was merged that way: the PR
+had been renamed `[LUMN-69] …` and the commit on `main` says `Update dependency concurrently to
+v10`, with no key and no way to rewrite it. Read the setting with
+`gh api repos/Sefalhik/lumina --jq .squash_merge_commit_title`.
+
 ## One intention, one ticket, one PR, one commit
 
 `main` receives exactly one squashed commit per pull request, and each carries the JIRA key of **one
