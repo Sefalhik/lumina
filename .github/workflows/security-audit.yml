@@ -1,0 +1,49 @@
+name: Security audit
+
+on:
+  # Daily rather than weekly: the advisory that prompted this workflow was a day old when it was
+  # found by hand, and the job takes under a minute. Off the hour, where scheduled runs queue.
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+  # Also on the pull requests that change what the audit reads or how it runs. That is what lets a
+  # change to this workflow, Renovate's action updates included, be tried before it is merged.
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/security-audit.yml
+      - scripts/audit-advisories.js
+      - accepted-advisories.json
+      - package-lock.json
+      - composer.lock
+
+permissions:
+  contents: read
+
+jobs:
+  # Not a required check, on purpose: an advisory published overnight on a package already on main
+  # must not block every merge. A red run is the signal.
+  advisories:
+    name: Security — Known advisories
+    runs-on: ubuntu-latest
+    # The script bounds each audit itself; this bounds everything around it.
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.5'
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+
+      # Both audits read the lockfiles alone: nothing is installed. The script decides, not the
+      # exit code of `npm audit` or `composer audit`, which is non-zero as soon as they find a
+      # flaw, accepted or not.
+      - name: Audit known advisories
+        run: node scripts/audit-advisories.js

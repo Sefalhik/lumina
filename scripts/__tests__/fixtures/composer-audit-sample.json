@@ -1,0 +1,41 @@
+{
+    "advisories": {
+        "dompdf/dompdf": [
+            {
+                "advisoryId": "PKSA-cv56-2228-pzr6",
+                "packageName": "dompdf/dompdf",
+                "affectedVersions": "<3.1.6",
+                "title": "Dompdf: Embedded SVG images can leak existence of files and directories within the filesystem",
+                "cve": "CVE-2026-59943",
+                "link": "https://github.com/advisories/GHSA-j8qw-6jw8-r297",
+                "reportedAt": "2026-07-22T22:52:44+00:00",
+                "sources": [
+                    {
+                        "name": "GitHub",
+                        "remoteId": "GHSA-j8qw-6jw8-r297"
+                    }
+                ],
+                "severity": "medium"
+            }
+        ],
+        "phenx/php-svg-lib": [
+            {
+                "advisoryId": "PKSA-qsyb-3psh-f1t3",
+                "packageName": "phenx/php-svg-lib",
+                "affectedVersions": "<0.5.2",
+                "title": "Dompdf's usage of vulnerable version of phenx/php-svg-lib leads to restriction bypass and potential RCE",
+                "cve": null,
+                "link": "https://github.com/advisories/GHSA-97m3-52wr-xvv2",
+                "reportedAt": "2024-02-22T18:15:41+00:00",
+                "sources": [
+                    {
+                        "name": "GitHub",
+                        "remoteId": "GHSA-97m3-52wr-xvv2"
+                    }
+                ],
+                "severity": "critical"
+            }
+        ]
+    },
+    "abandoned": []
+}

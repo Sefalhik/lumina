@@ -128,8 +128,17 @@
     ],
 
     // Security fixes bypass the release age and the schedule, and are raised immediately.
+    // Renovate learns of a flaw from an *open* Dependabot alert and nowhere else: an alert GitHub
+    // dismissed on its own, or never raised, produces no fix — LUMN-73 met both in one week.
     vulnerabilityAlerts: {
         labels: ['security'],
         schedule: ['at any time'],
     },
+
+    // Lists the known vulnerabilities on the Dependency Dashboard, read from OSV.dev rather than
+    // from GitHub's alerts: a second source, in the one place that is read every week.
+    // Two limits, both Renovate's own: direct dependencies only, and the option is experimental.
+    // An empty section therefore does not mean a clean tree — the two advisories of LUMN-73 were
+    // transitive and would not have appeared. scripts/audit-advisories.js is what covers the tree.
+    dependencyDashboardOSVVulnerabilitySummary: 'all',
 }
