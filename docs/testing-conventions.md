@@ -1,5 +1,99 @@
 # Testing conventions
 
+## The doctrine
+
+How tests are written here, before any mechanism. Everything after this section is mechanisms and
+traps; this is what they serve.
+
+### Every level, and each thing at its lowest
+
+What can be tested at a lower level is tested there. The higher levels do not repeat it: they prove
+what only they can.
+
+| Level | What it proves | What it leaves to the level below |
+|---|---|---|
+| Unit — PHPUnit `tests/Unit`, Vitest | **the logic**: a service, a rule, a pure function, in every case it can meet | — |
+| Feature — HTTP requests, Artisan commands | **the assembly**: that the rule is really wired, the middleware really fires. One case per rule wired is the proof it is called | every edge case of that rule, again |
+| Playwright | **what the user sees**: the rendering and the assembly of components, at the end of the chain | the data — it has been proven by then |
+
+"Rendering" does not mean "superficial". The data is tested in full, at the level where that is
+cheapest, and that is what lets the browser suite stay fast and stable.
+
+The corollary is architectural, and already a rule:
+[no logic in a controller, a model or a Vue component](../CLAUDE.md#service-layer--hard-rule).
+Logic buried there can only be reached from a higher level, where a test costs more and protects
+less.
+
+### Past the happy path
+
+A feature is tested where it works, where it refuses, and where nobody expected it to be:
+
+- the accepted case and the **refused** one — access control on writing as much as on reading;
+- the **error** it handles, and the **exception nobody planned**;
+- the **boundary values**;
+- a **third party that does not answer**, or answers something else;
+- **improbable input**. Nobody knows what a direct request, a file or another program's output will
+  contain: what the code cannot read must fail, not pass for empty.
+
+**One test per acceptance criterion is the floor, not the measure.** Every criterion has a test —
+LUMN-10 shipped with one implemented and untested, and the configuration it relied on could have
+been removed without a test noticing. But criteria describe what was asked for, and most of what
+breaks was not asked for.
+
+**Write the cases from the specification, not from the code.** A test derived from the
+implementation agrees with it, omissions included: a rule with three conditions of which two were
+coded gets perfect tests of the two. Start from what the code must *refuse*.
+
+### A test is trusted once it has bitten
+
+A green test proves nothing until it has been seen red for the right reason. **Break the code the
+test claims to cover, one line at a time, and check that this test fails.** Never call something
+covered without having done it.
+
+LUMN-73 is the measured case. Its tests, written one per acceptance criterion, covered 87% of the
+script's lines; 11 of 29 single-line mutations left them all green — the script exiting 0 while
+printing a failure among them. Rewritten from what the script must refuse, then mutated again:
+78 mutations, none survived. Three defects of the script itself surfaced on the way, none of which
+a passing test would have found.
+
+Two rules of practice:
+
+- **Restore from a copy, never with `git checkout --`.** On a file that carries uncommitted work,
+  the checkout erases it silently.
+- **A fix ships with the test that fails without it.** Checked the same way: undo the fix, the test
+  must turn red. Otherwise another guard is doing the refusing, and the test passes with or without
+  the fix.
+
+### What 100% does not see
+
+The bar for logic is 100%. The threshold enforced today is lower — see
+[Coverage thresholds](#coverage-thresholds) — and raising it is LUMN-57. Code is never excluded from
+coverage to pass a threshold, and **a guard that cannot fire is deleted, not excluded**: it claims
+to check something that is already guaranteed.
+
+A covered line is one that ran, not one that is tested. Line coverage is blind to:
+
+- **several rules on one line.** A validation array is covered by any request and exercised by
+  none: one case per rule;
+- **a fake that looks like coverage.** A test that reaches an endpoint through a faked response
+  never reached the endpoint;
+- **the seam between two files** — a file name, a cache key, a path written on both sides. Each
+  side is at 100% and nothing checks they agree. A seam gets a test of its own;
+- **a tolerance that stops halfway.** What one layer accepts must hold all the way down. Assert the
+  effect the accepted value produces, not the status code.
+
+### Never
+
+- **Weaken, skip or comment out a test to get a green run.** A test that passes without checking
+  what it names is worse than no test. A red test is a regression or a test to change for a stated
+  reason — never one to silence.
+- **Ship a feature in one pull request and its tests in another.**
+- **Depend on a floating reference**: the order of execution, the state another test left, or a
+  date computed from now when that date decides the result. Using the clock is fine; an outcome
+  that changes with the day it runs is not. Anchor on absolute dates.
+- **Let a test reach the network.** Every HTTP call is faked explicitly, and
+  `Http::preventStrayRequests()` makes a forgotten one throw.
+
 ## PHP — database
 - Test database: **PostgreSQL**, dedicated `cardascia_it_test` database — **never** the `cardascia_it` schema
 - Connection overrides (host, port, database name) are in `phpunit.xml` — credentials come from `.env` and are never committed

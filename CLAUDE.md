@@ -190,11 +190,11 @@ building alternates.
 - Config is in `config/octane.php`.
 
 ## Testing conventions
-See `docs/testing-conventions.md` before writing or changing a PHPUnit or Playwright test.
+See `docs/testing-conventions.md` before writing or changing any test — PHPUnit, Vitest or Playwright. It opens with [the doctrine](docs/testing-conventions.md#the-doctrine): each thing tested at its lowest level, past the happy path, and **a test is only trusted once breaking the code has turned it red**.
 
 Key rules:
 - Test database: **PostgreSQL** `cardascia_it_test`, never SQLite; E2E runs on its own `cardascia_it_e2e` database and server (port 8001)
-- **Coverage threshold enforced today: 80%**, by the pre-commit hook and CI — the target is **99%**. Measured at 100% of lines on both suites; PCOV does not measure PHP branch coverage
+- **Coverage threshold enforced today: 80%**, by the pre-commit hook and CI — the target is **99%** (LUMN-57), the doctrine's bar 100% for logic. PHP stood at 99.75% of lines on 2026-10-07; PCOV does not measure PHP branch coverage
 - Boot-time decisions are tested with `Tests\Concerns\RebootsInEnvironment`; any test about scheme, host or proxy headers addresses an explicit `http://` root and carries a negative control
 - Playwright: **one admin session per spec file** that loads admin pages — any page load consumes pending flashes, read-only specs included. Specs mutating site-wide data restore it after *every* test
 - Skip the boot overlay with `page.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'))` before `page.goto()`
