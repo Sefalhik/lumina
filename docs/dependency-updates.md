@@ -22,7 +22,8 @@ only, no bypass.
 | GitHub Actions, CI Docker images | pinned to a SHA / digest, digests kept current |
 | Lockfiles | refreshed weekly |
 | Release age | 3 days for npm and for GitHub Actions; npm also in `.npmrc` — see [Release age](#release-age) |
-| Vulnerability fixes | immediately, bypassing schedule and release age — **only while Dependabot alerts are enabled**, see [Installing — once](#installing--once) |
+| Vulnerability fixes | immediately, bypassing schedule and release age — **only for an open Dependabot alert**, see [Installing — once](#installing--once) |
+| Known vulnerabilities | listed on the dashboard, **direct dependencies only** — see [Installing — once](#installing--once) |
 | Abandoned packages | flagged on the dashboard (`abandonments:recommended`) |
 
 **Schedule: all day Monday, Europe/Paris.** At most 3 open PRs, 2 created per hour.
@@ -207,6 +208,24 @@ but one debug line in a job log — `No vulnerability alerts enabled for repo`.
 gh api repos/Sefalhik/lumina/dependabot/alerts          # 403 "disabled" when they are off
 gh api -X PUT repos/Sefalhik/lumina/vulnerability-alerts # turns them on
 ```
+
+**Enabled is not enough: the alert has to be open.** Renovate reads open alerts and nothing else,
+so two cases produce no fix and no message (LUMN-73):
+
+- an alert GitHub dismissed on its own — its preset for development dependencies did exactly that,
+  before any notification was sent;
+- an advisory for which GitHub never raised an alert at all.
+
+And an open alert is still not a pull request when the vulnerable package is transitive and its
+parent pins it to an exact version: no lockfile update can move it. What watches the tree
+regardless of alerts is the advisory audit —
+[Known vulnerabilities](quality-tooling.md#known-vulnerabilities).
+
+**The dashboard lists known vulnerabilities** (`dependencyDashboardOSVVulnerabilitySummary`), read
+from OSV.dev rather than from GitHub. Renovate documents two limits: **direct dependencies only**,
+and the option is experimental. An empty section does not mean a clean tree. The `local` platform
+stops before the dashboard is built, so this cannot be tried in a dry run: it is read on the
+Dependency Dashboard issue itself.
 
 Leave *Dependabot security updates* **off**: it opens its own pull requests, which would duplicate
 Renovate's.

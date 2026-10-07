@@ -181,7 +181,7 @@ building alternates.
 | `docs/` | Technical documentation |
 | `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
 | `renovate.json5` | Renovate configuration — see `docs/dependency-updates.md` |
-| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
+| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
 
@@ -331,7 +331,7 @@ Key rules:
 - `npm run check:full` runs the 7 checks; its Playwright step first runs the **E2E preflight**, which refuses — with the command to run — on stale assets, a dead Vite server or a missing browser
 - PHPStan: level 8 on `app/`, level 5 on `tests/`, and **deprecated code is an error** — statically here, and at runtime in the test suite, where Laravel would otherwise drop it; **never** `@phpstan-ignore` without a written justification; `PHP_INI_SCAN_DIR` must be exported or workers fail with `Class "Phar" not found`
 - ESLint covers `resources/js/` and `scripts/`; its accessibility rules block commits on a missing label
-- CI: the required checks are listed once, in [Required checks](docs/git-workflow.md#required-checks) — PHP, JS, E2E and a dependency review that fails a PR *introducing* a vulnerable package. Dependabot alerts, CodeQL and secret scanning are **repository settings**; PHP has no security analysis (LUMN-66)
+- CI: the required checks are listed once, in [Required checks](docs/git-workflow.md#required-checks) — PHP, JS, E2E and a dependency review that fails a PR *introducing* a vulnerable package. Dependabot alerts, CodeQL and secret scanning are **repository settings**, and the alerts do **not** cover every known flaw: a daily, non-required `security-audit.yml` fails on any advisory absent from `accepted-advisories.json`, where each acceptance carries a reason and a review date; PHP has no security analysis (LUMN-66)
 
 ## Dependency updates (Renovate)
 See `docs/dependency-updates.md` for the full reference — installation, day-to-day use, and how to

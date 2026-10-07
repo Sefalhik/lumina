@@ -164,34 +164,108 @@ results, one per job, and nothing else.
 
 ## Known vulnerabilities
 
-Four things watch for them, and **three of the four are repository settings, not code** — no test in
+Five things watch for them, and **three of the five are repository settings, not code** — no test in
 this project can tell that one was switched off. The commands below read their state.
 
 | What | Where it lives | What it covers |
 |---|---|---|
-| Dependabot alerts | repository setting | every known flaw in `composer.lock`, `package-lock.json` and the workflows; also what lets Renovate raise security fixes |
+| Dependabot alerts | repository setting | the flaws GitHub matches against `composer.lock`, `package-lock.json` and the workflows; also the only thing that lets Renovate raise a security fix. **Not every known flaw** — see [What the alerts did not say](#what-the-alerts-did-not-say-lumn-73) |
+| `Security — Known advisories` | `security-audit.yml`, daily, **not** a required check | every advisory `npm audit` and `composer audit` report on the whole tree, development and transitive dependencies included, less the ones accepted in `accepted-advisories.json` |
 | `Security — Dependency review` | `ci.yml`, a [required check](git-workflow.md#required-checks) | what a pull request *introduces* |
 | CodeQL, default setup | repository setting | JavaScript and the GitHub Actions workflows, on pull requests and weekly |
 | Secret scanning with push protection | repository setting | a credential committed by mistake, refused at push |
 
 ```bash
 gh api repos/Sefalhik/lumina/dependabot/alerts --jq 'length'             # 403 when alerts are off
+gh api 'repos/Sefalhik/lumina/dependabot/alerts?state=auto_dismissed' --jq 'length'   # 0, or a preset is dismissing alerts
 gh api repos/Sefalhik/lumina/code-scanning/default-setup --jq '.state'   # configured
 gh api repos/Sefalhik/lumina --jq '.security_and_analysis'               # secret scanning
 ```
 
+The Dependency Dashboard lists known vulnerabilities too, for direct dependencies only — a
+convenience, not a watch: [Dependency updates](dependency-updates.md#installing--once).
+
 **PHP has no security analysis.** CodeQL does not support it, and PHPStan checks types, not flaws.
 Whether Psalm's taint analysis or Semgrep is worth adding is LUMN-66.
 
-**The job log names only the first vulnerable package.** The action stops printing after the first
-package it finds, even though it fails on any of them: fix that one and the next appears. Found
-during the negative control of LUMN-65, where a PR adding `lodash@4.17.20` and
+**The job log names only the first vulnerable package.** The dependency review stops printing after
+the first package it finds, even though it fails on any of them: fix that one and the next appears.
+Found during the negative control of LUMN-65, where a PR adding `lodash@4.17.20` and
 `dompdf/dompdf:1.2.0` reported dompdf alone; with dompdf removed, the same job failed on lodash.
 Both lockfiles are therefore covered, and a red job with one name in it may hide others.
 
-**Why no `npm audit` or `composer audit` in CI.** They report the whole tree, so they duplicate the
-alerts and fail on flaws nobody can fix. `npm audit` also counts one advisory once per package that
+### What the alerts did not say (LUMN-73)
+
+On 2026-10-07 an `npm install` printed "12 high, 2 critical". Nothing had announced them: no mail,
+no open alert, no line on the Dependency Dashboard. They were two advisories, both on development
+tooling, neither exploitable here — and neither had reached anyone, for two different reasons.
+
+| Advisory | Package | What GitHub did with it |
+|---|---|---|
+| `GHSA-vfj7-8cjw-p6xm`, high | `braces` 3.0.3, through `stylelint` | raised an alert on 2026-10-03 at 18:03:48 UTC and dismissed it **one second later**, on its own |
+| `GHSA-pqg4-j6r4-53mv`, critical | `shell-quote` 1.9.0, through `concurrently` | **never raised an alert**, though its dependency graph lists that exact version |
+
+**The first is a GitHub preset**, "Dismiss low impact issues for development-scoped dependencies".
+It is on by default for public repositories, applies to npm only, and runs *before* notifications
+are sent — so an alert it dismisses is one nobody is ever told about. It was switched off on
+2026-10-07 (Settings → Advanced Security → Dependabot rules → GitHub presets) and the alert
+reopened at once. Development tooling runs where the secrets are, on a developer's machine and in
+CI: whether a flaw there is tolerable is a decision, and a decision carries a reason.
+
+**The second is unexplained.** The preset cannot account for it: it would have left a dismissed
+alert behind. More than a day after the advisory was published, there was still none.
+
+Neither could have become a Renovate pull request either — see
+[Installing — once](dependency-updates.md#installing--once). `braces` has no fixed version, and
+`concurrently` pins `shell-quote` to an exact version, in its latest release too.
+
+### The advisory audit
+
+`node scripts/audit-advisories.js` runs `npm audit` and `composer audit`, reduces what they print to
+the distinct advisories, and compares those with `accepted-advisories.json`. It is the one watch
+that does not depend on GitHub raising an alert. Five outcomes:
+
+| Situation | Result |
+|---|---|
+| an advisory that is not in the accepted list | **failure**, naming the advisory and its package |
+| an acceptance whose review date has passed | **failure**, quoting the reason that was given |
+| an audit that did not answer — no JSON, npm's `{"error": …}` when the registry is unreachable, a command missing or still running after two minutes | **failure**: an audit that cannot be read has not found nothing |
+| an answer the script does not understand — another `auditReportVersion`, an advisory with no identifier, vulnerable packages counted and no advisory named | **failure**, for the same reason: it must not read as a clean tree |
+| an acceptance no audit reports any more | a warning on the run: the entry is to be removed |
+
+**Accepting an advisory** is adding an entry with five fields, all required — `id`, `package`,
+`reason`, `acceptedOn`, `reviewBy`. A malformed list fails the audit before anything runs: an
+acceptance without a reason is the silent dismissal this replaces. The identifier is written
+exactly as the audit prints it — `GHSA-vfj7-8cjw-p6xm`, not a URL and not in another case: one
+spelled differently would accept nothing while looking as if it did, so it is refused. Both dates
+are real calendar dates, and the review cannot come before the acceptance.
+
+**`reviewBy` is the last day the acceptance holds.** Until then the advisory is silent; from the
+next day the audit fails on it every morning, until the entry is removed — the flaw is fixed — or
+given a new date, which means someone looked again. It is what keeps the list from becoming the
+place where things are forgotten. An entry that waits for an upstream fix gets a short date; one
+with no fix in sight gets a longer one.
+
+**It runs daily and is not a required check.** An advisory published overnight on a package already
+on `main` must not block every merge; a red run is the signal. It also runs on a pull request that
+touches a lockfile, the list, the script or the workflow — so a red `Security — Known advisories`
+on a dependency pull request is about the tree, not necessarily about that pull request.
+
+**Both audits read the lockfiles alone.** Nothing is installed in the job. The exit code of
+`npm audit` and `composer audit` is ignored on purpose: it is non-zero as soon as they find a flaw,
+accepted or not.
+
+Two ways this watch can still go quiet, neither closed:
+
+- **GitHub disables scheduled workflows on a public repository after 60 days without activity.**
+  Renovate's weekly pull requests keep this one alive only while they are being merged.
+- **The mail for a failed scheduled run was not proven.** The failure itself was, on the pull
+  request of LUMN-73. Proving the scheduled path would take a red `main`.
+
+**Why `npm audit` and `composer audit` are not required checks.** They report the whole tree, so
+they fail on flaws nobody can fix. `npm audit` also counts one advisory once per package that
 depends on it: the "12 high severity vulnerabilities" of 2026-10-03 were a single advisory on
 `braces`, with no fixed version, reached through `stylelint`. Read the distinct advisories before
 reading the total, and never run `npm audit fix --force` without reading what it proposes — that day
-it was a downgrade of `stylelint-order` from 8 to 0.2.2.
+it was a downgrade of `stylelint-order` from 8 to 0.2.2. The advisory audit is what makes them
+usable: it keeps their coverage and drops their noise.

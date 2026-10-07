@@ -1,0 +1,299 @@
+{
+    "auditReportVersion": 2,
+    "vulnerabilities": {
+        "braces": {
+            "name": "braces",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+                {
+                    "source": 1240992,
+                    "name": "braces",
+                    "dependency": "braces",
+                    "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+                    "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+                    "severity": "high",
+                    "cwe": [
+                        "CWE-674"
+                    ],
+                    "cvss": {
+                        "score": 7.5,
+                        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+                    },
+                    "range": "<=3.0.3"
+                }
+            ],
+            "effects": [
+                "micromatch"
+            ],
+            "range": "*",
+            "nodes": [
+                "node_modules/braces"
+            ],
+            "fixAvailable": false
+        },
+        "concurrently": {
+            "name": "concurrently",
+            "severity": "critical",
+            "isDirect": true,
+            "via": [
+                "shell-quote"
+            ],
+            "effects": [],
+            "range": ">=9.2.3",
+            "nodes": [
+                "node_modules/concurrently"
+            ],
+            "fixAvailable": {
+                "name": "concurrently",
+                "version": "9.2.1",
+                "isSemVerMajor": true
+            }
+        },
+        "fast-glob": {
+            "name": "fast-glob",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+                "micromatch"
+            ],
+            "effects": [
+                "globby",
+                "stylelint"
+            ],
+            "range": "*",
+            "nodes": [
+                "node_modules/fast-glob"
+            ],
+            "fixAvailable": false
+        },
+        "globby": {
+            "name": "globby",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+                "fast-glob",
+                "micromatch"
+            ],
+            "effects": [
+                "stylelint"
+            ],
+            "range": ">=8.0.0",
+            "nodes": [
+                "node_modules/globby"
+            ],
+            "fixAvailable": false
+        },
+        "micromatch": {
+            "name": "micromatch",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+                "braces"
+            ],
+            "effects": [
+                "fast-glob",
+                "globby",
+                "stylelint"
+            ],
+            "range": ">=0.2.0",
+            "nodes": [
+                "node_modules/micromatch"
+            ],
+            "fixAvailable": false
+        },
+        "shell-quote": {
+            "name": "shell-quote",
+            "severity": "critical",
+            "isDirect": false,
+            "via": [
+                {
+                    "source": 1241332,
+                    "name": "shell-quote",
+                    "dependency": "shell-quote",
+                    "title": "shell-quote: `quote()` command injection via a line terminator in a token after a `{ comment }` token",
+                    "url": "https://github.com/advisories/GHSA-pqg4-j6r4-53mv",
+                    "severity": "critical",
+                    "cwe": [
+                        "CWE-78"
+                    ],
+                    "cvss": {
+                        "score": 8.1,
+                        "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H"
+                    },
+                    "range": ">=1.8.4 <1.11.0"
+                }
+            ],
+            "effects": [
+                "concurrently"
+            ],
+            "range": "1.8.4 - 1.10.0",
+            "nodes": [
+                "node_modules/shell-quote"
+            ],
+            "fixAvailable": {
+                "name": "concurrently",
+                "version": "9.2.1",
+                "isSemVerMajor": true
+            }
+        },
+        "stylelint": {
+            "name": "stylelint",
+            "severity": "high",
+            "isDirect": true,
+            "via": [
+                "fast-glob",
+                "globby",
+                "micromatch"
+            ],
+            "effects": [
+                "stylelint-config-prettier-scss",
+                "stylelint-config-recommended",
+                "stylelint-config-recommended-scss",
+                "stylelint-config-standard",
+                "stylelint-config-standard-scss",
+                "stylelint-order",
+                "stylelint-scss"
+            ],
+            "range": ">=7.7.1",
+            "nodes": [
+                "node_modules/stylelint"
+            ],
+            "fixAvailable": false
+        },
+        "stylelint-config-prettier-scss": {
+            "name": "stylelint-config-prettier-scss",
+            "severity": "high",
+            "isDirect": true,
+            "via": [
+                "stylelint"
+            ],
+            "effects": [],
+            "range": "*",
+            "nodes": [
+                "node_modules/stylelint-config-prettier-scss"
+            ],
+            "fixAvailable": false
+        },
+        "stylelint-config-recommended": {
+            "name": "stylelint-config-recommended",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+                "stylelint"
+            ],
+            "effects": [
+                "stylelint-config-recommended-scss",
+                "stylelint-config-standard"
+            ],
+            "range": "*",
+            "nodes": [
+                "node_modules/stylelint-config-recommended"
+            ],
+            "fixAvailable": false
+        },
+        "stylelint-config-recommended-scss": {
+            "name": "stylelint-config-recommended-scss",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+                "stylelint",
+                "stylelint-config-recommended",
+                "stylelint-scss"
+            ],
+            "effects": [
+                "stylelint-config-standard-scss"
+            ],
+            "range": "*",
+            "nodes": [
+                "node_modules/stylelint-config-recommended-scss"
+            ],
+            "fixAvailable": false
+        },
+        "stylelint-config-standard": {
+            "name": "stylelint-config-standard",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+                "stylelint",
+                "stylelint-config-recommended"
+            ],
+            "effects": [
+                "stylelint-config-standard-scss"
+            ],
+            "range": ">=16.0.0",
+            "nodes": [
+                "node_modules/stylelint-config-standard"
+            ],
+            "fixAvailable": false
+        },
+        "stylelint-config-standard-scss": {
+            "name": "stylelint-config-standard-scss",
+            "severity": "high",
+            "isDirect": true,
+            "via": [
+                "stylelint",
+                "stylelint-config-recommended-scss",
+                "stylelint-config-standard"
+            ],
+            "effects": [],
+            "range": "*",
+            "nodes": [
+                "node_modules/stylelint-config-standard-scss"
+            ],
+            "fixAvailable": false
+        },
+        "stylelint-order": {
+            "name": "stylelint-order",
+            "severity": "high",
+            "isDirect": true,
+            "via": [
+                "stylelint"
+            ],
+            "effects": [],
+            "range": ">=0.3.0",
+            "nodes": [
+                "node_modules/stylelint-order"
+            ],
+            "fixAvailable": {
+                "name": "stylelint-order",
+                "version": "0.2.2",
+                "isSemVerMajor": true
+            }
+        },
+        "stylelint-scss": {
+            "name": "stylelint-scss",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+                "stylelint"
+            ],
+            "effects": [
+                "stylelint-config-recommended-scss"
+            ],
+            "range": ">=2.0.0",
+            "nodes": [
+                "node_modules/stylelint-scss"
+            ],
+            "fixAvailable": false
+        }
+    },
+    "metadata": {
+        "vulnerabilities": {
+            "info": 0,
+            "low": 0,
+            "moderate": 0,
+            "high": 12,
+            "critical": 2,
+            "total": 14
+        },
+        "dependencies": {
+            "prod": 65,
+            "dev": 297,
+            "optional": 65,
+            "peer": 0,
+            "peerOptional": 0,
+            "total": 426
+        }
+    }
+}

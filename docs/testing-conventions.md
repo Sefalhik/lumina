@@ -15,9 +15,24 @@ The following are excluded from the `<source>` block:
 `app/Console/Commands/` is **included** — Artisan commands have Feature tests that contribute to coverage. Never exclude code from coverage to make a threshold pass.
 
 ## JS — coverage scope (`vitest.config.js`)
-Only `resources/js/utils/**/*.js` is in scope for unit coverage:
+Two things are in scope for unit coverage: `resources/js/utils/**/*.js`, and one tooling script.
 - `app.js` is an entry point (Vue island mounting), not unit-testable
 - Vue components are covered by Playwright E2E tests and `@vue/test-utils` component tests
+- `scripts/audit-advisories.js` is in scope **and held to 100%** of statements, branches, functions
+  and lines, by a threshold of its own: it is a watch, and a line of it nobody exercises is a way
+  for it to go quiet. Its last five lines — the block that runs only when the file is started as a
+  program — are excluded with a `v8 ignore`, because coverage is collected in the test process and
+  cannot see a child process. They are not untested: the suite starts the real script against
+  stand-ins for `npm` and `composer` and asserts its exit code.
+- `scripts/e2e-preflight.js` is **not measured yet**: 88% of lines and 70% of branches when measured
+  by hand on 2026-10-07. Its own entry block and `preflight()` have no test.
+
+**A coverage figure says a line ran, not that a test would notice it changing.** The tests of
+`audit-advisories.js` were first written one per acceptance criterion: 87% of lines, and 11 of 29
+single-line mutations of the script left every test green — among them the script exiting 0 while
+printing a failure. Rewritten from the cases the script must refuse, then checked the same way:
+78 mutations, none survives. One of them had found a guard that could never fire; it was deleted,
+not excluded.
 
 ## Coverage thresholds
 Both suites enforce **80% line coverage minimum** — commits are blocked by the pre-commit hook if the threshold is not met.
