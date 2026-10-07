@@ -22,7 +22,7 @@ This file holds what must be known in every session. Each domain below has its o
 | Git workflow | `docs/git-workflow.md` | changing the ruleset, re-keying a PR, diagnosing a blocked merge |
 | Homepage content | `docs/homepage-content.md` | touching the homepage copy, its seeder, `cms:export-seed` |
 | Internationalisation | `docs/i18n.md` | adding a locale, a key, a translatable model |
-| JIRA workflow | `docs/jira-workflow-reference.md` | transitioning tickets, touching `jira-sync.yml` |
+| JIRA workflow | `docs/jira-workflow-reference.md` | creating, estimating or transitioning a ticket, touching `jira-sync.yml` |
 | Logging | `docs/logging-conventions.md` | writing any log call |
 | Quality tooling | `docs/quality-tooling.md` | changing the audit, a linter, PHPStan, CI |
 | SEO | `docs/seo-conventions.md` | adding a public route, touching canonical / `hreflang` |
@@ -351,7 +351,7 @@ See `docs/git-workflow.md` before changing the ruleset, re-keying a pull request
 
 Key rules:
 - `main` is protected by one ruleset with **no bypass actor**: no direct push, no force-push, squash only, [required checks](docs/git-workflow.md#required-checks) in strict mode
-- **One intention, one ticket, one PR, one commit.** Several PRs sharing a JIRA key break the rule; a ticket spanning two intentions is at the wrong level — split it
+- **One intention, one ticket, one PR, one commit.** Several PRs sharing a JIRA key break the rule; a ticket spanning two intentions is at the wrong level — split it. Three kinds of PR carry no key on purpose, documentation-only ones included: [Pull requests that carry no key](docs/git-workflow.md#pull-requests-that-carry-no-key)
 - Strict mode: once a PR merges, rebase the others before merging them
 - Re-keying a PR means **renaming the branch and opening a new PR** — `jira-sync.yml` reads the branch name first
 - Check protection with `gh api repos/Sefalhik/lumina/rules/branches/main`, never the classic `/protection` endpoint — it is blind to rulesets

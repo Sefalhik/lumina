@@ -74,6 +74,25 @@ is also what makes decommissioning work, since the epic then enumerates exactly 
 Amending a commit already on `main` is not an option here and never will be: the ruleset carries
 `non_fast_forward` and `pull_request`, with no bypass actor.
 
+### Pull requests that carry no key
+
+The rule binds work that has a ticket. Three kinds of pull request reach `main` without one, each on
+purpose:
+
+- **Routine Renovate updates** — see [Dependency updates](dependency-updates.md).
+- **Session brain dumps**, when no ticket is in flight — see
+  [Session brain dumps](../CLAUDE.md#session-brain-dumps).
+- **Documentation-only changes**, since 2026-10-07: a `docs:` pull request from a `docs/…` branch.
+  A ticket would track nothing there — no behaviour to accept, deploy or roll back.
+
+The third holds only while the pull request changes documentation **and nothing else**.
+Documentation that describes a change of behaviour travels with the ticket that changes the
+behaviour. One pull request still carries one subject.
+
+**Neither the branch name nor the title may quote a ticket key.** `jira-sync.yml` reads both — see
+[Re-keying a pull request means opening a new one](#re-keying-a-pull-request-means-opening-a-new-one) —
+and a `docs:` pull request titled after `LUMN-73` would move LUMN-73 to review.
+
 ## Re-keying a pull request means opening a new one
 
 `jira-sync.yml` extracts the key from the **branch name first**, the title second:

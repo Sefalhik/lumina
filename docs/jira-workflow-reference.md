@@ -162,3 +162,70 @@ déploiement, et une priorité n'y décrit plus rien d'actionnable.
 Une priorité dit « celui-ci compte davantage ». Un lien `Blocks` dit « celui-ci est **impossible**
 avant celui-là ». La seconde information est plus forte et se vérifie ; elle n'a pas à être
 réencodée en priorité.
+
+## Estimation
+
+Every ticket carries an estimate in **story points**, on the Fibonacci scale. A point does not
+measure time: it estimates **effort**, as the amount of work, the complexity, the risk and the
+uncertainty make it vary. The estimate is **relative**: it places a ticket among the other tickets
+of this project, and compares with no other team's.
+
+The gaps widen with size because precision collapses with it: telling a 1 from a 2 means something,
+telling a 9 from a 10 would not. Hesitating at length between two neighbouring values is asking the
+scale for a precision nobody has.
+
+| Points | Meaning in this project |
+|--------|-------------------------|
+| 1 | A trivial, isolated change, such as a label. No business impact, no risk of regression. |
+| 2 | A targeted fix in a single place whose effect can reach far: it takes more checking than work. |
+| 3 | A limited change spread over several files, of low complexity. |
+| 5 | A complex development: several services or front-end components that have to move together, or a large refactoring. |
+| 8 | A cross-cutting piece of work: several layers or domains at once, or a real unknown. The largest size started as it is, once it has been checked that it does not split. |
+| 13 | The splitting threshold: the ticket is not started as it is. It becomes an epic, split into child tickets. |
+
+**13 is a signal, not a size of work.** A ticket that reaches it almost always spans several
+intentions: it is at the wrong level, in the sense of
+[One intention, one ticket, one PR, one commit](git-workflow.md#one-intention-one-ticket-one-pr-one-commit).
+It becomes an epic, and each child gets its own estimate. An epic carries none: its size is read in
+the sum of its children.
+
+**An unknown does not hide inside a large number.** When a ticket cannot be estimated for want of
+knowledge, inflating the number does not remove the unknown. The unknown gets a time-boxed
+exploration ticket whose deliverable is the answer; the real ticket is estimated afterwards.
+
+**Tickets already estimated are the yardsticks.** A new ticket is compared with two or three of
+them, of different sizes, rather than with the definitions of the table alone.
+
+### When and where the estimate is set
+
+**The estimate is set when the ticket is created**, in `customfield_10016`
+("Story point estimate"), and belongs in the header of a ticket draft, next to the priority. The
+ticket does not repeat the scale: the number lives in the field, its meaning here.
+
+**A ticket started without an estimate gets one at that moment**, before the work begins. Tickets
+older than LUMN-73 were not estimated, and are not re-estimated in bulk: those still to do get
+theirs one by one, as their turn comes. A finished ticket is never re-estimated — that would measure
+work already done.
+
+**The field is missing from the creation metadata of the Tech issue type**, which suggests it does
+not exist. It can be written by editing the ticket all the same — checked on 2026-10-07 on LUMN-73.
+Setting it at creation was not tried: failing that, write it straight after, then read the field
+back.
+
+### What this scale rests on
+
+| Choice made here | What the reference says | Source |
+|------------------|-------------------------|--------|
+| The Fibonacci scale | The gaps get wider as the numbers get larger, because the larger an item is, the less precisely it can be estimated. | [Story Point Scales](https://www.mountaingoatsoftware.com/agile/story-points/story-point-scales), Mountain Goat Software |
+| A point estimates effort | Complexity is one factor among others: the amount of work, the risk and the uncertainty are factors too. | [Story Points Estimate Effort Not Just Complexity](https://www.mountaingoatsoftware.com/blog/its-effort-not-complexity), Mountain Goat Software |
+| A relative estimate | The ratios matter, not the numbers themselves: an item is estimated by saying it takes two or three times the effort of another. | [What Are Agile Story Points?](https://www.mountaingoatsoftware.com/blog/what-are-story-points), Mountain Goat Software |
+| 13 triggers a split | A large value is not a badge of importance: it warns that the item may be too large, too uncertain or too poorly understood. | [Story Point Scales](https://www.mountaingoatsoftware.com/agile/story-points/story-point-scales), Mountain Goat Software |
+| A large ticket is split | Big items are hard to finish; splitting is there to help finish, not to create more backlog items. | [Story Splitting](https://www.mountaingoatsoftware.com/agile/user-stories/story-splitting-how-to-split-user-stories-so-teams-can-finish), Mountain Goat Software |
+| The exploration ticket | A spike gains the knowledge that reduces the risk of a technical approach, and makes an estimate more reliable. | [Spikes](https://framework.scaledagile.com/spikes), Scaled Agile Framework |
+
+These references ground the method, not the definition of each value: none of them gives a 3 or a 5
+a universal meaning. The definitions in the table are this project's own.
+
+The project departs from them on one point. A popular scale carries on with 20, 40 and 100, to size
+items that are still vague in broad strokes. This one stops at 13: beyond it, nothing is estimated,
+it is split.
