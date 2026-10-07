@@ -5,12 +5,5 @@
         "reason": "No fixed version exists: 3.0.3 is the latest release. Reached through stylelint, a development tool that only reads the files of this repository; the flaw is a denial of service on a crafted pattern.",
         "acceptedOn": "2026-10-07",
         "reviewBy": "2027-01-07"
-    },
-    {
-        "id": "GHSA-pqg4-j6r4-53mv",
-        "package": "shell-quote",
-        "reason": "Fixed in 1.11.0, but concurrently pins 1.9.0 exactly, in its latest release too: waiting for open-cli-tools/concurrently#622. concurrently only runs `npm start`, with arguments written in package.json, so nothing an attacker controls reaches quote().",
-        "acceptedOn": "2026-10-07",
-        "reviewBy": "2026-11-07"
     }
 ]
