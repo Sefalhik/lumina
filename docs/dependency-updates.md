@@ -28,6 +28,9 @@ only, no bypass.
 
 **Schedule: all day Monday, Europe/Paris.** At most 3 open PRs, 2 created per hour.
 
+**One dependency is out of Renovate's sight**: the `./frankenphp` binary, updated by a script of
+this repository under the same release age — see [The FrankenPHP binary](#the-frankenphp-binary).
+
 ## Why the configuration looks the way it does
 
 ### The schedule window is a whole day
@@ -47,6 +50,9 @@ because nothing can read it from one place:
 |---|---|---|
 | `renovate.json5` | `minimumReleaseAge: '3 days'`, on the `npm` and `github-tags` datasources | what Renovate proposes |
 | `.npmrc` | `min-release-age=3` | what an `npm install` or an `npx` typed by hand resolves |
+
+`scripts/update-frankenphp.sh` applies the same delay to the FrankenPHP binary and is not a third
+copy: it reads the number from `.npmrc` — see [The FrankenPHP binary](#the-frankenphp-binary).
 
 A malicious version is usually pulled from the registry within hours, so waiting means never
 installing it; three days also cover the 72 hours during which npm lets an author unpublish.
@@ -260,6 +266,73 @@ update to *Other Branches* without a word.
 
 Download the job log from the Mend portal and search for `lock file error`; the npm error is in the
 `stderr` of that entry. This is how LUMN-64 was found, after several ticks that produced nothing.
+
+## The FrankenPHP binary
+
+`./frankenphp` is the one dependency Renovate cannot see: a standalone binary, gitignored, fetched
+from a GitHub release by `scripts/update-frankenphp.sh` (`npm run update:frankenphp`). It never
+reaches a server — alwaysdata runs Apache and PHP-FPM — but it is the process that serves the site
+on a developer's machine, next to the `.env`.
+
+Until LUMN-74, on 2026-10-10, the script installed whatever it received: no checksum, no delay,
+and a `curl` without `--fail`, so that an error page would have replaced the binary. It also asked
+`dunglas/frankenphp`, a name the project had left for `php/frankenphp`, and worked only because
+GitHub redirected. Three things now stand between a release and the binary in place, which is
+replaced only once all three have passed:
+
+| Check | What it refuses | Exit |
+|---|---|---|
+| **Origin** | an answer that is not `php/frankenphp`'s own: any status but 200, redirects included, and a download address that is not exactly `https://github.com/php/frankenphp/releases/download/<tag>/<asset>` | 1 |
+| **Release age** | a release younger than the project's release age, or one that carries no readable date | 0 — held, nothing is wrong |
+| **Checksum** | a download whose SHA-256 is not the `digest` GitHub publishes for that asset, and a release that publishes none | 1 |
+
+`--force` skips the confirmation prompt and nothing else. An argument the script does not know is
+refused: ignoring a mistyped `--min-release-age` would install the release it was meant to hold.
+
+### What each check is worth
+
+**The checksum proves the file is the one GitHub holds, and nothing more.** It catches a truncated
+or corrupted download and an error page saved in place of the binary. It does not catch a
+compromised release: the digest and the binary come from the same place, GitHub computes the digest
+from whatever is uploaded, and a release is not necessarily immutable — v1.13.0 was not.
+
+**Waiting is what covers a compromised release**, exactly as for npm and for actions — see
+[Release age](#release-age). The number of days is not repeated in the script: it reads
+`min-release-age` from `.npmrc`, which `ReleaseAgeParityTest` already keeps equal to Renovate's. A
+`.npmrc` that is missing, or whose value is anything but one whole number, is a refusal — a delay
+that cannot be read is not a delay of zero. A held release is reported with the date it becomes
+installable. Only the latest release is considered: while it waits, an older one is not offered
+instead.
+
+To install a release before its time once its notes have been read — a security release, like
+v1.13.0 and its five fixes — replace the delay for that one run, the same way as for npm:
+
+```bash
+npm run update:frankenphp -- --min-release-age=0
+```
+
+**The redirect is refused rather than followed.** The request to the GitHub API is made without
+`-L`: a 301 stops the script with the instruction to change `REPO`. Following it worked, which is
+the problem — it works until the redirect ends, or until someone else owns the old name. The
+download itself does follow redirects, because GitHub serves every release asset from another
+host; that is what the address comparison before it and the checksum after it are for.
+
+**Not covered**: build provenance. Whether FrankenPHP publishes artifact attestations was not
+established, and the script verifies none. The API is also queried without a token, so its limit
+of 60 requests an hour applies: past it, GitHub answers 403 or 429 and the script says so.
+
+### How it is tested
+
+`scripts/__tests__/update-frankenphp.test.js` runs the real script in a temporary directory, with
+a `PATH` that holds nothing but the tools it needs and stand-ins for `curl`, `uname`, `date` and
+`sudo`. No request leaves the machine. The stand-in `curl` follows a redirect only with `-L` and
+fails on an HTTP error only with `--fail`, so the tests can tell which one the script passed.
+
+Mutated one line at a time, as [the doctrine](testing-conventions.md#a-test-is-trusted-once-it-has-bitten)
+asks: 97 mutations, none survived. The first pass left four alive, all on the check of the release
+tag. Its tests passed for the wrong reason — the fixture changed the tag and left the download
+address on another version, so the address check refused first and the tag check was never
+reached.
 
 ## Checking a configuration change before merging it
 

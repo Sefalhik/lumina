@@ -195,11 +195,14 @@ createdb -h 127.0.0.1 -p 5433 -U <your_pg_user> cardascia_it_e2e
 The `./frankenphp` binary is a standalone file versioned separately from Composer/npm. To update it:
 
 ```bash
-npm run update:frankenphp          # Interactive — shows current vs latest, asks confirmation
-npm run update:frankenphp -- --force  # Non-interactive (CI/CD)
+npm run update:frankenphp                         # Interactive — shows current vs latest, asks confirmation
+npm run update:frankenphp -- --force              # Non-interactive (CI/CD) — skips the prompt, never a verification
+npm run update:frankenphp -- --min-release-age=0  # Install a release younger than the project's release age
 ```
 
-The script detects the current platform, fetches the latest release from GitHub, and replaces the binary. It also re-applies `cap_net_bind_service` automatically — the Linux capability required to bind port 443 is tied to the binary inode and is lost whenever the file is replaced.
+The script detects the current platform, asks `php/frankenphp` for its latest release, and replaces the binary only once three checks have passed: the answer and the download address are that repository's own, the release is at least as old as the `min-release-age` of `.npmrc` (3 days — a younger one is held back, not refused), and the downloaded file has the SHA-256 GitHub publishes for it. It needs `curl`, `jq`, and `sha256sum` or `shasum`. What each check covers, and what it does not, is in [`docs/dependency-updates.md`](docs/dependency-updates.md#the-frankenphp-binary).
+
+It also re-applies `cap_net_bind_service` automatically — the Linux capability required to bind port 443 is tied to the binary inode and is lost whenever the file is replaced.
 
 > **First-time setup** (or after a manual binary replacement): `sudo setcap cap_net_bind_service=+ep ./frankenphp`
 
