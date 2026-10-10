@@ -328,11 +328,27 @@ a `PATH` that holds nothing but the tools it needs and stand-ins for `curl`, `un
 `sudo`. No request leaves the machine. The stand-in `curl` follows a redirect only with `-L` and
 fails on an HTTP error only with `--fail`, so the tests can tell which one the script passed.
 
-Mutated one line at a time, as [the doctrine](testing-conventions.md#a-test-is-trusted-once-it-has-bitten)
-asks: 97 mutations, none survived. The first pass left four alive, all on the check of the release
-tag. Its tests passed for the wrong reason — the fixture changed the tag and left the download
-address on another version, so the address check refused first and the tag check was never
-reached.
+Mutated as [the doctrine](testing-conventions.md#a-test-is-trusted-once-it-has-bitten) asks, in
+two passes.
+
+**By hand: 97 mutations, none survived.** The first round left four alive, all on the check of the
+release tag. Its tests passed for the wrong reason — the fixture changed the tag and left the
+download address on another version, so the address check refused first and the tag check was
+never reached.
+
+**That was not enough.** [The mechanical pass](testing-conventions.md#the-mechanical-pass), run the
+same day, deleted each of the script's 193 lines in turn, and 36 deletions went unnoticed — an
+untested `exit` after "already up to date" among them, and an error message no run could reach.
+Eight remain unnoticed, each for a reason: six blank lines of output, a `;;` before `esac`, and an
+`exit` that `set -u` makes redundant. The line nobody tested was also wrong: "Bundled PHP" printed
+FrankenPHP's own version, having matched the end of that word. It is fixed, and tested.
+
+**The patterns list their characters instead of using ranges.** Run from a UTF-8 locale, which is
+how this script is run, bash reads `0-9` and `a-f` by collation: they matched the digits of other
+scripts, and `é`. A digest or a version written that way was let through by its shape and refused
+further on, so nothing was ever installed — but "refused before any download" was not true there.
+The tests run the script under `en_US.UTF-8`, and fail outright on a machine where that locale
+changes nothing rather than pass for no reason.
 
 ## Checking a configuration change before merging it
 

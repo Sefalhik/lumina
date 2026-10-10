@@ -18,6 +18,7 @@ import {
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stripVTControlCharacters as plain } from 'node:util';
 
 // The real script is run, never a copy of its logic — in a directory that holds a stand-in for
 // ./frankenphp, with a PATH that contains nothing but what the test put there: the real tools the
@@ -192,6 +193,7 @@ function aRelease({ tag = LATEST, age = 10 * DAY, asset = {}, ...overrides } = {
             anAsset('frankenphp-linux-aarch64', { tag, bytes: OTHER_BINARY }),
             anAsset(ASSET, { tag, ...asset }),
             anAsset('frankenphp-mac-arm64', { tag, bytes: OTHER_BINARY }),
+            anAsset('frankenphp-mac-x86_64', { tag, bytes: OTHER_BINARY }),
         ],
         ...overrides,
     };
@@ -218,6 +220,8 @@ function run(
         downloadExit = 0,
         machine = ['Linux', 'x86_64'],
         sudoExit = 0,
+        locale = null,
+        tmp = box.tmp,
     } = {},
 ) {
     writeFileSync(join(box.stub, 'api.json'), apiBody);
@@ -230,7 +234,8 @@ function run(
         encoding: 'utf8',
         env: {
             PATH: box.bin,
-            TMPDIR: box.tmp,
+            TMPDIR: tmp,
+            ...(locale ? { LC_ALL: locale, LANG: locale } : {}),
             STUB_DIR: box.stub,
             STUB_LOG: box.log,
             STUB_NOW: String(NOW),
@@ -255,8 +260,9 @@ function run(
 
     return {
         status: result.status,
-        stdout: result.stdout,
-        stderr: result.stderr,
+        // Without the colours: what is asserted is what is said, not how it is lit.
+        stdout: plain(result.stdout),
+        stderr: plain(result.stderr),
         requests,
         asked: requests.filter((call) => call.at(-1).startsWith('https://api.github.com/')),
         downloads: requests.filter((call) => !call.at(-1).startsWith('https://api.github.com/')),
@@ -702,5 +708,194 @@ describe('update-frankenphp.sh — the confirmation', () => {
 
         expect(result.downloads).toEqual([]);
         expectNothingInstalled(result);
+    });
+});
+
+// What follows was added on 2026-10-10, after the 97 mutations chosen by hand had all been killed.
+// scripts/mutate-lines.js then deleted each line of the script in turn: 36 deletions out of 193
+// went unnoticed, and these are the ones that mattered.
+describe('update-frankenphp.sh — what the mechanical pass found', () => {
+    it('stops at "already up to date", even when the release could be installed', () => {
+        // The first version of this case used a release too young to install and without a digest,
+        // "to show neither matters". It showed the opposite of what it claimed: with the `exit`
+        // after the message deleted, the script went on, held the release back, and the test
+        // stayed green. An old release with a valid digest is the one that would be downloaded.
+        const result = run(sandbox({ current: NEW_BINARY }));
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('FrankenPHP is already up to date (v1.13.0)');
+        expect(result.downloads).toEqual([]);
+        expectNothingInstalled(result, NEW_BINARY);
+    });
+
+    it.each([
+        ['prints no version', '#!/bin/sh\necho "FrankenPHP, some build"\n'],
+        ['prints nothing', '#!/bin/sh\n'],
+        ['fails', '#!/bin/sh\nexit 3\n'],
+    ])('refuses to update a binary that %s, before asking GitHub anything', (_, current) => {
+        // Going on with an empty version would compare it with the latest, find them different,
+        // and install over a file nobody could identify.
+        const result = run(sandbox({ current }));
+
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain('could not determine current FrankenPHP version');
+        expect(result.requests).toEqual([]);
+        expect(result.binary).toBe(current);
+    });
+
+    it('says one thing, and stops, when there is no binary at all', () => {
+        const result = run(sandbox({ current: null }));
+
+        expect(result.stderr).toContain('./frankenphp not found');
+        expect(result.stderr).not.toContain('could not determine');
+    });
+
+    it.each([
+        [['Linux', 'aarch64'], 'frankenphp-linux-aarch64'],
+        [['Darwin', 'arm64'], 'frankenphp-mac-arm64'],
+        [['Darwin', 'x86_64'], 'frankenphp-mac-x86_64'],
+    ])('downloads the binary named for %j', (machine, asset) => {
+        const result = run(sandbox(), { machine, served: OTHER_BINARY });
+
+        expectInstalled(result, OTHER_BINARY);
+        expect(result.downloads.map((call) => call.at(-1))).toEqual([urlOf(LATEST, asset)]);
+    });
+
+    it.each([
+        [['Linux', 'riscv64'], 'unsupported architecture: riscv64'],
+        [['Linux', 'arm64'], 'unsupported architecture: arm64'],
+        [['Darwin', 'aarch64'], 'unsupported architecture: aarch64'],
+        [['Darwin', 'ppc'], 'unsupported architecture: ppc'],
+        [['FreeBSD', 'amd64'], 'unsupported OS: FreeBSD'],
+        [['MINGW64_NT-10.0', 'x86_64'], 'unsupported OS: MINGW64_NT-10.0'],
+    ])('refuses to guess a binary for %j, before asking GitHub anything', (machine, message) => {
+        const result = run(sandbox(), { machine });
+
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain(message);
+        expect(result.requests).toEqual([]);
+        expectNothingInstalled(result);
+    });
+
+    it('stops at a failure it did not plan for, instead of going on with an empty value', () => {
+        // No temporary file can be created. Without `set -e` the script carries on with an empty
+        // name where the answer of GitHub should be written.
+        const result = run(sandbox(), { tmp: '/nonexistent/tmp' });
+
+        expect(result.status).not.toBe(0);
+        expect(result.requests).toEqual([]);
+        expect(result.binary).toBe(CURRENT_BINARY);
+    });
+
+    it('states a refusal once, then its hints', () => {
+        const result = run(sandbox(), { served: `${NEW_BINARY} ` });
+
+        expect(result.stderr.match(/the downloaded file is not the/g)).toHaveLength(1);
+        expect(result.stderr.match(/^ {2}→ /gm)).toHaveLength(3);
+    });
+
+    it('says what a readable delay looks like when it cannot read one', () => {
+        const result = run(sandbox({ npmrc: 'min-release-age=three\n' }));
+
+        expect(result.stderr).toContain('Expected exactly one whole number, as in min-release-age=3.');
+        expect(result.stderr).toContain('A delay that cannot be read is not a delay of zero.');
+    });
+});
+
+describe('update-frankenphp.sh — what it shows', () => {
+    it('says what it is about to install, and what it did', () => {
+        const { stdout } = run(sandbox());
+
+        expect(stdout).toContain('Checking latest FrankenPHP release…');
+        expect(stdout).toContain('FrankenPHP update available');
+        expect(stdout).toContain('Current    v1.12.7');
+        expect(stdout).toContain('Latest     v1.13.0');
+        expect(stdout).toContain(`Published  ${iso(NOW - 10 * DAY)} (10 days ago)`);
+        expect(stdout).toContain(`Binary     ${ASSET}`);
+        expect(stdout).toContain('Downloading v1.13.0…');
+        expect(stdout).toContain('Updated v1.12.7 → v1.13.0');
+    });
+
+    it('names the PHP the new binary bundles, not the version of FrankenPHP', () => {
+        // "FrankenPHP v1.13.0 PHP 8.5.11": looking for "PHP v…" finds the end of the first word.
+        const { stdout } = run(sandbox());
+
+        expect(stdout).toContain('Bundled PHP 8.5.11');
+        expect(stdout).not.toContain('Bundled PHP v');
+    });
+
+    it('says nothing about PHP when the new binary does not name one, and still succeeds', () => {
+        const silent = '#!/bin/sh\necho "FrankenPHP v1.13.0"\n';
+        const result = run(sandbox(), {
+            served: silent,
+            release: aRelease({ asset: { digest: `sha256:${sha256(silent)}` } }),
+        });
+
+        expectInstalled(result, silent);
+        expect(result.stdout).not.toContain('Bundled');
+    });
+
+    it('asks before installing, unless told not to', () => {
+        expect(run(sandbox(), { args: [], input: 'n\n' }).stdout).toContain('Proceed? [y/N]');
+        expect(run(sandbox(), { args: ['--force'] }).stdout).not.toContain('Proceed?');
+    });
+
+    it('says why a release is held back, and what it would take to install it', () => {
+        const { stdout } = run(sandbox(), { release: aRelease({ age: DAY }) });
+
+        expect(stdout).toContain('Current     v1.12.7');
+        expect(stdout).toContain(`Published   ${iso(NOW - DAY)}`);
+        expect(stdout).toContain(
+            'A compromised release is usually withdrawn within hours: waiting is what protects from',
+        );
+        expect(stdout).toContain(
+            'one, the checksum cannot. Once its release notes are read, to install it regardless:',
+        );
+        expect(stdout).toContain('npm run update:frankenphp -- --min-release-age=0');
+    });
+});
+
+describe('update-frankenphp.sh — run from a UTF-8 locale', () => {
+    // It is: the script is typed in a terminal, in French. There, bash reads the ranges `0-9` and
+    // `a-f` by collation — they match the digits of other scripts, and é.
+    const LOCALE = 'en_US.UTF-8';
+    const widens = (range, character) =>
+        spawnSync(BASH, ['-c', `pattern='^[${range}]$'; [[ "$1" =~ $pattern ]]`, 'bash', character], {
+            env: { LC_ALL: LOCALE },
+        }).status === 0;
+
+    it('is tested on a machine where that locale does widen a range, or the tests below prove nothing', () => {
+        expect(widens('a-f', 'é')).toBe(true);
+        expect(widens('0-9', '３')).toBe(true);
+    });
+
+    it.each([
+        ['an accented letter', 'é'],
+        ['a full-width digit', '３'],
+    ])('still refuses a digest holding %s, without downloading anything', (_, character) => {
+        const digest = `sha256:${character}${sha256(NEW_BINARY).slice(1)}`;
+        const result = run(sandbox(), { locale: LOCALE, release: aRelease({ asset: { digest } }) });
+
+        expectRefused(result, `release ${LATEST} publishes no SHA-256 this script reads for ${ASSET}`);
+        expect(result.downloads).toEqual([]);
+    });
+
+    it('still refuses a version written with the digits of another script', () => {
+        const tag = 'v１.13.0';
+        const result = run(sandbox(), { locale: LOCALE, release: aRelease({ tag, tag_name: tag }) });
+
+        expectRefused(result, 'the latest release carries no version this script reads');
+        expect(result.downloads).toEqual([]);
+    });
+
+    it('still refuses a delay written with the digits of another script', () => {
+        const result = run(sandbox({ npmrc: 'min-release-age=３\n' }), { locale: LOCALE });
+
+        expectRefused(result, 'the release age given by ./.npmrc is not a number of days');
+        expect(result.requests).toEqual([]);
+    });
+
+    it('still installs a release that is in order', () => {
+        expectInstalled(run(sandbox(), { locale: LOCALE }));
     });
 });
