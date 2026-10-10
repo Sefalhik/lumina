@@ -16,7 +16,7 @@ This file holds what must be known in every session. Each domain below has its o
 |---|---|---|
 | Authentication, 2FA, roles | `docs/authentication.md` | touching login, 2FA, roles, admin middleware |
 | CV timeline | `docs/cv-timeline.md` | touching `Experience` or adding a CV section |
-| Dependency updates | `docs/dependency-updates.md` | changing `renovate.json5`, handling a Renovate PR |
+| Dependency updates | `docs/dependency-updates.md` | changing `renovate.json5`, handling a Renovate PR, touching `update-frankenphp.sh` |
 | Deployment | `docs/deployment.md` | touching environments, secrets, the server, the deploy sequence |
 | Environment variables | `docs/environment-variables.md` | adding a variable, or asking where a value comes from |
 | Git workflow | `docs/git-workflow.md` | changing the ruleset, re-keying a PR, diagnosing a blocked merge |
@@ -80,8 +80,8 @@ npm run dev                     # Vite HMR dev server
 npm run build                   # Production asset build
 
 # Maintenance
-npm run update:frankenphp             # Update FrankenPHP binary — shows diff, asks confirmation
-npm run update:frankenphp -- --force  # Update without prompt (CI/CD)
+npm run update:frankenphp             # Update FrankenPHP — origin, release age (.npmrc) and SHA-256 verified; asks confirmation
+npm run update:frankenphp -- --force  # Update without prompt (CI/CD) — never skips a verification
 # Note: setcap cap_net_bind_service=+ep is re-applied automatically after each update
 ```
 
@@ -181,7 +181,7 @@ building alternates.
 | `docs/` | Technical documentation |
 | `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
 | `renovate.json5` | Renovate configuration — see `docs/dependency-updates.md` |
-| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
+| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
 
@@ -343,7 +343,7 @@ Key rules:
 - **Runtime majors are never Renovate PRs** — Node and PostgreSQL in CI, and the `"php"` constraint, are disabled: moving CI alone would test a runtime production does not run
 - **Schedule windows stay at 24 hours or more**: the free app visits once a day on an inactive repository
 - Routine Renovate PRs carry no JIRA key, on purpose; a major of a library gets a human ticket
-- **An npm or GitHub Actions release waits 3 days**, written in `renovate.json5` and, for npm, in `.npmrc` and held together by `ReleaseAgeParityTest`; 14 days is for automerge, which is off. A ticked box with a green job and no PR means `lock file error` in the job log
+- **An npm or GitHub Actions release waits 3 days**, written in `renovate.json5` and, for npm, in `.npmrc` and held together by `ReleaseAgeParityTest`; `update:frankenphp` reads that `.npmrc` number for [the FrankenPHP binary](docs/dependency-updates.md#the-frankenphp-binary); 14 days is for automerge, which is off. A ticked box with a green job and no PR means `lock file error` in the job log
 - Testing a config change locally: **`git add` it first**, or the dry run silently ignores it
 
 ## Branch protection and merge policy

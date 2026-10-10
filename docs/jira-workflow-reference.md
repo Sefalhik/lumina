@@ -208,9 +208,9 @@ theirs one by one, as their turn comes. A finished ticket is never re-estimated 
 work already done.
 
 **The field is missing from the creation metadata of the Tech issue type**, which suggests it does
-not exist. It can be written by editing the ticket all the same — checked on 2026-10-07 on LUMN-73.
-Setting it at creation was not tried: failing that, write it straight after, then read the field
-back.
+not exist. It can be written all the same: when the ticket is created, next to the priority —
+checked on 2026-10-10 on LUMN-74 — and by editing the ticket afterwards — checked on 2026-10-07 on
+LUMN-73. Either way, read the field back.
 
 ### What this scale rests on
 
