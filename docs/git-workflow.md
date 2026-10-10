@@ -76,7 +76,7 @@ Amending a commit already on `main` is not an option here and never will be: the
 
 ### Pull requests that carry no key
 
-The rule binds work that has a ticket. Three kinds of pull request reach `main` without one, each on
+The rule binds work that has a ticket. Four kinds of pull request reach `main` without one, each on
 purpose:
 
 - **Routine Renovate updates** — see [Dependency updates](dependency-updates.md).
@@ -84,10 +84,19 @@ purpose:
   [Session brain dumps](../CLAUDE.md#session-brain-dumps).
 - **Documentation-only changes**, since 2026-10-07: a `docs:` pull request from a `docs/…` branch.
   A ticket would track nothing there — no behaviour to accept, deploy or roll back.
+- **Repairs to the tests of a ticket already merged**, since 2026-10-10: a pull request titled
+  `[HORS-TICKET] …`, from a `fix/…` branch. The ticket has its one commit on `main` and takes no
+  second one; a new ticket would track a debt of the first, not an intention. The prefix stands
+  where the key would: reading the log, a commit without a ticket says so itself.
 
 The third holds only while the pull request changes documentation **and nothing else**.
 Documentation that describes a change of behaviour travels with the ticket that changes the
 behaviour. One pull request still carries one subject.
+
+The fourth holds only while what changes is what the ticket had already promised: its tests, and
+its code where a test shows the promise was not kept. A behaviour nobody had asked for is a new
+intention, and gets a ticket. The first of them, on 2026-10-10, also carried the tool that found
+the gaps — `scripts/mutate-lines.js` — since a repair nobody can replay is half a repair.
 
 **Neither the branch name nor the title may quote a ticket key.** `jira-sync.yml` reads both — see
 [Re-keying a pull request means opening a new one](#re-keying-a-pull-request-means-opening-a-new-one) —

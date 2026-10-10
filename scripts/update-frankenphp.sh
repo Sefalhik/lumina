@@ -36,7 +36,6 @@ refuse() {
 }
 
 FORCE=0
-MIN_RELEASE_AGE=""
 MIN_RELEASE_AGE_SOURCE=""
 for arg in "$@"; do
   case "$arg" in
@@ -60,11 +59,15 @@ REPO="php/frankenphp"
 API_URL="https://api.github.com/repos/${REPO}/releases/latest"
 
 SECONDS_PER_DAY=86400
+# Every character is listed rather than given as a range. In a UTF-8 locale — the one this script
+# is run from — bash reads `0-9` and `a-f` by collation, and they then match the digits of other
+# scripts, or é. What these patterns let through comes from a release, not from this machine.
+DIGIT='[0123456789]'
 # Whole days, no sign, no leading zero — bash would read 08 as an invalid octal number.
-DAYS_PATTERN='^(0|[1-9][0-9]{0,3})$'
-VERSION_PATTERN='^v[0-9]+\.[0-9]+\.[0-9]+$'
-EPOCH_PATTERN='^[0-9]+$'
-DIGEST_PATTERN='^sha256:[0-9a-f]{64}$'
+DAYS_PATTERN="^(0|[123456789]${DIGIT}{0,3})$"
+VERSION_PATTERN="^v${DIGIT}+\\.${DIGIT}+\\.${DIGIT}+$"
+EPOCH_PATTERN="^${DIGIT}+$"
+DIGEST_PATTERN='^sha256:[0123456789abcdef]{64}$'
 
 # ── Current version ───────────────────────────────────────────────────────────
 
@@ -73,7 +76,9 @@ if [[ ! -f "$BINARY" ]]; then
   exit 1
 fi
 
-CURRENT_VERSION=$("$BINARY" --version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+# `|| true`: a binary that prints no version makes grep fail, and with `pipefail` the script used to
+# stop on this very line, in silence, before it could say what follows.
+CURRENT_VERSION=$("$BINARY" --version 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
 if [[ -z "$CURRENT_VERSION" ]]; then
   printf "${RED}Error:${RESET} could not determine current FrankenPHP version.\n" >&2
   exit 1
@@ -270,8 +275,10 @@ mv "$TMPFILE" "$BINARY"
 
 echo ""
 printf "  ${GREEN}✔${RESET}  Updated ${DIM}%s${RESET} → ${GREEN}${BOLD}%s${RESET}\n" "$CURRENT_VERSION" "$LATEST_VERSION"
-BUNDLED_PHP=$("$BINARY" --version 2>/dev/null | grep -oE 'PHP v[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
-[[ -n "$BUNDLED_PHP" ]] && printf "  ${DIM}Bundled %s${RESET}\n" "$BUNDLED_PHP"
+# The space before PHP is what tells it from the end of "FrankenPHP", whose own version this
+# line printed until 2026-10-10.
+BUNDLED_PHP=$("$BINARY" --version 2>/dev/null | grep -oE ' PHP [0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)
+[[ -n "$BUNDLED_PHP" ]] && printf "  ${DIM}Bundled%s${RESET}\n" "$BUNDLED_PHP"
 
 # Restore capability to bind privileged ports (lost when binary is replaced)
 if sudo setcap cap_net_bind_service=+ep "$BINARY" 2>/dev/null; then

@@ -15,16 +15,24 @@ export default defineConfig({
             // Vue components are covered by Playwright E2E — component unit tests
             // are a separate category requiring Vue Test Utils.
             //
-            // scripts/audit-advisories.js is the one tooling script in scope, and held to 100%:
-            // it is a watch, and a line of it nobody exercises is a way for it to go quiet.
+            // Two tooling scripts are in scope, and held to 100%. scripts/audit-advisories.js is a
+            // watch, and a line of it nobody exercises is a way for it to go quiet.
+            // scripts/mutate-lines.js is what says whether the other tests can be trusted: it has
+            // to be held to what it asks of them.
             // scripts/e2e-preflight.js is not measured yet — 88% of lines, 70% of branches.
-            include: ['resources/js/utils/**/*.js', 'scripts/audit-advisories.js'],
+            include: ['resources/js/utils/**/*.js', 'scripts/audit-advisories.js', 'scripts/mutate-lines.js'],
             thresholds: {
                 statements: 80,
                 branches: 80,
                 functions: 80,
                 lines: 80,
                 'scripts/audit-advisories.js': {
+                    statements: 100,
+                    branches: 100,
+                    functions: 100,
+                    lines: 100,
+                },
+                'scripts/mutate-lines.js': {
                     statements: 100,
                     branches: 100,
                     functions: 100,

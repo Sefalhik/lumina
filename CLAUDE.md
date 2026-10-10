@@ -190,7 +190,7 @@ building alternates.
 - Config is in `config/octane.php`.
 
 ## Testing conventions
-See `docs/testing-conventions.md` before writing or changing any test — PHPUnit, Vitest or Playwright. It opens with [the doctrine](docs/testing-conventions.md#the-doctrine): each thing tested at its lowest level, past the happy path, and **a test is only trusted once breaking the code has turned it red**.
+See `docs/testing-conventions.md` before writing or changing any test — PHPUnit, Vitest or Playwright. It opens with [the doctrine](docs/testing-conventions.md#the-doctrine): each thing tested at its lowest level, past the happy path, and **a test is only trusted once breaking the code has turned it red** — by hand, and with [the mechanical pass](docs/testing-conventions.md#the-mechanical-pass), `node scripts/mutate-lines.js <file> -- <test command>`.
 
 Key rules:
 - Test database: **PostgreSQL** `cardascia_it_test`, never SQLite; E2E runs on its own `cardascia_it_e2e` database and server (port 8001)
@@ -351,7 +351,7 @@ See `docs/git-workflow.md` before changing the ruleset, re-keying a pull request
 
 Key rules:
 - `main` is protected by one ruleset with **no bypass actor**: no direct push, no force-push, squash only, [required checks](docs/git-workflow.md#required-checks) in strict mode
-- **One intention, one ticket, one PR, one commit.** Several PRs sharing a JIRA key break the rule; a ticket spanning two intentions is at the wrong level — split it. Three kinds of PR carry no key on purpose, documentation-only ones included: [Pull requests that carry no key](docs/git-workflow.md#pull-requests-that-carry-no-key)
+- **One intention, one ticket, one PR, one commit.** Several PRs sharing a JIRA key break the rule; a ticket spanning two intentions is at the wrong level — split it. Four kinds of PR carry no key on purpose, documentation-only ones included: [Pull requests that carry no key](docs/git-workflow.md#pull-requests-that-carry-no-key)
 - Strict mode: once a PR merges, rebase the others before merging them
 - Re-keying a PR means **renaming the branch and opening a new PR** — `jira-sync.yml` reads the branch name first
 - Check protection with `gh api repos/Sefalhik/lumina/rules/branches/main`, never the classic `/protection` endpoint — it is blind to rulesets

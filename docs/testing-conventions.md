@@ -64,6 +64,48 @@ Two rules of practice:
   must turn red. Otherwise another guard is doing the refusing, and the test passes with or without
   the fix.
 
+### The mechanical pass
+
+Mutations chosen by hand are chosen by whoever wrote the tests, and share their blind spots.
+`scripts/mutate-lines.js` chooses nothing: it deletes each line of a file in turn, reruns a command,
+and names the deletions that command did not notice.
+
+```bash
+node scripts/mutate-lines.js scripts/update-frankenphp.sh -- \
+    npx vitest run scripts/__tests__/update-frankenphp.test.js --bail=1
+```
+
+It exits 0 when every deletion is noticed, 1 when at least one is not, and 2 when the pass could
+not run. It works on anything read line by line — a shell script, a workflow, JavaScript, PHP —
+and leaves blank lines and comments alone.
+
+**The measured case is the day it was written, 2026-10-10.** `update-frankenphp.sh` had just been
+declared tested: 97 mutations chosen by hand, none surviving. The mechanical pass then deleted each
+of its 193 lines, and 36 deletions went unnoticed. Most were lines of display. Four were not:
+
+- the `exit` after "already up to date". The test meant to cover it used a release that could not
+  have been installed anyway, "to show neither matters" — so the script went on, held the release
+  back, and the test stayed green;
+- a binary that prints no version, which no test covered — and whose error message turned out to
+  be **unreachable**: the pipeline that reads the version failed first, `pipefail` ended the script
+  on that line, and it exited 1 without a word;
+- the macOS and unsupported-platform branches;
+- `set -euo pipefail` itself.
+
+Four rules come with the tool:
+
+- **Both passes, never one.** The mechanical pass is a floor. It finds the line nobody tests, never
+  the rule that was coded wrong: a `<` where a `<=` was meant is not a deleted line. Mutations
+  written from what the code must refuse remain the method.
+- **Every survivor gets a verdict, written down.** A line to test; a line to delete, because it is
+  a guard that cannot fire; or a line whose absence changes nothing — a `;;` before `esac`, a blank
+  line of output. "Eight are left" is not a result. "Eight are left, and here is why each" is.
+- **A command that already fails is refused.** Every deletion would then look noticed, and the pass
+  would report a perfect score from a suite that cannot pass at all.
+- **The file is put back, whatever happens** — a command that blows up, `Ctrl-C` — and a copy named
+  `<file>.before-mutation` sits beside it meanwhile. If the process is killed outright, that copy
+  is the original: the tool refuses to start again until it has been dealt with.
+
 ### What 100% does not see
 
 The bar for logic is 100%. The threshold enforced today is lower — see
