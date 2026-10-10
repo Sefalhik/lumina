@@ -180,8 +180,14 @@ internal rewrites, and there was no decision for a ticket to record.
 
 **This holds only while every action is exercised by a pull request.** That is true today: every
 job of `ci.yml` runs on pull requests, and `jira-sync.yml` uses no action. An action used by a
-deployment workflow alone would be updated without ever being run before the merge — **narrow the
-rule the day one exists** (LUMN-50 to 54).
+deployment workflow alone would be updated without ever being run before the merge.
+
+The deployment workflow exists since LUMN-50, and the rule did not have to be narrowed:
+`deploy.yml` uses **no action at all**, and `scripts/__tests__/deploy-workflow.test.js` fails the
+day it does. That was decided for another reason first — no third-party code next to the SSH key,
+see [The pipeline's access to the server](deployment.md#the-pipelines-access-to-the-server) — and
+it keeps this rule true as a consequence. **Narrow the rule the day a deployment workflow needs an
+action** (LUMN-51 to 54).
 
 The rule matches `depType: action`, which leaves out the `postgres` service image and the Node
 version: see [Runtime majors](#runtime-majors).

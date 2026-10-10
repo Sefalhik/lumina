@@ -162,6 +162,34 @@ declares `permissions: {}` — it never uses the GitHub token, only its own JIRA
 first analysis, on 2026-10-03, reported exactly this: four `actions/missing-workflow-permissions`
 results, one per job, and nothing else.
 
+### Repository settings for Actions
+
+Four settings live in the repository rather than in a file. Three were tightened on 2026-10-10 with
+LUMN-50 — the day a workflow started holding a key to a server.
+
+| Setting | Value | Why |
+|---|---|---|
+| Actions allowed | GitHub's own, plus an explicit list: `shivammathur/setup-php` | a workflow cannot start running an action nobody chose. It was "all" |
+| Pinning by full commit SHA | required | a tag can be moved onto other code. Every action was already pinned, by Renovate: this makes it a rule rather than a habit |
+| Workflows from fork pull requests | approval for every external contributor | it was first-time contributors only |
+| Default token | read-only, and cannot approve a pull request | unchanged |
+
+```bash
+gh api repos/Sefalhik/lumina/actions/permissions                               # allowed_actions, sha_pinning_required
+gh api repos/Sefalhik/lumina/actions/permissions/selected-actions              # the explicit list
+gh api repos/Sefalhik/lumina/actions/permissions/fork-pr-contributor-approval
+gh api repos/Sefalhik/lumina/actions/permissions/workflow                      # the default token
+```
+
+**Adding an action to a workflow now takes two changes**: the workflow, and the list. An action
+from another publisher than GitHub that is not on the list is refused by GitHub, whatever the
+workflow says. `deploy.yml` uses no action at all — see
+[The pipeline's access to the server](deployment.md#the-pipelines-access-to-the-server).
+
+Measured the same day under these settings: `security-audit.yml` and the `ci.yml` run of `main`
+both pass. CodeQL's default setup is a workflow GitHub manages, which cannot be started by hand:
+whether "pinning required" suits it was **not measured** that day.
+
 ## Known vulnerabilities
 
 Five things watch for them, and **three of the five are repository settings, not code** — no test in

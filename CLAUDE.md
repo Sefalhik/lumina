@@ -181,7 +181,7 @@ building alternates.
 | `docs/` | Technical documentation |
 | `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
 | `renovate.json5` | Renovate configuration — see `docs/dependency-updates.md` |
-| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
+| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update, the deployment sequence `deploy.sh`, its SSH gate `deploy-gate.sh` and the probe of the key `check-deploy-key.sh`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
 
@@ -285,7 +285,7 @@ Key rules:
   publishes the `/e2e/admin-auth` backdoor. Name the environment after its exposure, not its role.
 - **Secrets have three homes, none of them the repository**: a password manager (human), the
   server-side `.env` at `/home/cardascia-it/preprod/.env` — above the `preprod/public` docroot by
-  construction — and GitHub repository secrets (pipeline). `.env.example` documents *which*
+  construction — and GitHub **environment** secrets (pipeline; its SSH key is tied to `scripts/deploy-gate.sh`). `.env.example` documents *which*
   variables exist; `docs/deployment.md` documents *where each value comes from*, with no values.
 - **`ANTHROPIC_API_KEY` does not exist in preprod or production.** Since LUMN-29 the translated
   content ships with the deployment, so neither translation command runs on a server. A key that is
