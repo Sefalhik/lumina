@@ -92,6 +92,7 @@ function runStep(overrides = {}, { sshExit = 0, flags = ['-e'] } = {}) {
         env: {
             PATH: box.bin,
             RUNNER_TEMP: box.runnerTemp,
+            GITHUB_STEP_SUMMARY: join(root, 'summary.md'),
             STUB_LOG: box.log,
             STUB_DIR: root,
             STUB_SSH_EXIT: String(sshExit),
@@ -109,6 +110,7 @@ function runStep(overrides = {}, { sshExit = 0, flags = ['-e'] } = {}) {
     return {
         status: result.status,
         output: result.stdout + result.stderr,
+        summary: read('summary.md'),
         connections: callsIn(box.log)
             .filter(([tool]) => tool === 'ssh')
             .map(([, ...args]) => args),
@@ -138,6 +140,10 @@ const outline = () => {
         .filter((line) => /^\s*(?:- )?[\w-]+:/.test(line))
         .map((line) => line.match(/^(\s*(?:- )?[\w-]+):/)[1]);
 };
+
+// What GitHub runs from that directory: the YAML files, and nothing else. A copy left beside one
+// of them — the mutation pass keeps one while it works — is not a workflow.
+const workflows = () => readdirSync(inRepository(WORKFLOWS)).filter((file) => /\.ya?ml$/.test(file));
 
 describe('deploy.yml — what it declares', () => {
     it('has exactly the shape the tests below were written for', () => {
@@ -261,7 +267,7 @@ describe('deploy.yml — what it declares', () => {
     });
 
     it('is the only workflow that names the deployment environment or its key', () => {
-        const others = readdirSync(inRepository(WORKFLOWS)).filter((file) => file !== 'deploy.yml');
+        const others = workflows().filter((file) => file !== 'deploy.yml');
 
         expect(others).not.toHaveLength(0);
         others.forEach((file) => {
@@ -272,7 +278,7 @@ describe('deploy.yml — what it declares', () => {
     });
 
     it('lives in a repository where no workflow runs on pull_request_target', () => {
-        readdirSync(inRepository(WORKFLOWS)).forEach((file) => {
+        workflows().forEach((file) => {
             expect(readFileSync(inRepository(`${WORKFLOWS}/${file}`), 'utf8'), file).not.toContain(
                 'pull_request_target',
             );
@@ -305,6 +311,50 @@ describe('deploy.yml — what its step does', () => {
         expect(result.status).toBe(0);
         expect(result.connections[0].at(-1)).toBe('php-version');
         expect(result.output).toContain('PHP 8.5.99');
+    });
+
+    it('says on the page of the run what was asked, of which commit, and that it was done', () => {
+        const result = runStep({ REQUEST: 'deploy' });
+
+        // The whole of it: a table GitHub renders needs its empty line and its two header rows.
+        expect(result.summary).toBe(
+            [
+                '### Deploy — preprod',
+                '',
+                '| | |',
+                '|---|---|',
+                '| Request | `deploy` |',
+                `| Commit | \`${SHA}\` |`,
+                '| Outcome | done (exit status 0) |',
+                '',
+            ].join('\n'),
+        );
+        expect(result.output).not.toContain('::error');
+    });
+
+    it.each([
+        ['the server refused, or the deployment failed there', 1, 'refused by the server, or failed there'],
+        ['a script on the server stopped on a signal', 143, 'refused by the server, or failed there'],
+        ['another deployment was running', 75, 'refused: another deployment was running on the server'],
+        ['the server could not be reached', 255, 'not asked: the connection to the server failed'],
+    ])('fails with the status of the server and says which kind of failure when %s', (_, sshExit, outcome) => {
+        const result = runStep({ REQUEST: 'deploy' }, { sshExit });
+
+        expect(result.status).toBe(sshExit);
+        expect(result.summary).toContain(`| Outcome | ${outcome} (exit status ${sshExit}) |`);
+        expect(result.output).toContain(
+            `::error title=Deploy — preprod::"deploy" was ${outcome} (exit status ${sshExit}).`,
+        );
+        expect(result.output).toContain('shared/storage/logs/');
+        // Reported, and the key is gone all the same.
+        expect(result.leftOnRunner).toEqual([]);
+    });
+
+    it('writes nothing on the page of the run when nothing was asked of the server', () => {
+        // A request the workflow does not know, a setting that is missing: the annotation is the
+        // one of that refusal, and no outcome is claimed for a request that was never made.
+        expect(runStep({ REQUEST: 'shell' }).summary).toBeNull();
+        expect(runStep({ DEPLOY_SSH_KEY: '' }).summary).toBeNull();
     });
 
     it('connects with the pinned host key and nothing else to go by', () => {

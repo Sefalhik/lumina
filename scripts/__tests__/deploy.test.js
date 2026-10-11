@@ -76,7 +76,7 @@ if [[ "$call" == 'php artisan migrate'* ]]; then
   ls public/build/assets > "$STUB_DIR/assets-at-migrate" 2> /dev/null
 fi
 if [[ -n "\${STUB_INTERRUPT:-}" && "$call" == "$STUB_INTERRUPT"* ]]; then
-  kill -TERM "$PPID"
+  kill "-\${STUB_SIGNAL:-TERM}" "$PPID"
 fi
 if [[ -n "\${STUB_FAIL:-}" && "$call" == "$STUB_FAIL"* ]]; then
   printf 'stand-in: "%s" failed\\n' "$call" >&2
@@ -160,7 +160,8 @@ function sandbox({ firstRelease = false } = {}) {
  *
  * @param {object} box
  * @param {{args?: string[], fail?: string, interrupt?: string, cwd?: string, lockFd?: string|null,
- *          locked?: boolean, builds?: string[], release?: string, bin?: string}} [options]
+ *          locked?: boolean, builds?: string[], release?: string, bin?: string, full?: string,
+ *          signal?: string}} [options]
  */
 function deploy(
     box,
@@ -175,6 +176,7 @@ function deploy(
         release = box.release,
         bin = 'bin',
         full = '',
+        signal = 'TERM',
     } = {},
 ) {
     const letGo = locked ? holdLock(box.site) : () => {};
@@ -191,6 +193,7 @@ function deploy(
                 STUB_SITE: box.site,
                 STUB_FAIL: fail,
                 STUB_INTERRUPT: interrupt,
+                STUB_SIGNAL: signal,
                 STUB_FULL: full,
                 STUB_BUILDS: builds.join(' '),
                 STUB_EPOCH: String(EPOCH),
@@ -214,6 +217,10 @@ function deploy(
         inService: inService(box.site),
         releases: readdirSync(paths(box.site).releases).sort(),
         lastDeployment: read(paths(box.site).lastDeployment),
+        // What the script wrote of this run in the journal the site keeps, without its date.
+        journal: lines(join(box.site, 'shared', 'storage', 'logs', 'deployments.log')).map((line) =>
+            line.replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z /, ''),
+        ),
     };
 }
 
@@ -427,6 +434,123 @@ describe('deploy.sh — when a step fails', () => {
 
         expect(read(join(box.site, 'shared', '.env'))).toBe('APP_ENV=production\n');
         expect(read(join(box.site, 'shared', 'storage', 'logs', 'through.log'))).toBe('written through the release\n');
+    });
+});
+
+describe('deploy.sh — what it says when it fails', () => {
+    // The command that failed says why. The script says the rest: what it was doing, what the site
+    // serves now, and what became of the release it was building — the three things somebody
+    // reading the log of a failed deployment needs before deciding what to do.
+    it.each(SEQUENCE)('names "%s" as what it was running', (step) => {
+        const result = deploy(sandbox(), { fail: step });
+
+        expect(result.stderr).toContain(`Deployment of ${NEW} FAILED while running "${step}" (exit status 1).`);
+        expect(result.journal).toEqual([`failed ${NEW} while running "${step}" (exit 1)`]);
+    });
+
+    it('says what the site still serves, and that nothing is left to clean up', () => {
+        const result = deploy(sandbox(), { fail: 'npm run build' });
+
+        expect(result.stderr).toContain(`The site serves what it served before: ${OLD}, release ${SERVED}.`);
+        expect(result.stderr).toContain('The release that was being built was removed: nothing is left to clean up.');
+        // After the words of the command that failed, not instead of them.
+        expect(result.stderr.indexOf('stand-in: "npm run build" failed')).toBeLessThan(
+            result.stderr.indexOf('FAILED while'),
+        );
+    });
+
+    it.each([
+        ['preparing the release', 'ln#1'],
+        ['keeping the compiled files of the release in service', 'cp#1'],
+        ['putting the release in service', 'mv#1'],
+    ])('says "%s" when that is where it stopped', (doing, full) => {
+        const box = sandbox();
+        const served = join(box.site, 'releases', SERVED);
+        mkdirSync(join(served, 'public', 'build', 'assets'), { recursive: true });
+        writeFileSync(join(served, 'public', 'build', 'assets', 'app-OLD.js'), 'old\n');
+        writeFileSync(join(served, '.built-assets'), 'app-OLD.js\n');
+        const result = deploy(box, { builds: ['app-NEW.js'], full });
+
+        expect(result.stderr).toContain(`Deployment of ${NEW} FAILED while ${doing} (exit status 1).`);
+        expect(result.journal).toEqual([`failed ${NEW} while ${doing} (exit 1)`]);
+    });
+
+    it.each([
+        ['the job was cancelled', 'TERM', 143],
+        ['the connection dropped', 'HUP', 129],
+        ['somebody pressed Ctrl-C', 'INT', 130],
+        ['nobody was reading its output any more', 'PIPE', 141],
+    ])('says that it was interrupted, and fails, when %s', (_, signal, status) => {
+        // Left to itself, bash ends an interrupted script with the status of the command it was
+        // waiting for: a deployment cut in the middle of a step that had gone well said "exit
+        // status 0" in the first version of this report.
+        const box = sandbox();
+        const result = deploy(box, { interrupt: 'npm run build', signal });
+
+        expect(result.status).toBe(status);
+        expect(result.stderr).toContain(
+            `Deployment of ${NEW} FAILED while running "npm run build" (exit status ${status}, interrupted by a signal).`,
+        );
+        expect(result.journal).toEqual([`failed ${NEW} while running "npm run build" (exit ${status})`]);
+        expect(result.inService).toBe(SERVED);
+        expect(result.releases).toEqual([SERVED]);
+    });
+
+    it('says that the site serves nothing yet, when its first release fails', () => {
+        const result = deploy(sandbox({ firstRelease: true }), { fail: 'composer install' });
+
+        expect(result.stderr).toContain('The site serves what it served before: nothing yet.');
+    });
+
+    it('says that the release is in service when it is stopped after the switch, rather than that it failed', () => {
+        const result = deploy(sandbox(), { bin: 'bin-interrupted' });
+
+        expect(result.stderr).toContain(
+            `Release ${BUILT} is in service, and the script stopped before it had finished (exit status 143).`,
+        );
+        expect(result.stderr).not.toContain('FAILED');
+        expect(result.journal).toEqual([`deployed ${NEW} as ${BUILT}, then stopped (exit 143)`]);
+    });
+
+    it('says nothing of a failure when there was none, and writes what it did', () => {
+        const result = deploy(sandbox());
+
+        expect(result.stderr).toBe('');
+        expect(result.stdout).toContain(`Release ${BUILT} is in service; it replaced ${SERVED}.`);
+        expect(result.journal).toEqual([`deployed ${NEW} as ${BUILT}, replacing ${SERVED}`]);
+    });
+
+    it('says that it replaced nothing, for the first release of a site', () => {
+        const result = deploy(sandbox({ firstRelease: true }));
+
+        expect(result.stdout).toContain(`Release ${BUILT} is in service; it replaced nothing.`);
+        expect(result.journal).toEqual([`deployed ${NEW} as ${BUILT}, replacing nothing`]);
+    });
+
+    it('dates each line of its journal, and adds to what is there', () => {
+        const box = sandbox();
+        const journal = join(box.site, 'shared', 'storage', 'logs', 'deployments.log');
+        writeFileSync(journal, 'an earlier line\n');
+        deploy(box);
+
+        expect(lines(journal)).toEqual([
+            'an earlier line',
+            expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z deployed /),
+        ]);
+    });
+
+    it.each([
+        ['a deployment that succeeds', {}, 0],
+        ['a deployment that fails', { fail: 'npm ci' }, 1],
+    ])('is not changed by a journal that cannot be written: %s', (_, options, status) => {
+        // The journal is a trace, never a step: a full disk under it changes neither outcome.
+        const box = sandbox();
+        symlinkSync('/dev/full', join(box.site, 'shared', 'storage', 'logs', 'deployments.log'));
+        const result = deploy(box, options);
+
+        expect(result.status).toBe(status);
+        expect(result.stderr).toContain('deployments.log could not be written.');
+        expect(result.inService).toBe(status === 0 ? BUILT : SERVED);
     });
 });
 

@@ -48,25 +48,70 @@ if ( exec 8>> "${SITE}/shared/deploy.lock" && flock --nonblock 8 ) 2> /dev/null;
 fi
 
 RELEASE_SHA="${NAME##*-}"
+JOURNAL="${SITE}/shared/storage/logs/deployments.log"
+# What the script is doing, in words that finish the sentence "it failed while …".
+DOING='preparing the release'
 
+# What happened to the site, one line each time, kept on the server: whoever asked, and wherever
+# their own log went. Never a reason to fail: a journal that cannot be written is said, and the
+# deployment goes on being what it was.
+journal() {
+  { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" >> "$JOURNAL"; } 2> /dev/null ||
+    printf 'Warning: %s could not be written.\n' "$JOURNAL" >&2
+}
+
+# The last thing this script does, however it ends.
+#
 # A release that was not put in service leaves nothing behind: every directory of releases/ is
 # then one that was served, and one a rollback can go to. Whether this one is in service is asked
 # of the site, not remembered: wherever this script is interrupted, the directory the link points
 # to is never the one removed.
-abandon() {
-  if [[ "$(cd -P "${SITE}/current" 2> /dev/null && pwd)" != "$RELEASE_DIR" ]]; then
-    # The link that was about to replace `current`, when the script stopped between the two.
-    if [[ "$(readlink "${SITE}/current.next" 2> /dev/null)" == "releases/${NAME}" ]]; then
-      rm -f "${SITE}/current.next"
+#
+# And a deployment that fails says so in full: what it was doing, what the site serves now, and
+# what was done with the release it was building. The command that failed has already said why,
+# just above.
+finish() {
+  local status=$? served='nothing yet' how=''
+
+  if [[ "$(cd -P "${SITE}/current" 2> /dev/null && pwd)" == "$RELEASE_DIR" ]]; then
+    if ((status != 0)); then
+      printf '\nRelease %s is in service, and the script stopped before it had finished (exit status %s).\n' "$NAME" "$status" >&2
+      journal "deployed ${RELEASE_SHA} as ${NAME}, then stopped (exit ${status})"
     fi
-    rm -rf "$RELEASE_DIR"
+    return
   fi
+
+  # The link that was about to replace `current`, when the script stopped between the two.
+  if [[ "$(readlink "${SITE}/current.next" 2> /dev/null)" == "releases/${NAME}" ]]; then
+    rm -f "${SITE}/current.next"
+  fi
+  rm -rf "$RELEASE_DIR"
+
+  if [[ -e "${SITE}/current" ]]; then
+    served="$(cat "${SITE}/current/RELEASE" 2> /dev/null || true), release $(basename "$(cd -P "${SITE}/current" && pwd)")"
+  fi
+  # 128 and above is a signal: a connection that dropped, a job that was cancelled.
+  if ((status > 128)); then
+    how=', interrupted by a signal'
+  fi
+  printf '\nDeployment of %s FAILED while %s (exit status %s%s).\n' "$RELEASE_SHA" "$DOING" "$status" "$how" >&2
+  printf 'The site serves what it served before: %s.\n' "$served" >&2
+  printf 'The release that was being built was removed: nothing is left to clean up.\n' >&2
+  journal "failed ${RELEASE_SHA} while ${DOING} (exit ${status})"
 }
-trap abandon EXIT
+trap finish EXIT
+# A signal is an end like any other, and has to pass through the last words of this script: left
+# to itself, bash stops with the status of the command it was waiting for — often 0 — and the
+# report would call an interruption a success. Each one becomes the exit status a shell gives it.
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 141' PIPE
+trap 'exit 143' TERM
 
 cd "$RELEASE_DIR"
 
 step() {
+  DOING="running \"$*\""
   printf '\n── %s\n' "$*"
   "$@"
 }
@@ -138,6 +183,7 @@ ln -s "${SITE}/shared/.env" .env
 step composer install --no-dev --optimize-autoloader --no-interaction
 step npm ci
 step npm run build
+DOING='keeping the compiled files of the release in service'
 keep_previous_assets
 step php artisan migrate --force --no-interaction
 # --force answers Laravel's production confirmation, without which the command is cancelled in a
@@ -156,8 +202,11 @@ REPLACED=''
 if [[ -e "${SITE}/current" ]]; then
   REPLACED=$(basename "$(cd -P "${SITE}/current" && pwd)")
 fi
+DOING='putting the release in service'
 put_in_service "$REPLACED"
 # The release is in service: nothing below can make this deployment a failed one.
 prune "$REPLACED" || printf 'Warning: some old releases could not be removed.\n' >&2
 
+journal "deployed ${RELEASE_SHA} as ${NAME}, replacing ${REPLACED:-nothing}"
 printf '\nDeployed %s\n' "$RELEASE_SHA"
+printf 'Release %s is in service; it replaced %s.\n' "$NAME" "${REPLACED:-nothing}"

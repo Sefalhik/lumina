@@ -83,18 +83,57 @@ if [[ "$TARGET" == "$CURRENT" ]]; then
   fail "${TARGET} is the release being served."
 fi
 
+TARGET_SHA=$(cat "${SITE}/releases/${TARGET}/RELEASE")
+JOURNAL="${SITE}/shared/storage/logs/deployments.log"
+DOING='caching the configuration of the release to go back to'
+
+journal() {
+  { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" >> "$JOURNAL"; } 2> /dev/null ||
+    printf 'Warning: %s could not be written.\n' "$JOURNAL" >&2
+}
+
+# The last thing this script does when it does not end well. Whether the release is back in
+# service is asked of the link, not remembered: stopped the instant after the switch, the script
+# must not announce a failure that did not happen. A rollback that did fail says where it stopped
+# and what the site serves — the command that failed has already said why, just above.
+finish() {
+  local status=$?
+  if ((status == 0)); then
+    return
+  fi
+  if [[ "$(readlink "${SITE}/current" 2> /dev/null)" == "releases/${TARGET}" ]]; then
+    printf '\nRelease %s is back in service, and the script stopped before it had finished (exit status %s).\n' "$TARGET" "$status" >&2
+    journal "rolled back to ${TARGET_SHA} as ${TARGET}, then stopped (exit ${status})"
+    return
+  fi
+  printf '\nRollback to %s FAILED while %s (exit status %s).\n' "$TARGET_SHA" "$DOING" "$status" >&2
+  printf 'The site serves what it served before: release %s.\n' "${CURRENT:-none}" >&2
+  journal "failed to roll back to ${TARGET_SHA} while ${DOING} (exit ${status})"
+}
+trap finish EXIT
+# A signal is an end like any other, and has to pass through the last words of this script: left
+# to itself, bash stops with the status of the command it was waiting for — often 0 — and the
+# report would call an interruption a success. Each one becomes the exit status a shell gives it.
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 141' PIPE
+trap 'exit 143' TERM
+
 # The configuration of that release was cached when it was built, and .env may have changed since:
 # what is put back in service has to read today's.
 printf '\n── php artisan config:cache\n'
 (cd "${SITE}/releases/${TARGET}" && php artisan config:cache)
 
+DOING='putting that release back in service'
 ln -sfn "releases/${TARGET}" "${SITE}/current.next"
 mv -T "${SITE}/current.next" "${SITE}/current"
+journal "rolled back to ${TARGET_SHA} as ${TARGET}, leaving ${CURRENT:-nothing}"
 
 # What was undone is no longer "the last deployment": going further back is a release to name.
 # The release is in service: nothing below can make this rollback a failed one.
 rm -f "${SITE}/shared/last-deployment" 2> /dev/null ||
   printf 'Warning: %s/shared/last-deployment could not be removed: remove it by hand before the pipeline is asked to undo anything.\n' "$SITE" >&2
 
-printf '\nRolled back to %s\n' "$(cat "${SITE}/releases/${TARGET}/RELEASE")"
+printf '\nRolled back to %s\n' "$TARGET_SHA"
+printf 'Release %s is in service; it replaced %s.\n' "$TARGET" "${CURRENT:-nothing}"
 printf 'The database was not rolled back: migrations only go forward.\n'

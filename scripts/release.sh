@@ -72,6 +72,35 @@ fi
 NAME="$(date -u +%Y%m%d-%H%M%S)-${SHA}"
 TARGET="${SITE}/releases/${NAME}"
 
+# Everything this deployment says from here on, kept on the server as well as sent to whoever
+# asked: the day a connection drops in the middle of one, the log of the pipeline stops there, and
+# this file is the only complete account left. One file per deployment, the last twenty kept — a
+# failed one keeps its file though it leaves no release behind.
+#
+# Each stream goes through its own `tee`, so the caller still tells what was said from what went
+# wrong. A terminal that hangs up signals everything the deployment started, these two included:
+# they ignore it, and go on writing the file when nobody reads the other end any more (-p) — the
+# last words of a script that is being interrupted are the ones worth keeping. Not being able to
+# keep them is said, and is no reason to fail.
+OUTPUT_KEPT=20
+OUTPUTS="${SITE}/shared/storage/logs/deployments"
+OUTPUT="${OUTPUTS}/${NAME}.log"
+if { mkdir -p "$OUTPUTS" && : >> "$OUTPUT"; } 2> /dev/null; then
+  KEPT=("$OUTPUTS"/*.log)
+  for ((old = 0; old < ${#KEPT[@]} - OUTPUT_KEPT; old++)); do
+    rm -f "${KEPT[old]}"
+  done
+  exec > >(
+    trap '' HUP INT TERM
+    exec tee -a -p "$OUTPUT"
+  ) 2> >(
+    trap '' HUP INT TERM
+    exec tee -a -p "$OUTPUT" >&2
+  )
+else
+  printf 'Warning: %s could not be opened: what this deployment says is not kept on the server.\n' "$OUTPUT" >&2
+fi
+
 # A release keeps its commit in the repository for as long as its directory is there. A candidate
 # is fetched without a branch to hold it, and git removes in time what nothing refers to: the gate
 # would then be unable to read the commit it serves, and would refuse everything. The names of
@@ -83,8 +112,24 @@ while IFS= read -r REFERENCE; do
 done < <(git -C "$REPOSITORY" for-each-ref --format='%(refname)' refs/releases/)
 
 mkdir "$TARGET"
-# Until the new release has taken over, a failure leaves nothing behind.
-trap 'rm -rf "$TARGET"' EXIT
+# Until the new release has taken over, a failure leaves nothing behind — and says so, with what
+# the site goes on serving. The command that failed has already said why, just above.
+abandon() {
+  local status=$?
+  rm -rf "$TARGET"
+  printf '\nRelease of %s FAILED while extracting it (exit status %s).\n' "$SHA" "$status" >&2
+  printf 'Nothing was built and nothing is left behind: the site serves what it served before.\n' >&2
+  { printf '%s failed %s while extracting it (exit %s)\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SHA" "$status" \
+    >> "${SITE}/shared/storage/logs/deployments.log"; } 2> /dev/null || true
+}
+trap abandon EXIT
+# A signal is an end like any other, and has to pass through the last words of this script: left
+# to itself, bash stops with the status of the command it was waiting for — often 0 — and the
+# report would call an interruption a success. Each one becomes the exit status a shell gives it.
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 141' PIPE
+trap 'exit 143' TERM
 git -C "$REPOSITORY" update-ref "refs/releases/${NAME}" "$SHA"
 
 git -C "$REPOSITORY" archive "$SHA" | tar -x -C "$TARGET"

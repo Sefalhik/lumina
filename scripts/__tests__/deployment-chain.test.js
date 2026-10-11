@@ -78,6 +78,7 @@ beforeAll(() => {
             'mkdir',
             'sleep',
             'readlink',
+            'tee',
         ],
         standins: { composer: TOOL, npm: TOOL, php: TOOL, date: DATE },
     });
@@ -192,6 +193,12 @@ describe('the deployment scripts, one after the other', () => {
             `accepted deploy ${commit.c3}`,
         ]);
         expect(isLocked(box.site)).toBe(false);
+
+        // And the whole of what the last deployment said is on the server, step by step.
+        const said = read(join(box.site, 'shared', 'storage', 'logs', 'deployments', `${named(commit.c3, 4)}.log`));
+        expect(said).toContain('── composer install --no-dev --optimize-autoloader --no-interaction');
+        expect(said).toContain('── php artisan view:cache');
+        expect(said).toContain(`Deployed ${commit.c3}`);
     });
 
     it('never goes back for the key, and goes forward again from a release a human went back to', () => {

@@ -1,7 +1,7 @@
 # Deployment — cardascia-it.org
 
 Reference for running this application somewhere other than a developer's machine.
-Hosting is **alwaysdata**; the site is served by **Apache + PHP-FPM**, behind a
+Hosting is **alwaysdata**; the site is served by **Apache, with PHP over FastCGI** (`cgi-fcgi`, measured on 2026-10-11 — not PHP-FPM, as this file said until then), behind a
 TLS-terminating front proxy.
 
 **This file contains no secret values and never will.** It documents where each
@@ -468,6 +468,8 @@ it, the script does four things the listing does not show:
   ones already open in a browser, name those files: they have to answer after the switch too.
 - **After the last command**, it changes `current` in one rename. A request finds the previous
   release or the new one, never half of each — and the previous one stays on disk, untouched.
+  The switch takes effect at the next request because `public/index.php` asks for it: see
+  [OPcache does not follow the link](#opcache-does-not-follow-the-link).
 - **Then** it records the deployment in `shared/last-deployment`, and removes old releases: five
   served releases are kept, the one in service included.
 
@@ -530,6 +532,59 @@ Editing live content is the admin form's job.
 **`config:cache` freezes `.env`.** After it runs, `env()` outside a config file returns
 `null`. A change made to `shared/.env` takes effect at the next release or the next rollback:
 both cache the configuration of the release they put in service.
+
+### When a deployment fails
+
+A deployment nobody watches has to say by itself what went wrong, what state it left, and where
+the rest is written.
+
+**What the scripts say.** The command that failed speaks first, in its own words. The script then
+adds what that command cannot know:
+
+```
+Deployment of <sha> FAILED while running "npm run build" (exit status 1).
+The site serves what it served before: <sha>, release <name>.
+The release that was being built was removed: nothing is left to clean up.
+```
+
+"While …" names the step — one of the eight commands, or `preparing the release`, `keeping the
+compiled files of the release in service`, `putting the release in service`. An interruption is
+said as one (`exit status 143, interrupted by a signal`) and is a failure: left to itself, bash
+would have ended with the status of the command it was waiting for, often 0. `release.sh` and
+`rollback.sh` end the same way, and a script stopped the instant *after* a switch says that the
+release is in service instead of announcing a failure that did not happen.
+
+**What the server keeps**, in `shared/storage/logs/`, whoever asked and wherever their own log went:
+
+| File | Written by | One line per |
+|---|---|---|
+| `deploy-gate.log` | the gate | request made with the pipeline's key: when, from which address, accepted or refused and why |
+| `deployments.log` | `release.sh`, `deploy.sh`, `rollback.sh` | thing that happened to the site: `deployed <sha> as <release>, replacing <release>`, `failed <sha> while <step> (exit <n>)`, `rolled back to <sha> as <release>, leaving <release>` |
+| `deployments/<release>.log` | `release.sh` | deployment: **everything it said**, from the name of the release to its last word. The last twenty are kept, failed ones included |
+
+None of them is ever a reason to fail: a journal that cannot be written is said on the spot, and
+the deployment stays what it was.
+
+The third is the one to open when the log of the pipeline stops in the middle of a sentence. A
+connection that drops takes that log with it; the file on the server goes on being written, by two
+copies of the output — what was said, what went wrong — that ignore the signal a terminal sends
+to everything it started when it hangs up. A rollback says three lines and keeps no such file: its
+line in `deployments.log` is the whole of it.
+
+**What the page of the run shows**, without opening a log: the request, the commit, and the
+outcome — with an error annotation when it is not `done`.
+
+| Exit status of the step | It means |
+|---|---|
+| `0` | done |
+| `1` | refused by the gate, or failed on the server: the reason is in the log of the step |
+| `75` | refused: another deployment was running |
+| `129`, `130`, `141`, `143` | a script on the server was interrupted |
+| `255` | nothing was asked: the connection to the server failed |
+
+**What none of this says**: whether the site answers. That is `deploy:smoke --expect-release`,
+which fails when the release expected is not the one serving — a switch that did not take effect
+looks exactly like a success from the server's side.
 
 ### Rolling back
 
@@ -598,16 +653,22 @@ SMOKE_BASIC_USER=… SMOKE_BASIC_PASSWORD=… \
   bash scripts/watch-switch.sh https://preprod.cardascia-it.org/fr
 ```
 
-Run from your own machine, started just before a deployment or a rollback. Five times a second,
-for a minute, it asks for the page, reads which release answered in `X-Release`, and asks for
-every compiled file the page names. It prints a line each time the release changes or something is
-missing, and exits 1 if a single answer would have shown a visitor a broken page.
+Run from your own machine, started just before a deployment or a rollback. Over and over it asks
+for the page, reads which release answered in `X-Release`, asks for every compiled file the page
+names, and waits a fifth of a second — about one round a second against preprod, 300 rounds by
+default. It prints a line each time the release changes or something is missing, and exits 1 if a
+single answer would have shown a visitor a broken page.
 
-This is the measurement `deploy.sh` cannot make on itself. The link changes in one rename, but PHP
-remembers for a while where a path led — up to `realpath_cache_ttl`, 120 seconds on this host —
-and may go on answering from the release that was just replaced while Apache already serves the
-files of the new one. Keeping the previous release's compiled files is what makes that harmless;
-this script is what says whether it is.
+Give it the SHA the switch should end on as a third argument, and it also fails when that release
+never answered:
+
+```bash
+bash scripts/watch-switch.sh https://preprod.cardascia-it.org/fr 300 <the SHA deployed>
+```
+
+That second question is not a refinement. The first time this script watched a real switch, it
+answered "no broken page" in all honesty while the deployment had changed nothing a visitor could
+see: [OPcache does not follow the link](#opcache-does-not-follow-the-link).
 
 ### Setting up a site
 
@@ -859,7 +920,8 @@ pipeline's key finds the PHP and the Node the panel selects — `php-version` an
 ## Traps this file exists because of
 
 Four defects, all found on 2026-09-14 before the first deployment, none of which can
-occur on a development machine.
+occur on a development machine. A fifth was found the same way on 2026-10-11, by the first
+switch between two releases: [OPcache does not follow the link](#opcache-does-not-follow-the-link).
 
 ### `public/.htaccess` was missing
 
@@ -949,6 +1011,52 @@ environment name nobody had thought of — `preprod` first among them — publis
 forgotten denylist entry exposes something, a forgotten allowlist entry hides something.
 
 ---
+
+### OPcache does not follow the link
+
+Found on 2026-10-11, the first time a release was put in service by moving `current` (LUMN-51).
+The deployment ended with `Deployed d54ea16…`. Ten minutes and 450 requests later, every page was
+still answered by the release it had replaced, `cecb136`.
+
+Nothing was broken, which is what made it easy to miss. Apache followed the link at once: the new
+stylesheet answered, and so did the old one, because a release keeps the compiled files of the one
+it replaces. The pages simply never changed.
+
+What a diagnostic page placed in `public/` showed, in the web process:
+
+| | |
+|---|---|
+| `SCRIPT_FILENAME` | `…/current/public/…` — the link, as given |
+| `__FILE__` of a new script | `…/releases/…-d54ea16…/public/…` — the link resolves to the new release |
+| `opcache.validate_timestamps`, `revalidate_freq` | `1`, `2` — the cache was revalidating, 490 times |
+| `opcache.revalidate_path` | `0` |
+| the `index.php` in the cache | `…/releases/…-cecb136…/public/index.php` |
+
+OPcache finds a script by the path it is handed — `…/current/public/index.php`, which never
+changes — and then checks the date of the file it compiled the first time, in the release that was
+replaced. That file has not moved. With `revalidate_path` off, which is the default, it never looks
+at where the link leads now. This is not a delay: without something else happening, the previous
+release answers until PHP restarts. Sixteen minutes were measured before the cache was reset by
+hand; the next request came from the new release.
+
+**The fix is in the application, not in the host.** `public/index.php` begins by asking
+`App\Services\ReleaseInService` which release the link names — one `readlink` per request. When
+it is not its own, it makes PHP forget (`clearstatcache(true)`, `opcache_reset()`) and hands the
+request to the front controller of the release in service. The switch then takes effect at the
+next request, for a deployment and for a rollback alike, with no setting to keep in a panel and no
+secret to store.
+
+Two alternatives were set aside. `opcache.revalidate_path=1` in the panel is a setting outside the
+repository, leaves the previous release answering for up to `realpath_cache_ttl` — 120 seconds
+here, more than the minute a rollback is allowed — and was not measured on this host. A reset
+address called by the pipeline is one more entry to protect and one more secret.
+
+**Those lines of `public/index.php` are not boilerplate.** A framework upgrade that replaces the
+file removes them silently; `tests/Unit/FrontControllerTest.php` runs the real file in a site of
+two releases and fails when a request is no longer handed over.
+
+**A release that predates the fix cannot hand anything over.** Going from such a release to a
+newer one needs the cache reset once, by restarting the site in the panel.
 
 ## What the first deployment established
 

@@ -95,8 +95,8 @@ function watch(scenario, { args, env = {} } = {}) {
     };
 }
 
-const OLD = 'aaaaaaa';
-const NEW = 'bbbbbbb';
+const OLD = 'a'.repeat(40);
+const NEW = 'b'.repeat(40);
 
 describe('watch-switch.sh — a switch nobody would notice', () => {
     it('follows the page from one release to the next, and finds every file it names', () => {
@@ -107,6 +107,15 @@ describe('watch-switch.sh — a switch nobody would notice', () => {
         expect(result.lines).toEqual([`request 1  release ${OLD}`, `request 3  release ${NEW}`]);
         expect(result.stdout).toContain(`3 requests, releases seen: ${OLD} → ${NEW}`);
         expect(result.stdout).toContain('None of them would have shown a visitor a broken page.');
+    });
+
+    it('says how many compiled files the last page named: no file missing says little of a page with none', () => {
+        expect(watch([`200 ${OLD} a.js,b.css -`, `200 ${OLD} a.js,b.css,c.js -`]).stdout).toContain(
+            'The last page that answered named 3 compiled file(s).',
+        );
+        expect(watch([`200 ${OLD} - -`]).stdout).toContain('The last page that answered named 0 compiled file(s).');
+        // A page that did not answer names nothing: the count is the one of the page before it.
+        expect(watch([`200 ${OLD} a.js -`, `500 ${OLD} - -`]).stdout).toContain('named 1 compiled file(s).');
     });
 
     it('asks for the page, then for each file it names, once, on the same site', () => {
@@ -132,6 +141,52 @@ describe('watch-switch.sh — a switch nobody would notice', () => {
         expect(result.lines).toEqual(['request 1  release none announced']);
         expect(result.stdout).toContain('releases seen: none');
     });
+});
+
+describe('watch-switch.sh — a switch that did not take effect', () => {
+    // Measured on preprod on 2026-10-11: the link had moved, no page was broken, and ten minutes
+    // later every one of them still came from the release that had been replaced.
+    const at = (scenario, expected) =>
+        watch(scenario, { args: ['https://site.example/fr', String(scenario.length), expected] });
+
+    it('fails when the release expected never answers, though no page was broken', () => {
+        const result = at([`200 ${OLD} a.js -`, `200 ${OLD} a.js -`], NEW);
+
+        expect(result.status).toBe(1);
+        expect(result.stdout).toContain('None of them would have shown a visitor a broken page.');
+        expect(result.stderr).toContain(
+            `The release expected, ${NEW}, never answered: the switch did not take effect.`,
+        );
+    });
+
+    it('passes when the release expected answers, even once, even not last', () => {
+        // Several processes answer, and each one moves to the new release in its own time.
+        expect(at([`200 ${OLD} - -`, `200 ${NEW} - -`, `200 ${OLD} - -`], NEW).status).toBe(0);
+        expect(at([`200 ${NEW} - -`], NEW).stderr).toBe('');
+    });
+
+    it('says both when pages were broken and the release expected never answered', () => {
+        const result = at([`500 ${OLD} - -`], NEW);
+
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain('1 of them would have shown a visitor a broken page.');
+        expect(result.stderr).toContain('never answered');
+    });
+
+    it('expects nothing unless told: a page with no release announced is not a failure by itself', () => {
+        expect(watch(['200 - a.js -']).status).toBe(0);
+    });
+
+    it.each(['bbbbbbb', 'B'.repeat(40), `${'b'.repeat(40)} `, 'main', ''])(
+        'refuses %j as the release expected: X-Release carries a full SHA',
+        (expected) => {
+            const result = watch([], { args: ['https://site.example/fr', '3', expected] });
+
+            expect(result.status).toBe(2);
+            expect(result.stderr).toContain('the release expected has to be the full SHA');
+            expect(result.asked).toEqual([]);
+        },
+    );
 });
 
 describe('watch-switch.sh — a switch a visitor would notice', () => {
@@ -207,12 +262,14 @@ describe('watch-switch.sh — how it is called', () => {
 
     it.each([
         ['no argument', []],
-        ['three arguments', ['https://site.example/fr', '3', 'extra']],
+        ['four arguments', ['https://site.example/fr', '3', 'b'.repeat(40), 'extra']],
     ])('explains itself and asks nothing with %s', (_, args) => {
         const result = watch([], { args });
 
         expect(result.status).toBe(2);
-        expect(result.stderr).toContain('Usage: bash scripts/watch-switch.sh <page URL> [<number of requests>]');
+        expect(result.stderr).toContain(
+            'Usage: bash scripts/watch-switch.sh <page URL> [<number of requests> [<release expected>]]',
+        );
         expect(result.asked).toEqual([]);
     });
 

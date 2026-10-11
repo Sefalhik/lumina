@@ -90,7 +90,7 @@ npm run update:frankenphp -- --force  # Update without prompt (CI/CD) — never 
 | Layer | Choice |
 |-------|--------|
 | Backend | Laravel 13 (v13.9+), PHP 8.5 CLI + FrankenPHP, PostgreSQL |
-| Server | FrankenPHP via Laravel Octane (worker mode) in development; **Apache + PHP-FPM** on alwaysdata — see `docs/deployment.md` |
+| Server | FrankenPHP via Laravel Octane (worker mode) in development; **Apache + PHP over FastCGI** (`cgi-fcgi`, not FPM) on alwaysdata — see `docs/deployment.md` |
 | Session / cache / queue | `database` / `database` / `sync` — **the same in every environment that serves a browser**, see [Deployment](#deployment) |
 | Auth | Laravel Sanctum (session-based) + TOTP 2FA enforced for admin |
 | Roles | `spatie/laravel-permission` — roles: `admin`, `maintainer`, `member`, public |
@@ -295,8 +295,8 @@ Key rules:
   purpose — in-memory doubles in a single process are what a unit harness is for, and they have no
   behaviour a real driver lacks. Redis was dropped on 2026-09-14: no job, no queue, no `Redis::`
   call anywhere in `app/`, and its asynchronous write had already cost two workarounds.
-- **A release is built in its own directory and put in service by one link** (`releases/`, `shared/`, `current`): never edit `current/` in place.
-  `public/build` is gitignored, so each release builds its own assets — and keeps those of the release it replaces. Going back is `rollback.sh`.
+- **A release is built in its own directory and put in service by one link** (`releases/`, `shared/`, `current`): never edit `current/` in place. Each release builds its own assets and keeps those of the one it replaces; going back is `rollback.sh`.
+  **OPcache does not follow that link**: the first lines of `public/index.php` ask `App\Services\ReleaseInService` which release is in service and hand the request over — they are not boilerplate, and `FrontControllerTest` fails without them.
 - `config:cache` freezes `.env` — after it runs, `env()` outside a config file returns `null`.
 
 Four defects found on 2026-09-14, before the first deployment, none reproducible on a development

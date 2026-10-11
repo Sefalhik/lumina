@@ -5,7 +5,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlin
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { JOURNAL, failingWhenFull, fillPath } from './support/sandbox.js';
+import { JOURNAL, failingWhenFull, fillPath, locate } from './support/sandbox.js';
 import {
     EPOCH,
     LOCK_STATE,
@@ -37,6 +37,7 @@ const C = releaseName(sha('c'), '20261011-080000');
 const PHP = `${JOURNAL}
 ${LOCK_STATE}
 printf '%s\\x1f%s\\x1f%s\\x1f%s\\n' "$*" "\${PWD##*/}" "$(readlink "$STUB_SITE/current")" "$lock_state" >> "$STUB_DIR/state.log"
+[[ -n "\${STUB_INTERRUPT:-}" ]] && kill "-\${STUB_INTERRUPT}" "$PPID"
 [[ -z "\${STUB_FAIL:-}" ]]
 `;
 
@@ -54,8 +55,13 @@ beforeAll(() => {
     });
     serve(site, C);
     fillPath(join(template, 'bin'), {
-        real: ['bash', 'dirname', 'basename', 'cat', 'rm', 'readlink', 'flock'],
+        real: ['bash', 'dirname', 'basename', 'cat', 'rm', 'readlink', 'flock', 'date'],
         standins: { php: PHP, ln: failingWhenFull('ln'), mv: failingWhenFull('mv') },
+    });
+    // The same, with a mv that moves the link and has the script interrupted at once.
+    fillPath(join(template, 'bin-interrupted'), {
+        real: ['bash', 'dirname', 'basename', 'cat', 'rm', 'readlink', 'flock', 'date', 'ln'],
+        standins: { php: PHP, mv: `#!/bin/bash\n${locate('mv')} "$@"\nkill -TERM "$PPID"\n` },
     });
 });
 
@@ -83,16 +89,21 @@ function sandbox({ record = `${EPOCH} ${C} ${B}\n` } = {}) {
 /**
  * @param {object} box
  * @param {string[]} [args]
- * @param {{fail?: boolean, lockFd?: string, cwd?: string, full?: string}} [options]
+ * @param {{fail?: boolean, lockFd?: string, cwd?: string, full?: string, interrupt?: boolean|string,
+ *          bin?: string}} [options]  `interrupt` names the signal sent while the configuration is cached
  */
-function rollback(box, args = [], { fail = false, lockFd, cwd = box.root, full = '' } = {}) {
+function rollback(
+    box,
+    args = [],
+    { fail = false, lockFd, cwd = box.root, full = '', interrupt = false, bin = 'bin' } = {},
+) {
     const site = paths(box.site);
     // Through the link, as a human types it: <site>/current/scripts/rollback.sh.
-    const result = spawnSync(join(box.bin, 'bash'), [join(site.current, 'scripts', 'rollback.sh'), ...args], {
+    const result = spawnSync(join(box.root, bin, 'bash'), [join(site.current, 'scripts', 'rollback.sh'), ...args], {
         cwd,
         encoding: 'utf8',
         env: {
-            PATH: box.bin,
+            PATH: join(box.root, bin),
             HOME: box.root,
             STUB_LOG: join(box.root, 'calls.log'),
             STUB_DIR: box.root,
@@ -100,6 +111,7 @@ function rollback(box, args = [], { fail = false, lockFd, cwd = box.root, full =
             STUB_LOCK: site.lock,
             STUB_FAIL: fail ? '1' : '',
             STUB_FULL: full,
+            STUB_INTERRUPT: interrupt === true ? 'TERM' : interrupt || '',
             ...(lockFd === undefined ? {} : { DEPLOY_LOCK_FD: lockFd }),
         },
     });
@@ -115,6 +127,10 @@ function rollback(box, args = [], { fail = false, lockFd, cwd = box.root, full =
         }),
         lastDeployment: read(site.lastDeployment),
         releases: readdirSync(site.releases).sort(),
+        // What the script wrote of this run in the journal the site keeps, without its date.
+        journal: lines(join(box.site, 'shared', 'storage', 'logs', 'deployments.log')).map((line) =>
+            line.replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z /, ''),
+        ),
     };
 }
 
@@ -254,6 +270,93 @@ describe('rollback.sh — going back to a release that is named', () => {
         expect(result.status).toBe(2);
         expect(result.stderr).toContain('Usage: bash scripts/rollback.sh [<release name>]');
         expect(result.inService).toBe(C);
+    });
+});
+
+describe('rollback.sh — what it says', () => {
+    it('says which release is in service and which one it replaced, and writes it down', () => {
+        const result = rollback(sandbox());
+
+        expect(result.stdout).toContain(`Release ${B} is in service; it replaced ${C}.`);
+        expect(result.journal).toEqual([`rolled back to ${sha('b')} as ${B}, leaving ${C}`]);
+    });
+
+    it('says where it stopped and what the site still serves when the configuration cannot be cached', () => {
+        const result = rollback(sandbox(), [], { fail: true });
+
+        expect(result.stderr).toContain(
+            `Rollback to ${sha('b')} FAILED while caching the configuration of the release to go back to (exit status 1).`,
+        );
+        expect(result.stderr).toContain(`The site serves what it served before: release ${C}.`);
+        expect(result.journal).toEqual([
+            `failed to roll back to ${sha('b')} while caching the configuration of the release to go back to (exit 1)`,
+        ]);
+    });
+
+    it.each(['ln#1', 'mv#1'])('says that it stopped while putting the release back in service (%s)', (full) => {
+        const result = rollback(sandbox(), [], { full });
+
+        expect(result.stderr).toContain(
+            `Rollback to ${sha('b')} FAILED while putting that release back in service (exit status 1).`,
+        );
+        expect(result.journal).toEqual([
+            `failed to roll back to ${sha('b')} while putting that release back in service (exit 1)`,
+        ]);
+    });
+
+    it.each([
+        ['TERM', 143],
+        ['HUP', 129],
+        ['INT', 130],
+        ['PIPE', 141],
+    ])('fails, and says so, when %s interrupts it before the release is back in service', (signal, status) => {
+        const result = rollback(sandbox(), [], { interrupt: signal });
+
+        expect(result.status).toBe(status);
+        expect(result.stderr).toContain(`Rollback to ${sha('b')} FAILED while caching the configuration`);
+        expect(result.stderr).toContain(`(exit status ${status})`);
+        expect(result.inService).toBe(C);
+        expect(result.lastDeployment).toBe(`${EPOCH} ${C} ${B}\n`);
+    });
+
+    it('says that the release is back in service when it is stopped after the switch, rather than that it failed', () => {
+        // The one moment where "the rollback failed" could be said wrongly: the site would then be
+        // on the release it was sent back to, and its operator told that it is not.
+        const result = rollback(sandbox(), [], { bin: 'bin-interrupted' });
+
+        expect(result.inService).toBe(B);
+        expect(result.stderr).toContain(
+            `Release ${B} is back in service, and the script stopped before it had finished (exit status 143).`,
+        );
+        expect(result.stderr).not.toContain('FAILED');
+        expect(result.journal).toEqual([`rolled back to ${sha('b')} as ${B}, then stopped (exit 143)`]);
+    });
+
+    it('says nothing of a failure it did not have, and nothing in the journal of a request it refused', () => {
+        expect(rollback(sandbox()).stderr).toBe('');
+        expect(rollback(sandbox(), [C]).journal).toEqual([]);
+    });
+
+    it('adds its line to the journal, after what the site already wrote there', () => {
+        const box = sandbox();
+        const journal = join(box.site, 'shared', 'storage', 'logs', 'deployments.log');
+        writeFileSync(journal, 'an earlier line\n');
+        rollback(box);
+
+        expect(lines(journal)).toEqual([
+            'an earlier line',
+            expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z rolled back to /),
+        ]);
+    });
+
+    it('goes back all the same when the journal cannot be written, and says so', () => {
+        const box = sandbox();
+        symlinkSync('/dev/full', join(box.site, 'shared', 'storage', 'logs', 'deployments.log'));
+        const result = rollback(box);
+
+        expect(result.status).toBe(0);
+        expect(result.inService).toBe(B);
+        expect(result.stderr).toContain('deployments.log could not be written.');
     });
 });
 

@@ -28,6 +28,7 @@ import {
     isLocked,
     knows,
     layOut,
+    lines,
     lose,
     paths,
     read,
@@ -52,6 +53,10 @@ ${LOCK_STATE}
 here=$(cd -P "$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)
 printf 'deploy.sh\\x1f${version}\\x1f%s\\x1f%s\\x1f%s\\x1f%s\\x1f%s\\n' \\
   "\${here##*/}" "$(cat "$here/RELEASE")" "$lock_state" "\${DEPLOY_LOCK_FD:-}" "$#" >> "$STUB_LOG"
+if [[ -n "\${STUB_DEPLOY_SAYS:-}" ]]; then
+  printf 'said by the build\\n'
+  printf 'complained of by the build\\n' >&2
+fi
 exit "\${STUB_DEPLOY_EXIT:-0}"
 `;
 
@@ -61,9 +66,14 @@ exit 2
 `;
 
 // Extracts as tar does, and the script is told to stop while it is at it.
+// STUB_SIGNAL_TO=0 sends the signal to the whole process group instead: the script, what copies
+// its output, and this stand-in — what a terminal that hangs up does.
 const INTERRUPTED_TAR = `#!/bin/bash
 ${locate('tar')} "$@"
-kill -TERM "$PPID"
+trap '' HUP INT TERM
+kill "-\${STUB_SIGNAL:-TERM}" "\${STUB_SIGNAL_TO:-$PPID}"
+[[ "\${STUB_SIGNAL_TO:-}" == '0' ]] && printf 'said after the signal\\n'
+exit 0
 `;
 
 let template;
@@ -131,15 +141,15 @@ beforeAll(() => {
     git(template, 'clone', '--quiet', '--bare', 'work', join('site', 'repo'));
 
     fillPath(join(template, 'bin'), {
-        real: ['bash', 'git', 'tar', 'dirname', 'rm', 'cat', 'flock'],
+        real: ['bash', 'git', 'tar', 'dirname', 'rm', 'cat', 'flock', 'tee'],
         standins: { date: DATE, mkdir: failingWhenFull('mkdir') },
     });
     fillPath(join(template, 'bin-broken-tar'), {
-        real: ['bash', 'git', 'dirname', 'mkdir', 'rm', 'cat', 'flock'],
+        real: ['bash', 'git', 'dirname', 'mkdir', 'rm', 'cat', 'flock', 'tee'],
         standins: { date: DATE, tar: BROKEN_TAR },
     });
     fillPath(join(template, 'bin-interrupted-tar'), {
-        real: ['bash', 'git', 'dirname', 'mkdir', 'rm', 'cat', 'flock'],
+        real: ['bash', 'git', 'dirname', 'mkdir', 'rm', 'cat', 'flock', 'tee', 'setsid'],
         standins: { date: DATE, tar: INTERRUPTED_TAR },
     });
 });
@@ -168,9 +178,14 @@ function sandbox() {
 /**
  * @param {object} box
  * @param {string[]} args
- * @param {{cwd?: string, lockFd?: string, bin?: string, deployExit?: number, script?: string, full?: string}} [options]
+ * @param {{cwd?: string, lockFd?: string, bin?: string, deployExit?: number, script?: string, full?: string,
+ *          signal?: string, says?: boolean}} [options]  `says` has the deployment script print on both streams
  */
-function release(box, args, { cwd = box.root, lockFd, bin = 'bin', deployExit = 0, script, full = '' } = {}) {
+function release(
+    box,
+    args,
+    { cwd = box.root, lockFd, bin = 'bin', deployExit = 0, script, full = '', signal = 'TERM', says = false } = {},
+) {
     const site = paths(box.site);
     const result = spawnSync(
         join(box.root, bin, 'bash'),
@@ -189,6 +204,8 @@ function release(box, args, { cwd = box.root, lockFd, bin = 'bin', deployExit = 
                 STUB_DEPLOY_EXIT: String(deployExit),
                 STUB_DIR: box.root,
                 STUB_FULL: full,
+                STUB_SIGNAL: signal,
+                STUB_DEPLOY_SAYS: says ? '1' : '',
                 ...(lockFd === undefined ? {} : { DEPLOY_LOCK_FD: lockFd }),
             },
         },
@@ -506,10 +523,189 @@ describe('release.sh — a repository that has lost something', () => {
     });
 });
 
+describe('release.sh — what a deployment said, kept on the server', () => {
+    const kept = (box) => join(box.site, 'shared', 'storage', 'logs', 'deployments');
+    const output = (box, sha = commit.c2) => read(join(kept(box), `${releaseName(sha)}.log`));
+
+    it('keeps everything the deployment said, from the name of the release to its last word', () => {
+        const box = sandbox();
+        release(box, [commit.c2], { says: true });
+
+        expect(output(box).split('\n').filter(Boolean).sort()).toEqual(
+            [`Release ${releaseName(commit.c2)}`, 'complained of by the build', 'said by the build'].sort(),
+        );
+    });
+
+    it('still gives the caller what was said and what went wrong, each on its own stream', () => {
+        const result = release(sandbox(), [commit.c2], { says: true });
+
+        expect(result.stdout).toBe(`Release ${releaseName(commit.c2)}\nsaid by the build\n`);
+        expect(result.stderr).toBe('complained of by the build\n');
+    });
+
+    it('answers with the status of the deployment, not with the status of what copies its output', () => {
+        const box = sandbox();
+        const result = release(box, [commit.c2], { says: true, deployExit: 7 });
+
+        expect(result.status).toBe(7);
+        expect(output(box)).toContain('complained of by the build');
+    });
+
+    it('keeps the report of a failure, though the release itself leaves nothing behind', () => {
+        const box = sandbox();
+        const result = release(box, [commit.c2], { bin: 'bin-broken-tar' });
+
+        expect(result.status).not.toBe(0);
+        expect(output(box)).toContain(`Release of ${commit.c2} FAILED while extracting it`);
+    });
+
+    it('keeps the last words of a deployment that is interrupted', () => {
+        const box = sandbox();
+        release(box, [commit.c2], { bin: 'bin-interrupted-tar' });
+
+        expect(output(box)).toContain('FAILED while extracting it (exit status 143)');
+    });
+
+    it.each([
+        ['the connection hangs up', 'HUP', 129],
+        ['somebody presses Ctrl-C', 'INT', 130],
+        ['the machine is told to stop', 'TERM', 143],
+    ])('keeps the last words of a deployment when %s on everything it started', (_, signal, status) => {
+        // A terminal does not interrupt one process: it signals the whole group, what copies the
+        // output included. Stopped with the script, the copy would miss the very lines that say
+        // why it stopped.
+        const box = sandbox();
+        const site = paths(box.site);
+        const bin = join(box.root, 'bin-interrupted-tar');
+        // In a session of its own, so that "everything it started" is not the test runner too.
+        const result = spawnSync(
+            join(bin, 'setsid'),
+            ['--wait', join(bin, 'bash'), join(site.current, 'scripts', 'release.sh'), commit.c2],
+            {
+                encoding: 'utf8',
+                env: {
+                    PATH: bin,
+                    GIT_CONFIG_GLOBAL: '/dev/null',
+                    GIT_CONFIG_NOSYSTEM: '1',
+                    STUB_LOG: box.log,
+                    STUB_LOCK: site.lock,
+                    STUB_DIR: box.root,
+                    STUB_STAMP: STAMP,
+                    STUB_SIGNAL: signal,
+                    STUB_SIGNAL_TO: '0',
+                },
+            },
+        );
+
+        expect(result.status).toBe(status);
+        // Both streams: what a command still said after the signal, and the report of the failure.
+        expect(output(box)).toContain('said after the signal');
+        expect(output(box)).toContain(`Release of ${commit.c2} FAILED while extracting it (exit status ${status}).`);
+        expect(readdirSync(site.releases)).toEqual([SERVED()]);
+    });
+
+    it('goes on writing the file, and the deployment goes on, when nobody reads its output any more', () => {
+        // A connection that drops: whatever was reading is gone, and the script is not told.
+        const box = sandbox();
+        const site = paths(box.site);
+        spawnSync(
+            join(box.root, 'bin', 'bash'),
+            [
+                '-c',
+                '"$0" "$@" 2>&1 | true',
+                join(box.root, 'bin', 'bash'),
+                join(site.current, 'scripts', 'release.sh'),
+                commit.c2,
+            ],
+            {
+                encoding: 'utf8',
+                env: {
+                    PATH: join(box.root, 'bin'),
+                    GIT_CONFIG_GLOBAL: '/dev/null',
+                    GIT_CONFIG_NOSYSTEM: '1',
+                    STUB_LOG: box.log,
+                    STUB_LOCK: site.lock,
+                    STUB_DIR: box.root,
+                    STUB_STAMP: STAMP,
+                    STUB_DEPLOY_SAYS: '1',
+                },
+            },
+        );
+
+        expect(callsIn(box.log).filter(([tool]) => tool === 'deploy.sh')).toHaveLength(1);
+        expect(output(box)).toContain('said by the build');
+        expect(output(box)).toContain('complained of by the build');
+    });
+
+    it('keeps one file per deployment, and the last twenty of them', () => {
+        const box = sandbox();
+        mkdirSync(kept(box), { recursive: true });
+        const earlier = Array.from(
+            { length: 24 },
+            (_, day) => `202609${String(day + 1).padStart(2, '0')}-000000-${'e'.repeat(40)}.log`,
+        );
+        earlier.forEach((file) => writeFileSync(join(kept(box), file), 'an earlier deployment\n'));
+        release(box, [commit.c2]);
+
+        expect(readdirSync(kept(box)).sort()).toEqual([...earlier.slice(5), `${releaseName(commit.c2)}.log`]);
+    });
+
+    it('touches nothing else in that directory', () => {
+        const box = sandbox();
+        mkdirSync(kept(box), { recursive: true });
+        writeFileSync(join(kept(box), 'NOTES.txt'), 'by hand\n');
+        release(box, [commit.c2]);
+
+        expect(read(join(kept(box), 'NOTES.txt'))).toBe('by hand\n');
+    });
+
+    it.each([
+        [
+            'the directory for it cannot be made',
+            (box) => writeFileSync(kept(box), 'a file where the directory should be\n'),
+        ],
+        [
+            'the file cannot be opened',
+            (box) => {
+                mkdirSync(join(kept(box), `${releaseName(commit.c2)}.log`), { recursive: true });
+            },
+        ],
+    ])('says so and releases all the same when %s', (_, damage) => {
+        const box = sandbox();
+        damage(box);
+        const result = release(box, [commit.c2], { says: true });
+
+        expect(result.status).toBe(0);
+        expect(result.stderr).toContain('could not be opened: what this deployment says is not kept on the server.');
+        expect(result.handedTo).toHaveLength(1);
+        expect(result.stdout).toContain('said by the build');
+    });
+
+    it('releases all the same when the disk fills under that file', () => {
+        const box = sandbox();
+        mkdirSync(kept(box), { recursive: true });
+        symlinkSync('/dev/full', join(kept(box), `${releaseName(commit.c2)}.log`));
+        const result = release(box, [commit.c2], { says: true });
+
+        expect(result.status).toBe(0);
+        expect(result.handedTo).toHaveLength(1);
+        expect(result.stdout).toContain('said by the build');
+        expect(result.stderr).toContain('No space left on device');
+    });
+
+    it('keeps nothing of a request it refuses before anything starts', () => {
+        const box = sandbox();
+        release(box, ['no-such-branch']);
+
+        expect(existsSync(kept(box))).toBe(false);
+    });
+});
+
 describe('release.sh — when it cannot go through', () => {
     it('makes nothing when the disk is too full for the directory itself', () => {
         const box = sandbox();
-        const result = release(box, [commit.c2], { full: 'mkdir#1' });
+        // The second directory it makes: the first is the one its output is kept in.
+        const result = release(box, [commit.c2], { full: 'mkdir#2' });
 
         expect(result.stderr).toContain('No space left on device');
         expect(result.status).not.toBe(0);
@@ -524,11 +720,58 @@ describe('release.sh — when it cannot go through', () => {
         expectNothingReleased(box, result);
     });
 
-    it('leaves no directory behind when it is interrupted while extracting', () => {
+    it('says what failed, that nothing is left, and what the site goes on serving', () => {
         const box = sandbox();
-        const result = release(box, [commit.c2], { bin: 'bin-interrupted-tar' });
+        const result = release(box, [commit.c2], { bin: 'bin-broken-tar' });
+
+        expect(result.stderr).toContain(`Release of ${commit.c2} FAILED while extracting it (exit status 2).`);
+        expect(result.stderr).toContain(
+            'Nothing was built and nothing is left behind: the site serves what it served before.',
+        );
+        expect(lines(join(box.site, 'shared', 'storage', 'logs', 'deployments.log'))).toEqual([
+            expect.stringMatching(
+                new RegExp(`^\\d{4}-\\d{2}-\\d{2}T[\\d:]{8}Z failed ${commit.c2} while extracting it \\(exit 2\\)$`),
+            ),
+        ]);
+    });
+
+    it('adds its line to the journal, after what the site already wrote there', () => {
+        const box = sandbox();
+        const journal = join(box.site, 'shared', 'storage', 'logs', 'deployments.log');
+        writeFileSync(journal, 'an earlier line\n');
+        release(box, [commit.c2], { bin: 'bin-broken-tar' });
+
+        expect(lines(journal)).toEqual(['an earlier line', expect.stringContaining(`failed ${commit.c2}`)]);
+    });
+
+    it('fails the same way, and as loudly, when the journal cannot be written', () => {
+        const box = sandbox();
+        rmSync(join(box.site, 'shared', 'storage'), { recursive: true });
+        const result = release(box, [commit.c2], { bin: 'bin-broken-tar' });
 
         expect(result.status).not.toBe(0);
+        expect(result.stderr).toContain('FAILED while extracting it');
+        expectNothingReleased(box, result);
+    });
+
+    it('says nothing of a failure when it hands a release over', () => {
+        const result = release(sandbox(), [commit.c2]);
+
+        expect(result.stderr).toBe('');
+        expect(result.stdout).not.toContain('FAILED');
+    });
+
+    it.each([
+        ['TERM', 143],
+        ['HUP', 129],
+        ['INT', 130],
+        ['PIPE', 141],
+    ])('leaves no directory behind, fails and says so when %s interrupts the extraction', (signal, status) => {
+        const box = sandbox();
+        const result = release(box, [commit.c2], { bin: 'bin-interrupted-tar', signal });
+
+        expect(result.status).toBe(status);
+        expect(result.stderr).toContain(`Release of ${commit.c2} FAILED while extracting it (exit status ${status}).`);
         expectNothingReleased(box, result);
         expect(isLocked(box.site)).toBe(false);
     });
