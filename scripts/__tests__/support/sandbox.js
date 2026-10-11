@@ -78,3 +78,28 @@ export function callsIn(journal) {
         .filter((line) => line !== '')
         .map((line) => line.split('\x1f'));
 }
+
+/**
+ * A tool that does its work, except at one call the test chooses, where it fails the way a full
+ * disk makes it fail. STUB_FULL names that call — `cp#2` is the second time cp is run — and
+ * STUB_DIR is where the calls are counted.
+ *
+ * One stand-in per tool lets a test walk a script write by write, and ask after each failure what
+ * state it left behind.
+ *
+ * @param {string} tool
+ * @returns {string}
+ */
+export function failingWhenFull(tool) {
+    return `#!${BASH}
+count=0
+[[ -f "$STUB_DIR/${tool}.calls" ]] && read -r count < "$STUB_DIR/${tool}.calls"
+count=$((count + 1))
+printf '%s\\n' "$count" > "$STUB_DIR/${tool}.calls"
+if [[ "\${STUB_FULL:-}" == "${tool}#$count" ]]; then
+  printf '${tool}: write error: No space left on device\\n' >&2
+  exit 1
+fi
+exec ${locate(tool)} "$@"
+`;
+}

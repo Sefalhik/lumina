@@ -196,13 +196,17 @@ describe('deploy.yml — what it declares', () => {
         expect(triggers()).toEqual(['workflow_dispatch']);
     });
 
-    it('offers two requests, as a closed list', () => {
+    it('offers three requests, as a closed list', () => {
         const options = WORKFLOW.match(
             /^ {6}request:\n(?: {8}.*\n)*? {8}type: choice\n {8}options:\n((?: {10}- .+\n)+)/m,
         );
 
         expect(options, 'the `request` input is no longer a choice').not.toBeNull();
-        expect([...options[1].matchAll(/- (.+)/g)].map((match) => match[1])).toEqual(['php-version', 'deploy']);
+        expect([...options[1].matchAll(/- (.+)/g)].map((match) => match[1])).toEqual([
+            'php-version',
+            'deploy',
+            'rollback',
+        ]);
         expect(WORKFLOW.match(/^ {6}\w+:$/gm)).toEqual(['      request:']);
     });
 
@@ -285,6 +289,16 @@ describe('deploy.yml — what its step does', () => {
         expect(result.connections[0].slice(-2)).toEqual(['example@ssh-example.alwaysdata.net', `deploy ${SHA}`]);
     });
 
+    it('asks the server to undo the deployment of the commit the workflow runs from, and names no release', () => {
+        // Which release to go back to is the server's to know: the pipeline only says which
+        // deployment it takes back, and the gate refuses it once it is half an hour old.
+        const result = runStep({ REQUEST: 'rollback' });
+
+        expect(result.status).toBe(0);
+        expect(result.connections).toHaveLength(1);
+        expect(result.connections[0].slice(-2)).toEqual(['example@ssh-example.alwaysdata.net', `rollback ${SHA}`]);
+    });
+
     it('asks for the PHP version, and relays the answer', () => {
         const result = runStep({ REQUEST: 'php-version' });
 
@@ -359,6 +373,9 @@ describe('deploy.yml — what its step does', () => {
         'deploy ',
         'deploy main',
         'deploy; id',
+        'ROLLBACK',
+        'rollback ',
+        'rollback main',
         'php-version; id',
         '$(id)',
         'php-version\ndeploy',

@@ -35,16 +35,17 @@ Three homes, one per audience. **None of them is the repository.**
 | Audience | Home |
 |---|---|
 | A human | A password manager. Not a file in `Documents`, not a note, not a chat message |
-| The running application | `/home/cardascia-it/preprod/.env` on the server |
+| The running application | `/home/cardascia-it/lumina/preprod/shared/.env` on the server |
 | The pipeline | GitHub **environment** secrets — `preprod` today, `production` with LUMN-54 — readable only by a job that names the environment. See [The pipeline's access to the server](#the-pipelines-access-to-the-server) |
 
 The three `JIRA_*` secrets stay at repository level: `jira-sync.yml` runs on pull-request events,
 outside any environment, and they open nothing on a server.
 
-The server-side `.env` sits **outside the document root** by construction: Apache is
-pointed at `preprod/public`, so `preprod/.env` is one level above anything the web
-server will serve. That is not a convenience — it is the whole reason Laravel puts
-`index.php` in a subdirectory.
+The server-side `.env` sits **outside the document root** by construction. It lives in
+`shared/`, outside every release, and reaches a release through a link at its root; Apache is
+pointed at `current/public`, the `public/` directory of the release in service, so the link is
+one level above anything the web server will serve. That is not a convenience — it is the whole
+reason Laravel puts `index.php` in a subdirectory. See [How a site is laid out](#how-a-site-is-laid-out).
 
 `.env` is listed in `.gitignore`. `.env.example` is versioned and holds **names only**,
 never values. Between them: `.env.example` answers *which* variables exist,
@@ -110,7 +111,7 @@ untouched in `config/database.php`, `config/session.php`, `config/cache.php` and
 
 ## The preprod `.env`, ready to fill
 
-Create it at `/home/cardascia-it/preprod/.env` — **not** inside `preprod/public`. Every
+Create it at `/home/cardascia-it/lumina/preprod/shared/.env` — **not** inside a release. Every
 `<…>` is a placeholder: fill it from the source named in [the tables](environment-variables.md), never from
 another environment's file.
 
@@ -204,7 +205,7 @@ visitors), `OCTANE_*` and `PHP_INI_SCAN_DIR` (both describe the local FrankenPHP
 | Setting | Value |
 |---|---|
 | Site | `preprod.cardascia-it.org` |
-| Root directory | `preprod/public` — **not** `preprod`, and not the default `www/` |
+| Root directory | `lumina/preprod/current/public` — the `public/` of the release in service. **Not** `current`, and not the default `www/` |
 | PHP | 8.5 |
 | Force HTTPS | on |
 | WAF | basic |
@@ -297,8 +298,8 @@ and the protection would have been worth nothing. The redirect has to come first
 To remove the protection at production cutover, delete the two `<Location>` blocks from the
 panel. The `.htpasswd` file can stay; nothing reads it once no directive names it.
 
-**The root directory is the one setting that must not be wrong.** Pointed at `preprod`
-instead of `preprod/public`, Apache would serve the application root — which contains
+**The root directory is the one setting that must not be wrong.** Pointed at `current`
+instead of `current/public`, Apache would serve the application root — which contains
 `.env`, `composer.json`, `storage/` and `vendor/`. The panel's default is `www/`, which
 is wrong in a different way: it 404s, loudly, which is the harmless failure.
 
@@ -370,7 +371,7 @@ outside contribution can fire (LUMN-50).
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_github -N "" -C "<account>@alwaysdata deploy key"
 # register ~/.ssh/id_ed25519_github.pub on the repository, read-only
 printf '\nHost github.com\n    IdentityFile ~/.ssh/id_ed25519_github\n    IdentitiesOnly yes\n' >> ~/.ssh/config
-git clone git@github.com:<owner>/<repo>.git ~/preprod
+git clone --bare git@github.com:<owner>/<repo>.git ~/lumina/preprod/repo
 ```
 
 Read-only, scoped to one repository, revocable from its settings, and it never touches a
@@ -381,8 +382,9 @@ The passphrase is empty on purpose: a deployment cannot type one. The exposure i
 by the scope — anyone able to read `~/.ssh` on this server already has the working copy and
 the `.env`.
 
-**Clone into `~/preprod`, not into an existing directory.** `git clone` refuses a non-empty
-target, which is why `.htpasswd` lives at the account root rather than beside the code.
+**The clone is bare**: nothing is ever checked out in it. A release is extracted from it into a
+directory of its own — see [How a site is laid out](#how-a-site-is-laid-out). `.htpasswd` lives at
+the account root, beside no code at all.
 
 Note on SSH access to alwaysdata itself: the panel has **no field for SSH keys** outside
 Cloud Privé offerings. The key goes into `~/.ssh/authorized_keys` via `ssh-copy-id`, which
@@ -393,16 +395,56 @@ proven**, or the door closes with the key still inside.
 
 ## Deploying
 
-The sequence is a script, `scripts/deploy.sh`, since LUMN-50. It deploys **the commit that is
-checked out** and never chooses one:
+### How a site is laid out
+
+Until LUMN-51 the server was one checkout, modified in place: for a few seconds a deployment
+served new code with the previous assets, and nothing was kept to go back to. A release is now
+built in a directory nobody is being served from, and put in service by changing one link.
+
+```
+/home/cardascia-it/lumina/preprod/
+├── repo/                          the repository, bare: what the server knows of git
+├── releases/
+│   ├── 20261011-050129-794dbbf…/  one directory per release: <UTC moment>-<commit>
+│   └── …
+├── shared/
+│   ├── .env                       linked into every release
+│   ├── storage/                   linked into every release
+│   ├── deploy.lock                held while a deployment or a rollback runs
+│   └── last-deployment            what a rollback undoes
+└── current -> releases/…          the release in service — the only thing a switch changes
+```
+
+Four scripts do the work. Each is run by `bash`, by name: the account's shell is fish, where a
+loop or a `[ ]` test does not mean what it means in a script.
+
+| Script | What it does | Who runs it |
+|---|---|---|
+| `scripts/deploy-gate.sh` | decides whether a request made with the pipeline's key is honoured | sshd |
+| `scripts/release.sh <commit>` | extracts that commit into a new release directory | the gate, or a human |
+| `scripts/deploy.sh` | builds the release it sits in, puts it in service, lets the oldest go | `release.sh` |
+| `scripts/rollback.sh [<release>]` | puts back in service a release that was served | the gate, or a human |
+
+They are reached through `current`, so they are always those of the release in service — with one
+exception that matters: `release.sh` ends by running the `scripts/deploy.sh` **of the commit it has
+just extracted**. How a release is built is written in that release.
+
+### Releasing a commit
+
+The pipeline asks through the gate — see
+[The pipeline's access to the server](#the-pipelines-access-to-the-server). By hand:
 
 ```bash
-# On the server, in /home/cardascia-it/preprod
-git fetch origin
-git checkout --detach origin/main
-bash scripts/deploy.sh
-php artisan db:seed --class=AdminSeeder          # first deployment of an environment only
+# On the server
+cd ~/lumina/preprod
+git -C repo fetch origin main
+bash current/scripts/release.sh FETCH_HEAD
+php artisan db:seed --class=AdminSeeder          # first deployment of an environment only, from current/
 ```
+
+`release.sh` fetches nothing and judges nothing: it releases a commit the repository already holds.
+Deciding which commits may be deployed is the gate's work when the pipeline asks, and yours when
+you type this.
 
 `scripts/deploy.sh` runs, in this order:
 
@@ -417,24 +459,51 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-`scripts/__tests__/deploy.test.js` fails the day that listing and the script stop agreeing. Between
-the seeder and `config:cache` the script also writes the commit SHA into `RELEASE`, which is what
-`X-Release` and the first smoke probe read — see [Smoke tests](smoke-tests.md).
+`scripts/__tests__/deploy.test.js` fails the day that listing and the script stop agreeing. Around
+it, the script does four things the listing does not show:
 
-Four things the script does that a sequence typed by hand never had to:
+- **Before the first command**, it links `shared/.env` and `shared/storage` into the release.
+- **After the build**, it adds to its compiled files those the release in service had built. Their
+  names carry a hash and never collide. The pages the previous release is still sending, and the
+  ones already open in a browser, name those files: they have to answer after the switch too.
+- **After the last command**, it changes `current` in one rename. A request finds the previous
+  release or the new one, never half of each — and the previous one stays on disk, untouched.
+- **Then** it records the deployment in `shared/last-deployment`, and removes old releases: five
+  served releases are kept, the one in service included.
 
-- **It is run by `bash`, by name.** The account's shell is fish; a loop or a `[ ]` test typed
-  there does not mean what it means in the script.
+What follows from running in a directory of its own:
+
+- **A step that fails removes the release it was building**, and the site goes on exactly as it
+  was: same link, same files, same `X-Release`. So does a deployment that is interrupted — a
+  connection that drops, a workflow that is cancelled. One that is killed outright tidies nothing,
+  and nothing has to be: what it was building was never served, a rollback refuses it, and the next
+  deployment removes it.
+- **The release in service is never the one removed.** Whether a release was put in service is
+  asked of the link, not remembered by the script: interrupted the instant after the switch, it
+  leaves the new release where it is.
+- **A disk that fills up changes nothing that is served.** Every write the script makes itself —
+  the two links, the list and the copies of the compiled files, the marker, the new link, its
+  rename — is failed in turn by the tests, as a full disk fails it. Before the switch, the site
+  stays entirely on the release it was serving and the deployment fails; after it, the release is
+  in service and the deployment succeeds, saying what it could not write.
+- **A release keeps its commit in the repository.** `release.sh` records it under
+  `refs/releases/<name>` for as long as the directory exists. A candidate is fetched without a
+  branch to hold it, and git removes in time what nothing refers to: the gate could then no longer
+  read the commit it serves, and would refuse everything.
+- **Migrations run before the switch.** For a few seconds the release in service runs against the
+  new schema, and after a rollback an older release does for good: a migration has to stay
+  compatible with the release before it.
+- **One deployment at a time.** The lock is held on a file descriptor, so it is released when the
+  last process of the deployment ends, however it ends: there is no file to delete after a crash.
+  A second deployment is refused at once — `a deployment is already running on this server`.
+  A script that is told the lock is held checks that it is before it believes it.
 - **`--force` on `db:seed`.** In production Laravel asks *"Are you sure you want to run this
-  command?"*, and a session nobody is typing in answers no: `Command cancelled`, exit 1. Typed by
-  hand on 2026-09-14 the question was simply answered, so the sequence looked complete without
-  the flag. `--no-interaction` leaves the seeder's own question on its default, which is to keep
-  published content.
-- **A detached checkout.** The server no longer follows a branch: it sits on the commit it serves,
-  and `git pull` has nothing to pull into.
-- **It stops at the first command that fails**, and `RELEASE` then keeps the previous SHA: the
-  environment goes on announcing the release it was serving, and a smoke test expecting the new
-  one fails.
+  command?"*, and a session nobody is typing in answers no: `Command cancelled`, exit 1.
+  `--no-interaction` leaves the seeder's own question on its default, which is to keep published
+  content.
+- **The release names itself.** `release.sh` writes the commit SHA into `RELEASE` when it extracts
+  it; `config:cache` freezes it, and every response of that release carries it as `X-Release` —
+  see [Smoke tests](smoke-tests.md).
 
 Then, **from your own machine and not from the server** — it is the outside view that
 matters:
@@ -444,9 +513,6 @@ SMOKE_BASIC_USER=… SMOKE_BASIC_PASSWORD=… \
   php artisan deploy:smoke --url=https://preprod.cardascia-it.org --expect-release=<the SHA deployed>
 ```
 
-`--expect-release` has something to compare with since the script writes `RELEASE`. Without the
-option, the probe that checks which release answered is skipped.
-
 Nineteen probes, under a minute, read-only: it replays what the first deployment checked by
 hand in `docs/smoke-tests.md`. Exit code 1 means the release must not be promoted. Until the
 pipeline runs it (LUMN-53), running it by hand is the last step of a deployment, not an
@@ -454,41 +520,128 @@ optional extra.
 
 `npm ci` and `npm run build` run **on the server**: `/public/build` is gitignored, so the
 assets exist nowhere else. Measured: 6 seconds, on a host with 32 GB of memory and 2 TB
-free — the "will the build fit" question has an answer, and it is yes.
+free. A release weighs about 260 MB with its `vendor/` and `node_modules/` (measured on
+2026-10-11), so five of them are not a question either.
 
 `HomepageContentSeeder` is safe to run on every deployment: its `confirm()` defaults to
 `false`, so a non-interactive run populates an empty row and otherwise changes nothing.
 Editing live content is the admin form's job.
 
 **`config:cache` freezes `.env`.** After it runs, `env()` outside a config file returns
-`null`. Change a variable, and nothing takes effect until `config:cache` runs again.
+`null`. A change made to `shared/.env` takes effect at the next release or the next rollback:
+both cache the configuration of the release they put in service.
+
+### Rolling back
+
+```bash
+# On the server
+bash ~/lumina/preprod/current/scripts/rollback.sh                    # undo the last deployment
+bash ~/lumina/preprod/current/scripts/rollback.sh <release name>     # or go to a release of releases/
+```
+
+Going back is one link changing, towards a directory that was built and served before: no network,
+no build, a few seconds. `rollback.sh` first runs `config:cache` in the release it goes to —
+`.env` may have changed since that release was built — and then switches.
+
+- **Without a name, it undoes the last deployment, and only that.** Once undone, or once another
+  release has been put in service by hand, there is no "last deployment" left: going further back
+  is a release to name, among those of `releases/`.
+- **A release is named, never pointed at.** A path is refused, and so is a directory that was
+  never served.
+- **The database does not go back.** Migrations only go forward; the script says so every time.
+- **Nothing is removed.** The release that was left can be put back the same way, by name.
+- **When the link itself leads nowhere** — the directory of the release in service was removed by
+  mistake — `current/scripts/rollback.sh` is gone with it, and every page answers an error. Run
+  the script of any release that is left, and name the one to put in service:
+  `bash ~/lumina/preprod/releases/<a release>/scripts/rollback.sh <release name>`.
+
+Then run `deploy:smoke --expect-release=<the SHA the script printed>`: a rollback is a switch like
+any other, and is verified like one.
+
+The pipeline can undo too, within limits: `gh workflow run deploy.yml --ref main -f request=rollback`
+asks the gate to undo the deployment of that commit, and the gate only agrees for half an hour —
+see [What the pipeline's key can do](#what-the-pipelines-key-can-do).
 
 ### Deploying a candidate, before it reaches `main`
 
 The sequence above deploys what is already released. A change that can only be *validated*
 on a server — anything about proxies, TLS, paths, or interpreter versions — has to be
 deployed before it is merged, or the pull request waits on a measurement the merge is a
-precondition for.
+precondition for. The pipeline's key cannot do it, on purpose: this is a gesture made by hand.
 
 ```bash
-# 1. deploy the candidate
-git fetch origin && git checkout --detach origin/<branch>
-bash scripts/deploy.sh
+# 1. release the candidate
+cd ~/lumina/preprod
+git -C repo fetch origin <branch>
+bash current/scripts/release.sh FETCH_HEAD
 
 # 2. measure. Anything found goes back onto the same branch — the squash merge
 #    still produces one commit, so the ticket keeps its single commit on main.
 
-# 3. once merged, bring the server back
-git fetch origin && git checkout --detach origin/main
-bash scripts/deploy.sh
+# 3. once merged, let main take the site back
+git -C repo fetch origin main
+bash current/scripts/release.sh FETCH_HEAD
 # …and verify again on what is actually released.
 ```
 
 **Step 3 is not optional.** A server left on a candidate serves code that is not `main` until
-something deploys over it — and until LUMN-53, nothing does so by itself.
+something deploys over it — and until LUMN-53, nothing does so by itself. The pipeline can do
+step 3 as well: the merged commit is not older than the candidate, so the gate accepts it.
 
 This is safe here because preprod sits behind HTTP Basic authentication: a candidate
 carrying a known defect is unreachable while it is being measured.
+
+### Measuring a switch
+
+```bash
+SMOKE_BASIC_USER=… SMOKE_BASIC_PASSWORD=… \
+  bash scripts/watch-switch.sh https://preprod.cardascia-it.org/fr
+```
+
+Run from your own machine, started just before a deployment or a rollback. Five times a second,
+for a minute, it asks for the page, reads which release answered in `X-Release`, and asks for
+every compiled file the page names. It prints a line each time the release changes or something is
+missing, and exits 1 if a single answer would have shown a visitor a broken page.
+
+This is the measurement `deploy.sh` cannot make on itself. The link changes in one rename, but PHP
+remembers for a while where a path led — up to `realpath_cache_ttl`, 120 seconds on this host —
+and may go on answering from the release that was just replaced while Apache already serves the
+files of the new one. Keeping the previous release's compiled files is what makes that harmless;
+this script is what says whether it is.
+
+### Setting up a site
+
+Once per environment, by hand. The scripts need a repository, the two things every release
+shares, and a first release to be reached through.
+
+```bash
+# On the server
+mkdir -p ~/lumina/preprod/releases ~/lumina/preprod/shared
+git clone --bare git@github.com:Sefalhik/lumina.git ~/lumina/preprod/repo
+
+# shared/.env: filled as described in "The preprod .env, ready to fill"
+# shared/storage: the directories Laravel expects, as the repository ships them
+git -C ~/lumina/preprod/repo archive main storage | tar -x -C ~/lumina/preprod/shared
+
+# The first release: the scripts of the commit are extracted, and they do the rest.
+mkdir ~/lumina/preprod/releases/bootstrap
+git -C ~/lumina/preprod/repo archive main | tar -x -C ~/lumina/preprod/releases/bootstrap
+bash ~/lumina/preprod/releases/bootstrap/scripts/release.sh main
+```
+
+`bootstrap` is not a release: it was never served, and the first deployment removes it with
+everything else that was not. Then point the site's root directory at
+`lumina/preprod/current/public` in the alwaysdata panel, run the smoke test, and only then tie
+the pipeline's key to `current/scripts/deploy-gate.sh` —
+[Setting it up](#setting-it-up).
+
+**Moving an environment that was a single checkout.** Preprod was one, in `~/preprod`, served from
+`preprod/public`. Build the new site beside it and leave the old one untouched until the new one
+is verified: if anything goes wrong, putting `preprod/public` back in the panel is the whole way
+back. Two differences from a new site: `shared/.env` is a copy of `~/preprod/.env`
+(`cp -p`), and `shared/storage` a copy of `~/preprod/storage` (`cp -a`), which carries the gate's
+journal over. The line of the pipeline's key in `~/.ssh/authorized_keys` names the old path: it
+is replaced last, once the new site answers, and the eight probes are run again.
 
 ---
 
@@ -508,13 +661,15 @@ it *allows* is bounded on both sides.
 **On the server**, by its line in `~/.ssh/authorized_keys`:
 
 ```
-command="/usr/bin/env bash /home/cardascia-it/preprod/scripts/deploy-gate.sh",restrict ssh-ed25519 AAAA… github-actions deploy, preprod
+command="/usr/bin/env bash /home/cardascia-it/lumina/preprod/current/scripts/deploy-gate.sh",restrict ssh-ed25519 AAAA… github-actions deploy, preprod
 ```
 
 - `restrict` refuses a terminal, port forwarding and agent forwarding.
 - `command="…"` is a **forced command**: sshd runs `scripts/deploy-gate.sh` whatever the caller
-  asked for, and hands the request over in `SSH_ORIGINAL_COMMAND`. The gate honours two requests —
-  `php-version`, and `deploy <sha>` — and refuses everything else, without ever repeating it.
+  asked for, and hands the request over in `SSH_ORIGINAL_COMMAND`. It is named through `current`:
+  the gate that answers is always the one of the release in service. It honours three requests —
+  `php-version`, `deploy <sha>` and `rollback <sha>` — and refuses everything else, without ever
+  repeating it. It decides and never builds: `release.sh` and `rollback.sh` do.
 - `<sha>` has to be the full SHA of **a commit of `main`**. The shape alone would not do: the
   repository is public, and GitHub serves the commit of any fork by its SHA from this repository's
   address. The gate fetches `refs/heads/main` and nothing else, then asks git whether the commit
@@ -524,17 +679,37 @@ command="/usr/bin/env bash /home/cardascia-it/preprod/scripts/deploy-gate.sh",re
   would bring it back. Going back is a decision a human makes, by hand. Deploying again the commit
   being served is not going back, and stays possible — a deployment that failed halfway can be
   replayed.
-- The commit also has to **carry the deployment scripts**. One from before they existed would be
-  checked out with nothing to deploy it, and would take the gate away with it: the key would then
-  answer nothing until someone logged in by hand. Deploying such a commit is a human's decision.
+- The commit also has to **carry the four deployment scripts**, each as a regular file — a
+  directory or a link of that name would be found and could not be run. A commit that lacks one
+  would become the release in service with nothing to answer the key any more: no gate, or a gate
+  with nothing to hand the work to. Deploying such a commit is a human's decision. Whether a
+  script *works* is not the gate's to judge: that is what the required checks of `main` are for.
+- **What git cannot tell is refused.** "Is this commit older than the one being served?" has three
+  answers: yes, no, and an error, when the repository has lost an object. The error is a refusal,
+  never a "no". This rests on git 2.45 or newer, which reports such a loss; older versions answer
+  "no" and say nothing. The server runs 2.45.1 (measured on 2026-10-11).
+- All of this is measured against the commit being served, read in `current/RELEASE`. A server
+  that cannot name it — no file, something that is not a SHA, a commit its repository does not
+  hold — is **refused everything**: "not older than nothing" would let any commit of `main` through.
+- **`rollback <sha>` undoes one deployment, the last, for half an hour.** `<sha>` has to be the
+  commit being served, put there by a deployment less than thirty minutes ago, and the release it
+  replaced has to be still on disk. Asked later, twice, or of anything but the last deployment, it
+  would be the way back to an older commit that `deploy` refuses — and it is refused the same. The
+  gate never names a release to `rollback.sh`: which one to go back to is recorded by the
+  deployment itself. Going back asks nothing of the repository: the day a deployment went wrong
+  because the repository did, the way back does not depend on it.
+- **One request at a time.** The gate takes the deployment lock last, once it has decided, and
+  hands it to the script it runs. A request made while a deployment is running is refused as
+  `busy` — unless it would have been refused anyway, in which case it is told why.
 - The shape of the SHA is checked against a list of characters, not a range: in a UTF-8 locale
   bash reads `a-f` by collation, `[0-9a-f]` then matches `é` and the digits of other scripts, and
   the locale is the one thing an SSH client is commonly allowed to send.
 - One `ed25519` pair per environment. Revoking preprod's does not touch production's, nor any
   human access.
 
-A stolen key can therefore move the server forward along `main`, and do nothing else. The gate keeps one
-line per request in `storage/logs/deploy-gate.log`: when, from which address, what was decided.
+A stolen key can therefore move the server forward along `main`, or take back the step it has
+just made, and do nothing else. The gate keeps one line per request in
+`shared/storage/logs/deploy-gate.log`: when, from which address, what was decided.
 
 **In GitHub**, by where the key lives and by what the workflow is allowed to be:
 
@@ -544,7 +719,7 @@ line per request in `storage/logs/deploy-gate.log`: when, from which address, wh
 | The server's identity | variable `DEPLOY_SSH_KNOWN_HOSTS`: the host key, **pinned**. The connection uses `StrictHostKeyChecking=yes`; the workflow never runs `ssh-keyscan` and never accepts a key it meets |
 | Where to connect | variables `DEPLOY_SSH_HOST` and `DEPLOY_SSH_USER` — not secrets, both are in this file |
 | Third-party code | **none**. The workflow uses no action, not even one of GitHub's: `ssh` is already on the runner |
-| What a caller controls | one input, a closed list of two words, read through an environment variable. The SHA is `github.sha` |
+| What a caller controls | one input, a closed list of three words, read through an environment variable. The SHA is `github.sha` |
 | Token | `permissions: {}` |
 
 `scripts/__tests__/deploy-workflow.test.js` holds each line of that table, and runs the step of the
@@ -557,8 +732,8 @@ hand until LUMN-53 decides otherwise.
 
 ### Setting it up
 
-**1. The gate has to be on the server before the key is tied to it.** Deploy by hand, once, a
-commit that contains `scripts/deploy-gate.sh` — see [Deploying](#deploying).
+**1. The gate has to be on the server before the key is tied to it.** The site has to be serving
+a release that contains the four scripts — see [Setting up a site](#setting-up-a-site).
 
 **2. Generate the pair**, on your own machine:
 
@@ -584,7 +759,7 @@ content of `~/.ssh/lumina-deploy-preprod.pub`:
 
 ```bash
 ssh <your access> 'cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.before-deploy-key'
-printf '\ncommand="/usr/bin/env bash /home/cardascia-it/preprod/scripts/deploy-gate.sh",restrict %s\n' \
+printf '\ncommand="/usr/bin/env bash /home/cardascia-it/lumina/preprod/current/scripts/deploy-gate.sh",restrict %s\n' \
   "$(cat ~/.ssh/lumina-deploy-preprod.pub)" | ssh <your access> 'cat >> ~/.ssh/authorized_keys'
 ```
 
@@ -669,12 +844,15 @@ line of step 5.
 - **The GitHub account is the root of trust.** Whoever controls it approves deployments and
   replaces secrets. Its two-factor authentication is on (read through the API on 2026-10-10); the
   hosting account's has to be checked in its own panel.
-- **Not measured yet, on 2026-10-11**: that a session opened by the pipeline's key finds the Node
-  the panel selects. The key has answered `php-version`; the first scripted deployment, on
-  2026-10-10, went through a human access. The first `deploy` request from GitHub answers it.
-- **Two deployments at once.** The workflow never runs two, but the server itself does not refuse
-  a second request while a first is running. A lock belongs with LUMN-51, which rebuilds how a
-  release is switched.
+- **The database.** A rollback puts the code back, never the schema: that is the twin ticket on
+  reversible migrations, and until it exists a migration that an older release cannot live with
+  makes that release impossible to go back to.
+- **Half an hour is a judgement.** It is long enough for a smoke test to fail and ask for the
+  rollback, short enough that a key stolen later finds nothing left to undo.
+
+Measured on 2026-10-11, the day of the first deployment asked from GitHub: a session opened by the
+pipeline's key finds the PHP and the Node the panel selects — `php-version` answered 8.5.11, and
+`npm ci` and `npm run build` ran in the `deploy` request that followed.
 
 ---
 
@@ -798,9 +976,8 @@ nobody watching. Six of its probes come straight from the four defects below.
 
 ## Not done yet
 
-- **No deployment on merge.** The sequence is a script and the pipeline can run it on request
-  (LUMN-50), but someone still has to ask. Deploying every merge is LUMN-53; switching releases
-  atomically, and going back, is LUMN-51.
+- **No deployment on merge.** The pipeline can release a commit and undo it on request (LUMN-50,
+  LUMN-51), but someone still has to ask. Deploying every merge is LUMN-53.
 - **No rate limiting anywhere.** `grep -rn throttle routes/ app/Http/` returns nothing, and
   `LoginRequest` does not call `ensureIsNotRateLimited()`. `/{lang}/login` accepts unlimited
   password attempts, and the six-digit TOTP challenge behind it accepts unlimited codes —

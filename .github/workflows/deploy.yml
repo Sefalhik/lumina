@@ -1,8 +1,9 @@
 name: Deploy
 
-# Asks the preproduction server to do one of the two things its gate accepts (LUMN-50): report its
-# PHP version, or deploy the commit this workflow runs from. Started by hand only, for now: the
-# deployment on every merge is LUMN-53.
+# Asks the preproduction server to do one of the three things its gate accepts (LUMN-50, LUMN-51):
+# report its PHP version, deploy the commit this workflow runs from, or undo the deployment of that
+# commit while the gate still allows it. Started by hand only, for now: the deployment on every
+# merge is LUMN-53.
 #
 # What keeps this safe is written in docs/deployment.md, "What the pipeline's key can do". In short:
 #
@@ -26,6 +27,7 @@ on:
         options:
           - php-version
           - deploy
+          - rollback
         default: php-version
 
 # No token permission at all: this workflow reads no code and writes nothing to GitHub.
@@ -59,8 +61,9 @@ jobs:
           case "$REQUEST" in
             php-version) remote_request='php-version' ;;
             deploy) remote_request="deploy ${RELEASE_SHA}" ;;
+            rollback) remote_request="rollback ${RELEASE_SHA}" ;;
             *)
-              echo '::error::Unknown request: the workflow sends "php-version" or "deploy", nothing else.'
+              echo '::error::Unknown request: the workflow sends "php-version", "deploy" or "rollback", nothing else.'
               exit 1
               ;;
           esac
