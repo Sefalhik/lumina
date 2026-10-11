@@ -174,4 +174,4 @@ if ((FAILED > 0)); then
   printf "\n${RED}%s restriction(s) missing.${RESET} Do not give this key to the pipeline: check its line in ~/.ssh/authorized_keys.\n" "$FAILED" >&2
   exit 1
 fi
-printf "\n${GREEN}The key can ask for php-version and a deployment, and nothing else.${RESET}\n"
+printf "\n${GREEN}The key can ask for php-version, a deployment and its rollback, and nothing else.${RESET}\n"

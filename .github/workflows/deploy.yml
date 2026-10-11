@@ -1,8 +1,9 @@
 name: Deploy
 
-# Asks the preproduction server to do one of the two things its gate accepts (LUMN-50): report its
-# PHP version, or deploy the commit this workflow runs from. Started by hand only, for now: the
-# deployment on every merge is LUMN-53.
+# Asks the preproduction server to do one of the three things its gate accepts (LUMN-50, LUMN-51):
+# report its PHP version, deploy the commit this workflow runs from, or undo the deployment of that
+# commit while the gate still allows it. Started by hand only, for now: the deployment on every
+# merge is LUMN-53.
 #
 # What keeps this safe is written in docs/deployment.md, "What the pipeline's key can do". In short:
 #
@@ -26,6 +27,7 @@ on:
         options:
           - php-version
           - deploy
+          - rollback
         default: php-version
 
 # No token permission at all: this workflow reads no code and writes nothing to GitHub.
@@ -59,8 +61,9 @@ jobs:
           case "$REQUEST" in
             php-version) remote_request='php-version' ;;
             deploy) remote_request="deploy ${RELEASE_SHA}" ;;
+            rollback) remote_request="rollback ${RELEASE_SHA}" ;;
             *)
-              echo '::error::Unknown request: the workflow sends "php-version" or "deploy", nothing else.'
+              echo '::error::Unknown request: the workflow sends "php-version", "deploy" or "rollback", nothing else.'
               exit 1
               ;;
           esac
@@ -83,6 +86,7 @@ jobs:
 
           # -F /dev/null and the two known-hosts options: the pinned file is the only thing this
           # connection may believe about the server's identity.
+          status=0
           ssh -F /dev/null -T \
             -i "$key_file" \
             -o IdentitiesOnly=yes \
@@ -92,4 +96,28 @@ jobs:
             -o GlobalKnownHostsFile=/dev/null \
             -o ForwardAgent=no \
             -o ConnectTimeout=20 \
-            "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}" "$remote_request"
+            "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}" "$remote_request" || status=$?
+
+          # What happened, where it is read first: on the page of the run, without opening a log.
+          # The server has said why in its own words, just above; its exit status says which kind
+          # of answer that was.
+          case "$status" in
+            0) outcome='done' ;;
+            75) outcome='refused: another deployment was running on the server' ;;
+            255) outcome='not asked: the connection to the server failed' ;;
+            *) outcome='refused by the server, or failed there' ;;
+          esac
+          {
+            echo '### Deploy — preprod'
+            echo
+            echo '| | |'
+            echo '|---|---|'
+            echo "| Request | \`${REQUEST}\` |"
+            echo "| Commit | \`${RELEASE_SHA}\` |"
+            echo "| Outcome | ${outcome} (exit status ${status}) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if ((status != 0)); then
+            echo "::error title=Deploy — preprod::\"${REQUEST}\" was ${outcome} (exit status ${status}). What the server said is in the log of this step; what it did is in shared/storage/logs/ on the server."
+            exit "$status"
+          fi

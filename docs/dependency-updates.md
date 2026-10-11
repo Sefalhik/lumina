@@ -277,7 +277,7 @@ Download the job log from the Mend portal and search for `lock file error`; the 
 
 `./frankenphp` is the one dependency Renovate cannot see: a standalone binary, gitignored, fetched
 from a GitHub release by `scripts/update-frankenphp.sh` (`npm run update:frankenphp`). It never
-reaches a server — alwaysdata runs Apache and PHP-FPM — but it is the process that serves the site
+reaches a server — alwaysdata runs Apache and PHP over FastCGI — but it is the process that serves the site
 on a developer's machine, next to the `.env`.
 
 Until LUMN-74, on 2026-10-10, the script installed whatever it received: no checksum, no delay,
