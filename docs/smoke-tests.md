@@ -103,10 +103,11 @@ release.
 
 *Measured on 2026-09-20, and not yet used:* a 500 rendered by the application still carries
 `X-Release` — the exception is converted inside the pipeline, so the response leaves through the
-global middleware. Once LUMN-50/51 write a `RELEASE` file on every environment, the header's
-**absence** becomes a far better discriminator than the status code: no `X-Release`, no PHP. It
-cannot be used before then, because preprod legitimately has no release file today and the probe
-would blame the web server for it.
+global middleware. `scripts/deploy.sh` now writes a `RELEASE` file at every deployment (LUMN-50;
+preprod has had one since 2026-10-10), which makes the header's **absence** a far better
+discriminator than the status code: no `X-Release`, no PHP. The probe does not use it yet. It
+could not before: preprod legitimately had no release file, and the probe would have blamed the
+web server for it.
 
 **Probe 3 writes down no list of pages.** `DeployedSite::publicPaths()` derives it: the homepage in
 every indexable locale, then every other route of `config/seo.php` → `public_routes`, in French. That

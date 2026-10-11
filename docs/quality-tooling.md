@@ -188,7 +188,8 @@ workflow says. `deploy.yml` uses no action at all — see
 
 Measured the same day under these settings: `security-audit.yml` and the `ci.yml` run of `main`
 both pass. CodeQL's default setup is a workflow GitHub manages, which cannot be started by hand:
-whether "pinning required" suits it was **not measured** that day.
+it ran under these settings on pull request #57 that evening, and passed, as did the dependency
+review.
 
 ## Known vulnerabilities
 

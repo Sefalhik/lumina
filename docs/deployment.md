@@ -578,8 +578,20 @@ ssh-keygen -lf /tmp/lumina-known-hosts
 network cannot forge before it is trusted. Run by the workflow, it would ask an attacker who the
 server is and believe the reply.
 
-**4. Authorise the public half on the server**, with its restrictions: append the line shown
-above to `~/.ssh/authorized_keys`, the key being the content of `~/.ssh/lumina-deploy-preprod.pub`.
+**4. Authorise the public half on the server**, with its restrictions. Through your own access,
+keep a copy of `~/.ssh/authorized_keys`, then append the line shown above, the key being the
+content of `~/.ssh/lumina-deploy-preprod.pub`:
+
+```bash
+ssh <your access> 'cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.before-deploy-key'
+printf '\ncommand="/usr/bin/env bash /home/cardascia-it/preprod/scripts/deploy-gate.sh",restrict %s\n' \
+  "$(cat ~/.ssh/lumina-deploy-preprod.pub)" | ssh <your access> 'cat >> ~/.ssh/authorized_keys'
+```
+
+Appended, never edited in place: your own access is another line of that file, and the copy is the
+way back. The leading `\n` is for a file whose last line does not end with one — the new entry
+would otherwise be glued to the previous key and neither would work.
+
 Then measure what the key can do, from your own machine, before GitHub ever sees it:
 
 ```bash
@@ -596,6 +608,19 @@ it does with a request; they cannot prove that sshd hands it every request. A ke
 nothing but this measurement would say so. A refusal only counts when it is one: the script
 wants the gate's own word, or sshd's, because an allowed tunnel also fails when nothing listens
 at its far end.
+
+Two probes never hear the gate, and are judged on what does come back. A terminal turned down
+ends the session: `ssh -tt` takes the refusal for fatal, says so and leaves with 255 before the
+command is sent. And sshd discards the standard error of a subsystem: the gate refusing `sftp`
+comes back as its exit status, 1, without a word — where a real sftp server, its input ending at
+once, leaves with 0 just as silently. Both were measured on preprod on 2026-10-10 and 11, after a
+first version of the probe had waited for the gate's word on each and failed a key that was
+restricted as it should be. Under a ✘ the script now says what it wanted and what it observed: an
+exit status and the names of the sentences it looks for, never the answer.
+
+**Measured on preprod on 2026-10-11**, OpenSSH 9.2 on the server and fish as the account's shell:
+the eight probes answer as described, and `php-version` finds PHP 8.5.11 in a session with no
+terminal.
 
 **5. Create the environment and fill it:**
 
@@ -644,10 +669,9 @@ line of step 5.
 - **The GitHub account is the root of trust.** Whoever controls it approves deployments and
   replaces secrets. Its two-factor authentication is on (read through the API on 2026-10-10); the
   hosting account's has to be checked in its own panel.
-- **Not measured yet, on 2026-10-10**: that `restrict` and the forced command behave as described
-  with fish as the account's shell, and that a session with no terminal finds the PHP and the Node
-  the panel selects. `scripts/check-deploy-key.sh` answers the first, its `php-version` probe the
-  second.
+- **Not measured yet, on 2026-10-11**: that a session opened by the pipeline's key finds the Node
+  the panel selects. The key has answered `php-version`; the first scripted deployment, on
+  2026-10-10, went through a human access. The first `deploy` request from GitHub answers it.
 - **Two deployments at once.** The workflow never runs two, but the server itself does not refuse
   a second request while a first is running. A lock belongs with LUMN-51, which rebuilds how a
   release is switched.

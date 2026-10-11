@@ -19,6 +19,12 @@ const SECRET = 'DB_PASSWORD=hunter2';
 
 // A server as OpenSSH answers one. STUB_ALLOWS lists what it wrongly grants; STUB_SERVER says
 // whether it accepts the key at all. What an unrestricted key reaches is a secret on purpose.
+//
+// Two of its answers were measured on the real server on 2026-10-10 and 11, after the first
+// version of this stand-in had invented them. A terminal turned down ends the session: ssh, asked
+// for one outright, says so and leaves with 255 without sending the command. And a subsystem is
+// mute: sshd discards its standard error, so the gate's refusal comes back as an exit status and
+// nothing else — where a real sftp server, its input ending at once, leaves with 0 just as silently.
 const SSH = `${JOURNAL}
 terminal=0; subsystem=0; tunnel=0; port=0
 words=()
@@ -58,10 +64,13 @@ if (( port )); then
   echo 'Error: remote port forwarding failed for listen port 0' >&2
   exit 255
 fi
-(( terminal )) && ! grants terminal && echo 'PTY allocation request failed on channel 0' >&2
+if (( terminal )) && ! grants terminal; then
+  echo 'PTY allocation request failed on channel 0' >&2
+  exit 255
+fi
 if (( subsystem )); then
-  grants sftp && { echo "sftp-server ready, ${SECRET}"; exit 0; }
-  refuse
+  grants sftp && exit 0
+  exit "$STUB_GATE_EXIT"
 fi
 case "$request" in
   php-version) printf '%s\\n' "$STUB_PHP_SAYS"; exit "$STUB_PHP_EXIT" ;;
@@ -74,15 +83,68 @@ esac
 refuse
 `;
 
+const GATE_REFUSAL = 'exit status 1 and the refusal of the gate, without the marker a shell sends back';
+const NOTHING_KNOWN = 'none of the sentences this check looks for';
+
+// What the server wrongly grants, the two verdicts, what the probe wanted, and what it observes of
+// a server that grants it.
 const PROBES = [
-    ['shell', 'a shell is refused', 'a shell is NOT refused'],
-    ['command', 'a command is refused', 'a command is NOT refused'],
-    ['terminal', 'a terminal is not granted', 'a terminal IS granted, or the command was not refused'],
-    ['sftp', 'the sftp subsystem is refused', 'the sftp subsystem is NOT refused'],
-    ['copy', 'a file copy is refused', 'a file copy is NOT refused'],
-    ['tunnel', 'a tunnel through the server is refused', 'a tunnel through the server is NOT refused'],
-    ['port', 'a port opened on the server is refused', 'a port opened on the server is NOT refused'],
+    [
+        'shell',
+        'a shell is refused',
+        'a shell is NOT refused',
+        GATE_REFUSAL,
+        `exit status 0; in the answer: ${NOTHING_KNOWN}`,
+    ],
+    [
+        'command',
+        'a command is refused',
+        'a command is NOT refused',
+        GATE_REFUSAL,
+        'exit status 0; in the answer: the marker a shell sends back',
+    ],
+    [
+        'terminal',
+        'a terminal is not granted',
+        'a terminal IS granted',
+        'ssh saying the terminal was turned down',
+        'exit status 1; in the answer: the refusal of the gate',
+    ],
+    [
+        'sftp',
+        'the sftp subsystem is refused',
+        'the sftp subsystem is NOT refused',
+        "exit status 1, the gate's: sshd discards the words a subsystem refuses with",
+        'exit status 0; in the answer: nothing',
+    ],
+    [
+        'copy',
+        'a file copy is refused',
+        'a file copy is NOT refused',
+        GATE_REFUSAL,
+        `exit status 0; in the answer: ${NOTHING_KNOWN}`,
+    ],
+    [
+        'tunnel',
+        'a tunnel through the server is refused',
+        'a tunnel through the server is NOT refused',
+        'a tunnel prohibited, and no banner of an SSH server',
+        'exit status 0; in the answer: the banner of an SSH server',
+    ],
+    [
+        'port',
+        'a port opened on the server is refused',
+        'a port opened on the server is NOT refused',
+        'a port forwarding that failed, before the time limit',
+        'exit status 124, the time limit: the session stayed open; in the answer: nothing',
+    ],
 ];
+
+// The probes that hear the gate, and the ones that only get its exit status back.
+const HEARS_THE_GATE = ['shell', 'command', 'copy'];
+const JUDGED_ON_THE_GATE = ['shell', 'command', 'sftp', 'copy'];
+const notRefusedAmong = (names) =>
+    PROBES.filter(([name]) => names.includes(name)).map(([, , notRefused]) => notRefused);
 
 const sandboxes = [];
 
@@ -155,6 +217,12 @@ function check({
             plain(result.stdout)
                 .match(/^ {2}✘ {2}(.+)$/gm)
                 ?.map((line) => line.slice(5)) ?? [],
+        // Under each ✘: what the probe wanted, then what it observed.
+        explained:
+            plain(result.stdout)
+                .match(/^ {2}✘ {2}.+\n {7}wanted: .+\n {7}observed: .+$/gm)
+                ?.map((lines) => lines.split('\n').map((line) => line.replace(/^ +(✘ +|wanted: |observed: )/, ''))) ??
+            [],
         connections: callsIn(log).map(([, ...args]) => args),
     };
 }
@@ -212,23 +280,33 @@ describe('check-deploy-key.sh — a key that is well restricted', () => {
 });
 
 describe('check-deploy-key.sh — a restriction that is missing', () => {
-    it.each(PROBES)('fails when the server grants %s, and names it', (granted) => {
-        // A server that runs commands runs the one sent through a terminal too: that probe asks for
-        // both, and says so when it fails.
-        const seen = granted === 'command' ? ['command', 'terminal'] : [granted];
+    it.each(PROBES)('fails when the server grants %s, and names it', (granted, _, notRefused) => {
         const result = check({ allows: [granted] });
 
         expect(result.status).toBe(1);
-        expect(result.failed).toEqual(
-            PROBES.filter(([name]) => seen.includes(name)).map(([, , notRefused]) => notRefused),
-        );
+        expect(result.failed).toEqual([notRefused]);
         expect(result.passed).toEqual([
             'php-version answers',
-            ...PROBES.filter(([name]) => !seen.includes(name)).map(([, refused]) => refused),
+            ...PROBES.filter(([name]) => name !== granted).map(([, refused]) => refused),
         ]);
-        expect(result.stderr).toContain(`${seen.length} restriction(s) missing.`);
+        expect(result.stderr).toContain('1 restriction(s) missing.');
         expect(result.stderr).toContain('Do not give this key to the pipeline');
         expect(result.stdout).not.toContain('nothing else');
+    });
+
+    it.each(PROBES)(
+        'says what it wanted and what it observed when the server grants %s',
+        (granted, _, notRefused, wanted, observed) => {
+            // What sent a well restricted key back with two ✘ and no way to tell why, on 2026-10-10.
+            expect(check({ allows: [granted] }).explained).toEqual([[notRefused, wanted, observed]]);
+        },
+    );
+
+    it('explains nothing when nothing fails', () => {
+        const result = check();
+
+        expect(result.stdout).not.toContain('wanted:');
+        expect(result.stdout).not.toContain('observed:');
     });
 
     it.each(PROBES)('never shows what the key reached when the server grants %s', (granted) => {
@@ -245,30 +323,53 @@ describe('check-deploy-key.sh — a restriction that is missing', () => {
 
         expect(result.status).toBe(1);
         expect(result.failed).toEqual(PROBES.map(([, , notRefused]) => notRefused));
+        expect(result.explained).toHaveLength(7);
         expect(result.stderr).toContain('7 restriction(s) missing.');
     });
 
     it.each([
-        ['is granted and kept open', 'tunnel-kept-open'],
-        ['is granted towards a port nothing listens on', 'tunnel-to-a-closed-port'],
-        ['is granted while something says "prohibited"', 'tunnel-and-says-otherwise'],
-    ])('fails when a tunnel %s: a failure is not a refusal', (_, granted) => {
+        [
+            'is granted and kept open',
+            'tunnel-kept-open',
+            'exit status 124, the time limit: the session stayed open; in the answer: the banner of an SSH server',
+        ],
+        [
+            'is granted towards a port nothing listens on',
+            'tunnel-to-a-closed-port',
+            `exit status 255; in the answer: ${NOTHING_KNOWN}`,
+        ],
+        [
+            'is granted while something says "prohibited"',
+            'tunnel-and-says-otherwise',
+            'exit status 255; in the answer: a tunnel prohibited, the banner of an SSH server',
+        ],
+    ])('fails when a tunnel %s: a failure is not a refusal', (_, granted, observed) => {
         // The second one is what an allowed tunnel looks like whenever its far end is closed: a
         // non-zero exit, no banner. Counting that as refused would pass a key with no `restrict`.
         const result = check({ allows: [granted] });
 
         expect(result.status).toBe(1);
         expect(result.failed).toEqual(['a tunnel through the server is NOT refused']);
+        expect(result.explained[0][2]).toBe(observed);
     });
 
     it.each([
-        ['is granted and the session then drops', 'port-then-drops'],
-        ['is granted while ssh reports another forwarding as failed', 'port-and-says-otherwise'],
-    ])('fails when a port %s', (_, granted) => {
+        [
+            'is granted and the session then drops',
+            'port-then-drops',
+            `exit status 255; in the answer: ${NOTHING_KNOWN}`,
+        ],
+        [
+            'is granted while ssh reports another forwarding as failed',
+            'port-and-says-otherwise',
+            'exit status 124, the time limit: the session stayed open; in the answer: a port forwarding that failed',
+        ],
+    ])('fails when a port %s', (_, granted, observed) => {
         const result = check({ allows: [granted] });
 
         expect(result.status).toBe(1);
         expect(result.failed).toEqual(['a port opened on the server is NOT refused']);
+        expect(result.explained[0][2]).toBe(observed);
     });
 
     it("does not take any refusal for the gate's: the exit code has to be the gate's too", () => {
@@ -276,21 +377,48 @@ describe('check-deploy-key.sh — a restriction that is missing', () => {
         const result = check({ gateExit: 255 });
 
         expect(result.status).toBe(1);
-        expect(result.failed).toEqual(PROBES.slice(0, 5).map(([, , notRefused]) => notRefused));
+        expect(result.failed).toEqual(notRefusedAmong(JUDGED_ON_THE_GATE));
+        expect(result.explained.map(([, , observed]) => observed)).toEqual([
+            'exit status 255; in the answer: the refusal of the gate',
+            'exit status 255; in the answer: the refusal of the gate',
+            'exit status 255; in the answer: nothing',
+            'exit status 255; in the answer: the refusal of the gate',
+        ]);
     });
 
     it('does not take a failure for a refusal when the gate did not say so', () => {
+        // The subsystem probe never hears the gate, so its words are not what it is judged on.
         const result = check({ gateSays: 'bash: line 1: echo: command not found' });
 
         expect(result.status).toBe(1);
-        expect(result.failed).toEqual(PROBES.slice(0, 5).map(([, , notRefused]) => notRefused));
+        expect(result.failed).toEqual(notRefusedAmong(HEARS_THE_GATE));
     });
 
     it('fails when a refusal comes with what was asked: something read it and ran with it', () => {
         const result = check({ leaksMarker: true });
 
         expect(result.status).toBe(1);
-        expect(result.failed).toEqual([PROBES[1][2], PROBES[2][2]]);
+        expect(result.explained).toEqual([
+            [
+                'a command is NOT refused',
+                GATE_REFUSAL,
+                'exit status 1; in the answer: the refusal of the gate, the marker a shell sends back',
+            ],
+        ]);
+    });
+
+    it('takes a terminal turned down for what it is, whatever the gate would have said', () => {
+        // Measured on 2026-10-10: ssh leaves with 255 and the command never reaches the gate.
+        // Waiting for the gate's refusal here failed a key that was restricted as it should be.
+        const result = check({ gateExit: 255, gateSays: 'no gate ever ran' });
+
+        expect(result.passed).toContain('a terminal is not granted');
+    });
+
+    it('takes a silent subsystem leaving with 1 for the gate, and one leaving with 0 for an sftp server', () => {
+        // Both say nothing: the status is the only thing that tells them apart.
+        expect(check().passed).toContain('the sftp subsystem is refused');
+        expect(check({ gateExit: 0 }).failed).toContain('the sftp subsystem is NOT refused');
     });
 });
 
@@ -316,6 +444,22 @@ describe('check-deploy-key.sh — a key that does not get through', () => {
         expect(result.connections).toHaveLength(1);
         expect(result.passed).toEqual([]);
         expect(result.stdout).not.toContain('nothing else');
+    });
+
+    it.each([
+        ['the server rejects the key', { kind: 'rejects-the-key' }, `exit status 255; in the answer: ${NOTHING_KNOWN}`],
+        ['php-version answers nothing', { phpSays: '' }, 'exit status 0; in the answer: nothing'],
+        [
+            'the gate refuses php-version too',
+            { phpSays: 'Refused: this is not a request the key accepts.', phpExit: 1 },
+            'exit status 1; in the answer: the refusal of the gate',
+        ],
+    ])('says what it observed when %s, and still not what it received', (_, server, observed) => {
+        const result = check(server);
+
+        expect(result.stderr).toContain(`       observed: ${observed}\n`);
+        expect(result.stderr).not.toContain('Permission denied');
+        expect(result.stderr).not.toContain('this is not a request');
     });
 });
 
