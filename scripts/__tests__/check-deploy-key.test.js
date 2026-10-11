@@ -236,7 +236,9 @@ describe('check-deploy-key.sh — a key that is well restricted', () => {
         expect(result.passed).toEqual(['php-version answers', ...PROBES.map(([, refused]) => refused)]);
         expect(result.failed).toEqual([]);
         expect(result.stdout).toContain('Checking what this key can do on example@ssh-example.alwaysdata.net');
-        expect(result.stdout).toContain('The key can ask for php-version and a deployment, and nothing else.');
+        expect(result.stdout).toContain(
+            'The key can ask for php-version, a deployment and its rollback, and nothing else.',
+        );
         expect(result.connections).toHaveLength(8);
     });
 
