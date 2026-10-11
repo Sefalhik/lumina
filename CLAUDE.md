@@ -351,7 +351,7 @@ See `docs/git-workflow.md` before changing the ruleset, re-keying a pull request
 
 Key rules:
 - `main` is protected by one ruleset with **no bypass actor**: no direct push, no force-push, squash only, [required checks](docs/git-workflow.md#required-checks) in strict mode
-- **One intention, one ticket, one PR, one commit.** Several PRs sharing a JIRA key break the rule; a ticket spanning two intentions is at the wrong level — split it. Four kinds of PR carry no key on purpose, documentation-only ones included: [Pull requests that carry no key](docs/git-workflow.md#pull-requests-that-carry-no-key)
+- **One intention, one ticket, one PR, one commit.** Several PRs sharing a JIRA key break the rule; a ticket spanning two intentions is at the wrong level — split it. Four kinds of PR carry no key on purpose, documentation-only ones included, and every one a person opens is titled `[HORS-TICKET] …`: [Pull requests that carry no key](docs/git-workflow.md#pull-requests-that-carry-no-key)
 - Strict mode: once a PR merges, rebase the others before merging them
 - Re-keying a PR means **renaming the branch and opening a new PR** — `jira-sync.yml` reads the branch name first
 - Check protection with `gh api repos/Sefalhik/lumina/rules/branches/main`, never the classic `/protection` endpoint — it is blind to rulesets
@@ -387,7 +387,7 @@ merged, the next not started — the dump has nothing to travel with. Holding it
 opens is not what the rule asked for: the rule exists to keep prose off a ticket's critical path, and
 there is no critical path to stay off.
 
-It then ships alone, as a `docs:` pull request with no JIRA key, and the branch is named after the
+It then ships alone, as a `[HORS-TICKET]` pull request with no JIRA key, and the branch is named after the
 session rather than after a ticket: `docs/session-YYYY-MM-DD`.
 
 The condition is what makes this an exception rather than a loophole: **no ticket in flight** means
