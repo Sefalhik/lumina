@@ -82,12 +82,22 @@ purpose:
 - **Routine Renovate updates** — see [Dependency updates](dependency-updates.md).
 - **Session brain dumps**, when no ticket is in flight — see
   [Session brain dumps](../CLAUDE.md#session-brain-dumps).
-- **Documentation-only changes**, since 2026-10-07: a `docs:` pull request from a `docs/…` branch.
-  A ticket would track nothing there — no behaviour to accept, deploy or roll back.
-- **Repairs to the tests of a ticket already merged**, since 2026-10-10: a pull request titled
-  `[HORS-TICKET] …`, from a `fix/…` branch. The ticket has its one commit on `main` and takes no
-  second one; a new ticket would track a debt of the first, not an intention. The prefix stands
-  where the key would: reading the log, a commit without a ticket says so itself.
+- **Documentation-only changes**, since 2026-10-07: a pull request from a `docs/…` branch. A
+  ticket would track nothing there — no behaviour to accept, deploy or roll back.
+- **Repairs to the tests of a ticket already merged**, since 2026-10-10: a pull request from a
+  `fix/…` branch. The ticket has its one commit on `main` and takes no second one; a new ticket
+  would track a debt of the first, not an intention.
+
+**Every one of them a person opens is titled `[HORS-TICKET] …`**, whatever its kind — the rule
+since 2026-10-11, where the prefix had first been written for the fourth kind alone. It stands
+where the key would: reading the log, a commit without a ticket says so itself, instead of looking
+like one whose key was forgotten. The kind is said by the branch, `docs/…` or `fix/…`. And the
+message of the commit says, in a line or two, what it does and why no ticket tracks it: the squash
+keeps it (`squash_merge_commit_message: COMMIT_MESSAGES`), and nothing in JIRA will.
+
+Renovate's pull requests are the one exception: the bot titles them, and they are recognised by
+their author. The documentation pull requests merged before that date are titled `docs: …`, and
+`main` keeps them as they are.
 
 The third holds only while the pull request changes documentation **and nothing else**.
 Documentation that describes a change of behaviour travels with the ticket that changes the
@@ -100,7 +110,7 @@ the gaps — `scripts/mutate-lines.js` — since a repair nobody can replay is h
 
 **Neither the branch name nor the title may quote a ticket key.** `jira-sync.yml` reads both — see
 [Re-keying a pull request means opening a new one](#re-keying-a-pull-request-means-opening-a-new-one) —
-and a `docs:` pull request titled after `LUMN-73` would move LUMN-73 to review.
+and a `[HORS-TICKET]` pull request titled after `LUMN-73` would move LUMN-73 to review.
 
 ## Re-keying a pull request means opening a new one
 

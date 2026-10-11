@@ -1109,9 +1109,17 @@ The killed deployment is the one case no trap can tidy up, which is why it was r
 first one was started in a session of its own (`setsid`), the second asked for three seconds into
 its first step, and the first then sent `kill -KILL` by process group.
 
-**Not measured before the merge**: `rollback` asked by the pipeline. The `preprod` environment
-only runs from `main`, and `main` did not offer that request yet. What the gate does with it is
-tested; the run from GitHub is to be made once, after the first deployment from `main`.
+**The same round trip, asked by the pipeline.** It could only be made after the merge: the
+`preprod` environment only runs from `main`, and `main` did not offer `rollback` before. Three
+runs of `deploy.yml` the same day, through the key once it was rotated onto the new gate:
+
+| | |
+|---|---|
+| `deploy` | accepted; 66 s from the request to `Deployed`. The new release answered 8 s before that last word: what follows the switch is the removal of the oldest release |
+| `rollback`, two minutes later | accepted; 4 s from the request to `Rolled back`, and the release before answered at the next round |
+| `deploy` again | accepted, in 63 s — the commit of `main` is not older than the candidate that was back in service |
+| Pages that would have been broken | none, in 500 rounds across the three |
+| `deploy:smoke --expect-release` | 19 probes passed after each |
 
 ## Not done yet
 
