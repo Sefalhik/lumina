@@ -568,8 +568,9 @@ the deployment stays what it was.
 The third is the one to open when the log of the pipeline stops in the middle of a sentence. A
 connection that drops takes that log with it; the file on the server goes on being written, by two
 copies of the output — what was said, what went wrong — that ignore the signal a terminal sends
-to everything it started when it hangs up. A rollback says three lines and keeps no such file: its
-line in `deployments.log` is the whole of it.
+to everything it started when it hangs up. Each copy writes as it receives: where two steps meet,
+the last lines a command sent to one stream can land under the heading of the next step. A
+rollback says three lines and keeps no such file: its line in `deployments.log` is the whole of it.
 
 **What the page of the run shows**, without opening a log: the request, the commit, and the
 outcome — with an error annotation when it is not `done`.
@@ -1081,6 +1082,36 @@ nobody watching. Six of its probes come straight from the four defects below.
 | `REMOTE_ADDR` | the visitor's own address; `mod_remoteip` runs upstream |
 | `HTTPS` | `on`, set by the host |
 | Forged `X-Forwarded-For` / `-Host` | reach PHP verbatim, and Laravel ignores them |
+
+## What the first switches established
+
+Measured on `preprod.cardascia-it.org` on 2026-10-11 (LUMN-51), not assumed. Two releases were
+switched back and forth: the candidate, `c63fbcb`, and a throwaway commit, `bf44bfb`, that changes
+one CSS rule — so that a page of one names a stylesheet the other never built, and a page served
+with the wrong files would have shown. `watch-switch.sh` ran from a laptop the whole time, about
+one round a second.
+
+| | |
+|---|---|
+| A deployment, from the command to `Deployed` | 50 s, of which `npm ci` 16 s and `vite build` 4 s |
+| A switch forward takes effect | at the next request: put in service at 12:42:54Z, and the round of :55 was answered by the new release. PHP was not restarted |
+| A rollback | 1.4 s on the server, 1.8 s asked over SSH. Rolled back at 12:43:26Z, and the round of :27 was answered by the release before |
+| Pages that would have been broken | none — 750 rounds across a deployment and its rollback, 400 across an earlier rollback |
+| Compiled files of the release replaced, missing from the one in service | 0 of 4 |
+| `current/.env`, `current/storage` | the same two inodes before and after both switches: links into `shared/`, nothing copied |
+| A second deployment asked for while one runs | refused, exit status 75, and no directory made |
+| A deployment killed outright during `composer install` — `SIGKILL` to everything it had started | lock free within a tenth of a second; the site still on the release it was serving; one directory left, never served |
+| That directory | removed by the next deployment |
+| Releases on disk afterwards | five, all of them served; one weighs about 261 MB |
+| `deploy:smoke --expect-release` | 19 probes passed after a switch, and again after each rollback |
+
+The killed deployment is the one case no trap can tidy up, which is why it was run for real: the
+first one was started in a session of its own (`setsid`), the second asked for three seconds into
+its first step, and the first then sent `kill -KILL` by process group.
+
+**Not measured before the merge**: `rollback` asked by the pipeline. The `preprod` environment
+only runs from `main`, and `main` did not offer that request yet. What the gate does with it is
+tested; the run from GitHub is to be made once, after the first deployment from `main`.
 
 ## Not done yet
 
