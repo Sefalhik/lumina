@@ -15,11 +15,16 @@ value *comes from*, so that a new environment can be rebuilt without hunting.
 |---|---|---|---|
 | dev | `dev.cardascia-it.org` | FrankenPHP / Octane, local | Development |
 | **preprod** | `preprod.cardascia-it.org` | alwaysdata, Apache | The new site, until it is validated |
-| prod (current) | `cardascia-it.org` | one.com, previous technology | Stays online and untouched |
+| prod (current) | `cardascia-it.org` | one.com answers `308` to `cardascia-it.alwaysdata.net`, the hosting account's default address, where the previous site is served | Stays online and untouched |
 | prod (target) | `cardascia-it.org` | alwaysdata, Apache | Not yet — see [Not done yet](#not-done-yet) |
 
-The old site keeps its address while the new one is built at a temporary one. No
+The old site stays reachable while the new one is built at a temporary address. No
 cutover happens until the editorial content is ready.
+
+Measured on 2026-10-10: `cardascia-it.org` does not *serve* the old site, it redirects to it, and
+a deep link loses its path on the way — `/fr/cv` lands on the root of the other address. This table
+said "one.com, previous technology" until then. It is the starting point of LUMN-35, not something
+to repair on the old site.
 
 ---
 
@@ -31,7 +36,10 @@ Three homes, one per audience. **None of them is the repository.**
 |---|---|
 | A human | A password manager. Not a file in `Documents`, not a note, not a chat message |
 | The running application | `/home/cardascia-it/preprod/.env` on the server |
-| The pipeline | GitHub repository *secrets*, encrypted, injected at deploy time |
+| The pipeline | GitHub **environment** secrets — `preprod` today, `production` with LUMN-54 — readable only by a job that names the environment. See [The pipeline's access to the server](#the-pipelines-access-to-the-server) |
+
+The three `JIRA_*` secrets stay at repository level: `jira-sync.yml` runs on pull-request events,
+outside any environment, and they open nothing on a server.
 
 The server-side `.env` sits **outside the document root** by construction: Apache is
 pointed at `preprod/public`, so `preprod/.env` is one level above anything the web
@@ -385,27 +393,59 @@ proven**, or the door closes with the key still inside.
 
 ## Deploying
 
+The sequence is a script, `scripts/deploy.sh`, since LUMN-50. It deploys **the commit that is
+checked out** and never chooses one:
+
 ```bash
 # On the server, in /home/cardascia-it/preprod
-git pull
-composer install --no-dev --optimize-autoloader
+git fetch origin
+git checkout --detach origin/main
+bash scripts/deploy.sh
+php artisan db:seed --class=AdminSeeder          # first deployment of an environment only
+```
+
+`scripts/deploy.sh` runs, in this order:
+
+```bash
+composer install --no-dev --optimize-autoloader --no-interaction
 npm ci
 npm run build
-php artisan migrate --force
-php artisan db:seed --class=AdminSeeder          # first deployment only
-php artisan db:seed --class=HomepageContentSeeder
+php artisan migrate --force --no-interaction
+php artisan db:seed --class=HomepageContentSeeder --force --no-interaction
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
+
+`scripts/__tests__/deploy.test.js` fails the day that listing and the script stop agreeing. Between
+the seeder and `config:cache` the script also writes the commit SHA into `RELEASE`, which is what
+`X-Release` and the first smoke probe read — see [Smoke tests](smoke-tests.md).
+
+Four things the script does that a sequence typed by hand never had to:
+
+- **It is run by `bash`, by name.** The account's shell is fish; a loop or a `[ ]` test typed
+  there does not mean what it means in the script.
+- **`--force` on `db:seed`.** In production Laravel asks *"Are you sure you want to run this
+  command?"*, and a session nobody is typing in answers no: `Command cancelled`, exit 1. Typed by
+  hand on 2026-09-14 the question was simply answered, so the sequence looked complete without
+  the flag. `--no-interaction` leaves the seeder's own question on its default, which is to keep
+  published content.
+- **A detached checkout.** The server no longer follows a branch: it sits on the commit it serves,
+  and `git pull` has nothing to pull into.
+- **It stops at the first command that fails**, and `RELEASE` then keeps the previous SHA: the
+  environment goes on announcing the release it was serving, and a smoke test expecting the new
+  one fails.
 
 Then, **from your own machine and not from the server** — it is the outside view that
 matters:
 
 ```bash
 SMOKE_BASIC_USER=… SMOKE_BASIC_PASSWORD=… \
-  php artisan deploy:smoke --url=https://preprod.cardascia-it.org
+  php artisan deploy:smoke --url=https://preprod.cardascia-it.org --expect-release=<the SHA deployed>
 ```
+
+`--expect-release` has something to compare with since the script writes `RELEASE`. Without the
+option, the probe that checks which release answered is skipped.
 
 Nineteen probes, under a minute, read-only: it replays what the first deployment checked by
 hand in `docs/smoke-tests.md`. Exit code 1 means the release must not be promoted. Until the
@@ -432,23 +472,209 @@ precondition for.
 
 ```bash
 # 1. deploy the candidate
-git fetch origin && git checkout <branch>
-composer install --no-dev --optimize-autoloader && npm ci && npm run build
-php artisan config:cache && php artisan route:cache && php artisan view:cache
+git fetch origin && git checkout --detach origin/<branch>
+bash scripts/deploy.sh
 
 # 2. measure. Anything found goes back onto the same branch — the squash merge
 #    still produces one commit, so the ticket keeps its single commit on main.
 
 # 3. once merged, bring the server back
-git checkout main && git pull
-# …then the normal sequence, and verify again on what is actually released.
+git fetch origin && git checkout --detach origin/main
+bash scripts/deploy.sh
+# …and verify again on what is actually released.
 ```
 
-**Step 3 is not optional.** A server left on a merged branch quietly stops receiving
-anything: the next `git pull` updates a branch nobody pushes to any more.
+**Step 3 is not optional.** A server left on a candidate serves code that is not `main` until
+something deploys over it — and until LUMN-53, nothing does so by itself.
 
 This is safe here because preprod sits behind HTTP Basic authentication: a candidate
 carrying a known defect is unreachable while it is being measured.
+
+---
+
+## The pipeline's access to the server
+
+Until LUMN-50 the link ran one way: the server fetches from GitHub with a read-only deploy key.
+A pipeline needs the other direction — GitHub Actions opening an SSH session on the hosting
+account — and that is the one credential in this project that reaches a machine holding the
+`.env`. `.github/workflows/deploy.yml` uses it; LUMN-53 will make it run on every merge.
+
+### What the pipeline's key can do
+
+Left as it is generated, an SSH key opens a full shell on the account: whoever obtains it reads the
+`.env`, so the database password and `APP_KEY`. Storing it in the right place is not enough. What
+it *allows* is bounded on both sides.
+
+**On the server**, by its line in `~/.ssh/authorized_keys`:
+
+```
+command="/usr/bin/env bash /home/cardascia-it/preprod/scripts/deploy-gate.sh",restrict ssh-ed25519 AAAA… github-actions deploy, preprod
+```
+
+- `restrict` refuses a terminal, port forwarding and agent forwarding.
+- `command="…"` is a **forced command**: sshd runs `scripts/deploy-gate.sh` whatever the caller
+  asked for, and hands the request over in `SSH_ORIGINAL_COMMAND`. The gate honours two requests —
+  `php-version`, and `deploy <sha>` — and refuses everything else, without ever repeating it.
+- `<sha>` has to be the full SHA of **a commit of `main`**. The shape alone would not do: the
+  repository is public, and GitHub serves the commit of any fork by its SHA from this repository's
+  address. The gate fetches `refs/heads/main` and nothing else, then asks git whether the commit
+  is one of its ancestors.
+- The commit must **not be older than the one being served**. A commit of `main` is not harmless
+  because it was once reviewed: the one from before a fix is the flaw itself, and a stolen key
+  would bring it back. Going back is a decision a human makes, by hand. Deploying again the commit
+  being served is not going back, and stays possible — a deployment that failed halfway can be
+  replayed.
+- The commit also has to **carry the deployment scripts**. One from before they existed would be
+  checked out with nothing to deploy it, and would take the gate away with it: the key would then
+  answer nothing until someone logged in by hand. Deploying such a commit is a human's decision.
+- The shape of the SHA is checked against a list of characters, not a range: in a UTF-8 locale
+  bash reads `a-f` by collation, `[0-9a-f]` then matches `é` and the digits of other scripts, and
+  the locale is the one thing an SSH client is commonly allowed to send.
+- One `ed25519` pair per environment. Revoking preprod's does not touch production's, nor any
+  human access.
+
+A stolen key can therefore move the server forward along `main`, and do nothing else. The gate keeps one
+line per request in `storage/logs/deploy-gate.log`: when, from which address, what was decided.
+
+**In GitHub**, by where the key lives and by what the workflow is allowed to be:
+
+| | |
+|---|---|
+| The key | secret `DEPLOY_SSH_KEY` of the **environment** `preprod` — a job reads it only if it names the environment, and only `main` may deploy to it |
+| The server's identity | variable `DEPLOY_SSH_KNOWN_HOSTS`: the host key, **pinned**. The connection uses `StrictHostKeyChecking=yes`; the workflow never runs `ssh-keyscan` and never accepts a key it meets |
+| Where to connect | variables `DEPLOY_SSH_HOST` and `DEPLOY_SSH_USER` — not secrets, both are in this file |
+| Third-party code | **none**. The workflow uses no action, not even one of GitHub's: `ssh` is already on the runner |
+| What a caller controls | one input, a closed list of two words, read through an environment variable. The SHA is `github.sha` |
+| Token | `permissions: {}` |
+
+`scripts/__tests__/deploy-workflow.test.js` holds each line of that table, and runs the step of the
+workflow against a stand-in for `ssh`: the key file is `600` while it exists and gone when the step
+ends, whether the server answered or not.
+
+**The pipeline cannot deploy a candidate branch**, on purpose: the gate only knows `main`.
+[Deploying a candidate](#deploying-a-candidate-before-it-reaches-main) stays a gesture made by
+hand until LUMN-53 decides otherwise.
+
+### Setting it up
+
+**1. The gate has to be on the server before the key is tied to it.** Deploy by hand, once, a
+commit that contains `scripts/deploy-gate.sh` — see [Deploying](#deploying).
+
+**2. Generate the pair**, on your own machine:
+
+```bash
+ssh-keygen -t ed25519 -N "" -C "github-actions deploy, preprod" -f ~/.ssh/lumina-deploy-preprod
+```
+
+**3. Pin the host key.** Fetch it once, and compare its fingerprint **by eye** with the one the
+alwaysdata panel displays under *Remote access → SSH* before storing it:
+
+```bash
+ssh-keyscan -t ed25519 ssh-cardascia-it.alwaysdata.net > /tmp/lumina-known-hosts
+ssh-keygen -lf /tmp/lumina-known-hosts
+```
+
+`ssh-keyscan` is acceptable here and nowhere else: its answer is checked against a source the
+network cannot forge before it is trusted. Run by the workflow, it would ask an attacker who the
+server is and believe the reply.
+
+**4. Authorise the public half on the server**, with its restrictions. Through your own access,
+keep a copy of `~/.ssh/authorized_keys`, then append the line shown above, the key being the
+content of `~/.ssh/lumina-deploy-preprod.pub`:
+
+```bash
+ssh <your access> 'cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.before-deploy-key'
+printf '\ncommand="/usr/bin/env bash /home/cardascia-it/preprod/scripts/deploy-gate.sh",restrict %s\n' \
+  "$(cat ~/.ssh/lumina-deploy-preprod.pub)" | ssh <your access> 'cat >> ~/.ssh/authorized_keys'
+```
+
+Appended, never edited in place: your own access is another line of that file, and the copy is the
+way back. The leading `\n` is for a file whose last line does not end with one — the new entry
+would otherwise be glued to the previous key and neither would work.
+
+Then measure what the key can do, from your own machine, before GitHub ever sees it:
+
+```bash
+bash scripts/check-deploy-key.sh <user>@ssh-cardascia-it.alwaysdata.net ~/.ssh/lumina-deploy-preprod /tmp/lumina-known-hosts
+```
+
+One thing has to work and seven must not: `php-version` answers; a shell, a command, a terminal,
+the sftp subsystem, a file copy, a tunnel through the server and a port opened on it are refused.
+The script exits 1 as soon as one restriction is missing, and never prints what a probe received.
+
+**This is the only test of the line typed in `authorized_keys`.** The gate's own tests prove what
+it does with a request; they cannot prove that sshd hands it every request. A key that answers
+`php-version` and also opens a tunnel to the database has `command="…"` and no `restrict`, and
+nothing but this measurement would say so. A refusal only counts when it is one: the script
+wants the gate's own word, or sshd's, because an allowed tunnel also fails when nothing listens
+at its far end.
+
+Two probes never hear the gate, and are judged on what does come back. A terminal turned down
+ends the session: `ssh -tt` takes the refusal for fatal, says so and leaves with 255 before the
+command is sent. And sshd discards the standard error of a subsystem: the gate refusing `sftp`
+comes back as its exit status, 1, without a word — where a real sftp server, its input ending at
+once, leaves with 0 just as silently. Both were measured on preprod on 2026-10-10 and 11, after a
+first version of the probe had waited for the gate's word on each and failed a key that was
+restricted as it should be. Under a ✘ the script now says what it wanted and what it observed: an
+exit status and the names of the sentences it looks for, never the answer.
+
+**Measured on preprod on 2026-10-11**, OpenSSH 9.2 on the server and fish as the account's shell:
+the eight probes answer as described, and `php-version` finds PHP 8.5.11 in a session with no
+terminal.
+
+**5. Create the environment and fill it:**
+
+```bash
+gh api -X PUT repos/Sefalhik/lumina/environments/preprod \
+  -F 'deployment_branch_policy[protected_branches]=false' \
+  -F 'deployment_branch_policy[custom_branch_policies]=true'
+gh api -X POST repos/Sefalhik/lumina/environments/preprod/deployment-branch-policies -f name=main -f type=branch
+
+gh secret set DEPLOY_SSH_KEY --env preprod < ~/.ssh/lumina-deploy-preprod
+gh variable set DEPLOY_SSH_KNOWN_HOSTS --env preprod < /tmp/lumina-known-hosts
+gh variable set DEPLOY_SSH_HOST --env preprod --body ssh-cardascia-it.alwaysdata.net
+gh variable set DEPLOY_SSH_USER --env preprod --body <user>
+```
+
+`< file` rather than a paste: a key pasted through a terminal or a web form can pick up Windows
+line endings, and ssh then rejects it as `invalid format`.
+
+**6. Delete the private half from your machine**: `rm ~/.ssh/lumina-deploy-preprod`. It now exists
+in one place, where nobody can read it back. Losing it costs a rotation, nothing more.
+
+**7. Ask from GitHub:** `gh workflow run deploy.yml --ref main -f request=php-version`.
+
+### Rotating or revoking the key
+
+**Revoking** is one line: delete the key's entry from `~/.ssh/authorized_keys` on the server. It
+takes effect at once, and no human access goes through that entry. Then remove the secret:
+`gh secret delete DEPLOY_SSH_KEY --env preprod`.
+
+**Rotating** is steps 2, 4, 5 (the secret alone) and 6 again — `check-deploy-key.sh` included,
+since a new line in `authorized_keys` is a line typed again. The old line is removed once the new
+key has answered `php-version` from GitHub. Rotate after any doubt, and when a machine that ever
+held the private half is retired.
+
+When alwaysdata changes a server's host key, the connection fails — which is the pinning doing its
+job. Read the new fingerprint in the panel and redo step 3, then the `DEPLOY_SSH_KNOWN_HOSTS`
+line of step 5.
+
+### What this does not cover
+
+- **No short-lived credential.** The reference practice is to store no durable secret at all —
+  OIDC federation, or SSH certificates valid for minutes. Shared hosting offers neither: the key
+  lives long, and it is what the key may do that is bounded.
+- **No filtering by address.** GitHub-hosted runners leave from a range too wide and too changing
+  for a `from=` option.
+- **The GitHub account is the root of trust.** Whoever controls it approves deployments and
+  replaces secrets. Its two-factor authentication is on (read through the API on 2026-10-10); the
+  hosting account's has to be checked in its own panel.
+- **Not measured yet, on 2026-10-11**: that a session opened by the pipeline's key finds the Node
+  the panel selects. The key has answered `php-version`; the first scripted deployment, on
+  2026-10-10, went through a human access. The first `deploy` request from GitHub answers it.
+- **Two deployments at once.** The workflow never runs two, but the server itself does not refuse
+  a second request while a first is running. A lock belongs with LUMN-51, which rebuilds how a
+  release is switched.
 
 ---
 
@@ -572,8 +798,9 @@ nobody watching. Six of its probes come straight from the four defects below.
 
 ## Not done yet
 
-- **No deployment pipeline.** Everything above is manual, and that is now a specification
-  rather than a guess: each corrected line of this file is a line the pipeline will carry.
+- **No deployment on merge.** The sequence is a script and the pipeline can run it on request
+  (LUMN-50), but someone still has to ask. Deploying every merge is LUMN-53; switching releases
+  atomically, and going back, is LUMN-51.
 - **No rate limiting anywhere.** `grep -rn throttle routes/ app/Http/` returns nothing, and
   `LoginRequest` does not call `ensureIsNotRateLimited()`. `/{lang}/login` accepts unlimited
   password attempts, and the six-digit TOTP challenge behind it accepts unlimited codes —
@@ -583,7 +810,7 @@ nobody watching. Six of its probes come straight from the four defects below.
 - **No security headers**, and `robots.txt` allows everything — preprod would be indexed if
   it were reachable. (LUMN-37)
 - **Nameserver delegation to alwaysdata** is not done; `cardascia-it.org` still resolves
-  through one.com and still serves the previous site, untouched. It depends on settling the
+  through one.com, which redirects to the previous site, untouched. It depends on settling the
   `contact@cardascia-it.org` mailbox first.
 - **No backup of the preprod database.**
 - **Nothing distinguishes preprod from production in the logs**, since both run

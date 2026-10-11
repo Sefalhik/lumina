@@ -94,6 +94,7 @@
             // the release age above is for.
             // This holds only while every action is exercised by a pull request. An action used by
             // a deployment workflow alone would not be: narrow this rule the day one exists.
+            // deploy.yml (LUMN-50) uses no action at all, and deploy-workflow.test.js keeps it so.
             // `action` leaves out the postgres service image and the Node version, which the next
             // rule keeps disabled.
             description: 'GitHub Actions: one grouped PR for every update, majors included, without approval.',

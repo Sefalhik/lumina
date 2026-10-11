@@ -1,0 +1,95 @@
+name: Deploy
+
+# Asks the preproduction server to do one of the two things its gate accepts (LUMN-50): report its
+# PHP version, or deploy the commit this workflow runs from. Started by hand only, for now: the
+# deployment on every merge is LUMN-53.
+#
+# What keeps this safe is written in docs/deployment.md, "What the pipeline's key can do". In short:
+#
+# - No action is used here, not even one of GitHub's. `ssh` is already on the runner, so no
+#   third-party code ever runs next to the key — and renovate.json5 may go on merging action
+#   updates without approval, which assumes every action is exercised by a pull request.
+# - The key and the address of the server live in the `preprod` environment, which only `main` may
+#   deploy to: the workflow that reads them is always the reviewed one.
+# - Nothing a caller supplies reaches a script as text. The one input is a closed list, read
+#   through an environment variable and matched again in the shell; the SHA is GitHub's own.
+# - The server's host key is pinned. StrictHostKeyChecking stays on `yes`, and nothing here ever
+#   asks the network who the server is.
+# - The key cannot open a shell: on the server it is tied to scripts/deploy-gate.sh.
+
+on:
+  workflow_dispatch:
+    inputs:
+      request:
+        description: What to ask the server
+        type: choice
+        options:
+          - php-version
+          - deploy
+        default: php-version
+
+# No token permission at all: this workflow reads no code and writes nothing to GitHub.
+permissions: {}
+
+# One deployment at a time, and never a cancelled one: a sequence stopped halfway leaves an
+# environment nobody can describe.
+concurrency:
+  group: deploy-preprod
+  cancel-in-progress: false
+
+jobs:
+  preprod:
+    name: Deploy — preprod
+    runs-on: ubuntu-latest
+    environment: preprod
+    timeout-minutes: 15
+
+    steps:
+      - name: Ask the server
+        env:
+          REQUEST: ${{ inputs.request }}
+          RELEASE_SHA: ${{ github.sha }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ vars.DEPLOY_SSH_KNOWN_HOSTS }}
+          DEPLOY_SSH_HOST: ${{ vars.DEPLOY_SSH_HOST }}
+          DEPLOY_SSH_USER: ${{ vars.DEPLOY_SSH_USER }}
+        run: |
+          set -euo pipefail
+
+          case "$REQUEST" in
+            php-version) remote_request='php-version' ;;
+            deploy) remote_request="deploy ${RELEASE_SHA}" ;;
+            *)
+              echo '::error::Unknown request: the workflow sends "php-version" or "deploy", nothing else.'
+              exit 1
+              ;;
+          esac
+
+          for setting in DEPLOY_SSH_KEY DEPLOY_SSH_KNOWN_HOSTS DEPLOY_SSH_HOST DEPLOY_SSH_USER; do
+            if [[ -z "${!setting}" ]]; then
+              echo "::error::${setting} is empty: the preprod environment is not fully configured."
+              exit 1
+            fi
+          done
+
+          # Readable by this user alone from the moment they exist, and gone when the step ends,
+          # whether it succeeded or not.
+          umask 077
+          key_file="${RUNNER_TEMP}/deploy-key"
+          known_hosts_file="${RUNNER_TEMP}/deploy-known-hosts"
+          trap 'rm -f "$key_file" "$known_hosts_file"' EXIT
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$key_file"
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > "$known_hosts_file"
+
+          # -F /dev/null and the two known-hosts options: the pinned file is the only thing this
+          # connection may believe about the server's identity.
+          ssh -F /dev/null -T \
+            -i "$key_file" \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$known_hosts_file" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o ForwardAgent=no \
+            -o ConnectTimeout=20 \
+            "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}" "$remote_request"
