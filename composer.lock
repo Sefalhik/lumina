@@ -1253,16 +1253,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v13.35.0",
+            "version": "v13.37.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "a413a9da94884e5e9d58f4e6612884f712827804"
+                "reference": "685f8d6c2ab4547287500bc80ccdf2ca12635109"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/a413a9da94884e5e9d58f4e6612884f712827804",
-                "reference": "a413a9da94884e5e9d58f4e6612884f712827804",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/685f8d6c2ab4547287500bc80ccdf2ca12635109",
+                "reference": "685f8d6c2ab4547287500bc80ccdf2ca12635109",
                 "shasum": ""
             },
             "require": {
@@ -1283,7 +1283,7 @@
                 "guzzlehttp/promises": "^2.0.3 || ^3.0",
                 "guzzlehttp/psr7": "^2.9 || ^3.0",
                 "guzzlehttp/uri-template": "^1.0 || ^2.0",
-                "laravel/prompts": "^0.3.11",
+                "laravel/prompts": "^0.3.25",
                 "laravel/serializable-closure": "^2.0.10",
                 "league/commonmark": "^2.8.1",
                 "league/flysystem": "^3.25.1",
@@ -1369,7 +1369,7 @@
                 "aws/aws-sdk-php": "^3.322.9",
                 "ext-gmp": "*",
                 "fakerphp/faker": "^1.24",
-                "intervention/image": "^4.0",
+                "intervention/image": "^4.2",
                 "laravel/pint": "^1.18",
                 "league/flysystem-aws-s3-v3": "^3.25.1",
                 "league/flysystem-ftp": "^3.25.1",
@@ -1378,10 +1378,10 @@
                 "league/flysystem-sftp-v3": "^3.25.1",
                 "mockery/mockery": "^1.6.10",
                 "opis/json-schema": "^2.4.1",
-                "orchestra/testbench-core": "^11.5.0",
+                "orchestra/testbench-core": "^11.6.0",
                 "pda/pheanstalk": "^7.0.0 || ^8.0.0",
                 "php-http/discovery": "^1.15",
-                "phpstan/phpstan": "2.2.15",
+                "phpstan/phpstan": "2.3.1",
                 "phpunit/phpunit": "^11.5.50 || ^12.5.8 || ^13.0.3",
                 "predis/predis": "^2.3 || ^3.0",
                 "rector/rector": "2.6.3",
@@ -1408,7 +1408,7 @@
                 "ext-redis": "Required to use the Redis cache and queue drivers (^4.0 || ^5.0 || ^6.0).",
                 "fakerphp/faker": "Required to generate fake data using the fake() helper (^1.23).",
                 "filp/whoops": "Required for friendly error pages in development (^2.14.3).",
-                "intervention/image": "Required to use the image processing features (^4.0).",
+                "intervention/image": "Required to use the image processing features (^4.2).",
                 "laravel/tinker": "Required to use the tinker console command (^2.0).",
                 "league/flysystem-aws-s3-v3": "Required to use the Flysystem S3 driver (^3.25.1).",
                 "league/flysystem-ftp": "Required to use the Flysystem FTP driver (^3.25.1).",
@@ -1480,20 +1480,20 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2026-10-06T13:52:37+00:00"
+            "time": "2026-10-16T04:59:27+00:00"
         },
         {
             "name": "laravel/octane",
-            "version": "v2.21.0",
+            "version": "v2.22.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/octane.git",
-                "reference": "ce755128c9c2be39adcf8b50ec757c97b3b30eb7"
+                "reference": "c49ff458e94bf14b382f6414c6b9ddb39ac82b28"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/octane/zipball/ce755128c9c2be39adcf8b50ec757c97b3b30eb7",
-                "reference": "ce755128c9c2be39adcf8b50ec757c97b3b30eb7",
+                "url": "https://api.github.com/repos/laravel/octane/zipball/c49ff458e94bf14b382f6414c6b9ddb39ac82b28",
+                "reference": "c49ff458e94bf14b382f6414c6b9ddb39ac82b28",
                 "shasum": ""
             },
             "require": {
@@ -1569,20 +1569,20 @@
                 "issues": "https://github.com/laravel/octane/issues",
                 "source": "https://github.com/laravel/octane"
             },
-            "time": "2026-10-05T14:39:46+00:00"
+            "time": "2026-10-14T15:54:28+00:00"
         },
         {
             "name": "laravel/prompts",
-            "version": "v0.3.24",
+            "version": "v0.3.26",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/prompts.git",
-                "reference": "5d3cdef29e93ca3b62b1871359db3078cd99908b"
+                "reference": "2d1e9bf6bab8d3f383c254db7f2b4ea8816d55e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/prompts/zipball/5d3cdef29e93ca3b62b1871359db3078cd99908b",
-                "reference": "5d3cdef29e93ca3b62b1871359db3078cd99908b",
+                "url": "https://api.github.com/repos/laravel/prompts/zipball/2d1e9bf6bab8d3f383c254db7f2b4ea8816d55e0",
+                "reference": "2d1e9bf6bab8d3f383c254db7f2b4ea8816d55e0",
                 "shasum": ""
             },
             "require": {
@@ -1625,10 +1625,9 @@
             ],
             "description": "Add beautiful and user-friendly forms to your command-line applications.",
             "support": {
-                "issues": "https://github.com/laravel/prompts/issues",
-                "source": "https://github.com/laravel/prompts/tree/v0.3.24"
+                "source": "https://github.com/laravel/prompts/tree/v0.3.26"
             },
-            "time": "2026-08-20T12:55:36+00:00"
+            "time": "2026-10-09T14:45:13+00:00"
         },
         {
             "name": "laravel/sanctum",
@@ -6759,16 +6758,16 @@
         },
         {
             "name": "tightenco/ziggy",
-            "version": "v2.6.4",
+            "version": "v2.6.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tighten/ziggy.git",
-                "reference": "c32a3eaad1574df8b953281680bba89bd3217dc2"
+                "reference": "d250c158c75bb10d33e6ebc9b67d65872593ae1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tighten/ziggy/zipball/c32a3eaad1574df8b953281680bba89bd3217dc2",
-                "reference": "c32a3eaad1574df8b953281680bba89bd3217dc2",
+                "url": "https://api.github.com/repos/tighten/ziggy/zipball/d250c158c75bb10d33e6ebc9b67d65872593ae1a",
+                "reference": "d250c158c75bb10d33e6ebc9b67d65872593ae1a",
                 "shasum": ""
             },
             "require": {
@@ -6823,9 +6822,9 @@
             ],
             "support": {
                 "issues": "https://github.com/tighten/ziggy/issues",
-                "source": "https://github.com/tighten/ziggy/tree/v2.6.4"
+                "source": "https://github.com/tighten/ziggy/tree/v2.6.5"
             },
-            "time": "2026-08-18T17:28:45+00:00"
+            "time": "2026-10-10T22:16:55+00:00"
         },
         {
             "name": "tijsverkoyen/css-to-inline-styles",
@@ -7569,16 +7568,16 @@
         },
         {
             "name": "laravel/telescope",
-            "version": "v5.25.0",
+            "version": "v5.26.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/telescope.git",
-                "reference": "65fe6724f8688de01dfa74b28a0edc191bc3caa8"
+                "reference": "bedfc50a3561c93cd89064643139a51c56bfd8a6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/telescope/zipball/65fe6724f8688de01dfa74b28a0edc191bc3caa8",
-                "reference": "65fe6724f8688de01dfa74b28a0edc191bc3caa8",
+                "url": "https://api.github.com/repos/laravel/telescope/zipball/bedfc50a3561c93cd89064643139a51c56bfd8a6",
+                "reference": "bedfc50a3561c93cd89064643139a51c56bfd8a6",
                 "shasum": ""
             },
             "require": {
@@ -7631,9 +7630,9 @@
                 "monitoring"
             ],
             "support": {
-                "source": "https://github.com/laravel/telescope/tree/v5.25.0"
+                "source": "https://github.com/laravel/telescope/tree/v5.26.0"
             },
-            "time": "2026-09-09T14:16:19+00:00"
+            "time": "2026-09-22T21:38:44+00:00"
         },
         {
             "name": "mockery/mockery",
@@ -8491,16 +8490,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "13.4.1",
+            "version": "13.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "ccde40327c501eebff192614b0dcf11806418901"
+                "reference": "2180c47c4229e5da117ff248753370443c074f10"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ccde40327c501eebff192614b0dcf11806418901",
-                "reference": "ccde40327c501eebff192614b0dcf11806418901",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/2180c47c4229e5da117ff248753370443c074f10",
+                "reference": "2180c47c4229e5da117ff248753370443c074f10",
                 "shasum": ""
             },
             "require": {
@@ -8571,7 +8570,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.1"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.3"
             },
             "funding": [
                 {
@@ -8579,7 +8578,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-10-05T05:51:21+00:00"
+            "time": "2026-10-16T05:56:47+00:00"
         },
         {
             "name": "sebastian/cli-parser",
