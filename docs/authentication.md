@@ -64,8 +64,52 @@ The refusal reuses `auth.throttle`, which announces the wait in seconds. Each re
 logs a `warning` (`login_throttled`, `two_factor_throttled`); the failure that starts a lockout
 logs one `alert` (`login_lockout`, `two_factor_lockout`) — brute force is its likeliest reading.
 
-Not covered here, and tracked: a TOTP code can still be replayed within its own window
-(LUMN-91), and the health route `/up` has no ceiling (LUMN-92).
+Not covered here, and tracked: the health route `/up` has no ceiling (LUMN-92).
+
+## A code is accepted once
+
+A six-digit code stays valid for about 90 seconds: Google2FA accepts the current 30-second step
+and the one on either side, for clock drift. Since LUMN-91, `users.two_factor_last_used_timestep`
+holds the step of the last code accepted, and only a **newer** step passes — a code seen over a
+shoulder, or intercepted, cannot open a second session.
+
+| Step | Where | Cost |
+|---|---|---|
+| `TwoFactorService::verify()` finds the code among the steps newer than the last one | computation only | no query |
+| `claim()` records it at the challenge, in `UPDATE … WHERE id = ? AND (last IS NULL OR last < ?)` | the database decides | one statement, by primary key, `updated_at` untouched |
+| `confirm()` records it at setup, with the secret and the confirmation date | one `save()` | no extra query |
+
+**The database decides, not the model.** Two requests carrying the same code may both have loaded
+the user before either claims it; the `WHERE` lets one of them change the row and the other none.
+At setup no such race matters: confirming overwrites the whole state anyway.
+
+**A null column means no code accepted yet**, named `NO_CODE_ACCEPTED_YET` in the service. It is
+passed to Google2FA as `0`, not `null`: given `null`, `verifyKeyNewer()` answers `true` instead of
+the step it accepted, and there would be nothing to record.
+
+A replayed code is refused with the same message as a wrong one, counts as a failed attempt for
+[Rate limiting](#rate-limiting), and logs a `warning` with the step `code_replayed`.
+
+**The current step is read from Carbon**, not from Google2FA's own `microtime()`: the application
+keeps one clock, and the tests freeze it at an absolute date.
+
+### When the code cannot be checked at all
+
+Two improbable cases, both **failing closed** — the code is refused with the usual message, never
+a 500, never a pass — and both logged as an `error`, so that they are diagnosed rather than
+mistaken for a wrong code:
+
+| Case | How it can happen | Step logged | Way out |
+|---|---|---|---|
+| The last step on record is beyond the window ahead | the server clock went back (an NTP correction, a restored snapshot), or the row was copied from another environment | `timestep_in_future`, with both steps | wait until time catches up — codes pass again on their own — or set `users.two_factor_last_used_timestep` to `NULL` |
+| The stored secret cannot be read | `APP_KEY` rotated without re-encrypting the column, a secret Google2FA rejects, or a confirmed 2FA with no secret | `secret_unreadable`, with the exception | restore the key, or reset the 2FA of that account — there is no screen for it yet |
+
+One step ahead is not an anomaly: it is the furthest a legitimate acceptance can record, a code
+typed with the authenticator's clock slightly ahead.
+
+A confirmed 2FA whose secret is missing is **not** sent back to setup: that would let a new secret
+be enrolled behind the password alone. The challenge tests `two_factor_confirmed_at`, like
+`EnsureTwoFactorVerified`, and refuses.
 
 ## Roles & access
 | Role | Access |

@@ -170,7 +170,6 @@ class SiteIdentityTest extends TestCase
             ->assertSessionHasNoErrors();
     }
 
-
     public function test_invalid_email_is_rejected(): void
     {
         $this->actingAs($this->admin)

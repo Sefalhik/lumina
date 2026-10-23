@@ -1127,10 +1127,11 @@ runs of `deploy.yml` the same day, through the key once it was rotated onto the 
   LUMN-51), but someone still has to ask. Deploying every merge is LUMN-53.
 - **Rate limiting covers login and two-factor only.** Since LUMN-36, `/{lang}/login` and both
   two-factor forms refuse further attempts after repeated failures — see
-  [Rate limiting](authentication.md#rate-limiting). Two gaps remain, both closed by HTTP Basic
-  authentication on preprod: a TOTP code can be replayed within its own window (LUMN-91), and
-  `/up` has no ceiling although each call queries the database (LUMN-92). **Both must be closed
-  before `cardascia-it.org` points here** — each blocks LUMN-54.
+  [Rate limiting](authentication.md#rate-limiting), and since LUMN-91 a code is accepted once —
+  [A code is accepted once](authentication.md#a-code-is-accepted-once). One gap remains, closed by
+  HTTP Basic authentication on preprod: `/up` has no ceiling although each call queries the
+  database (LUMN-92). **It must be closed before `cardascia-it.org` points here** — it blocks
+  LUMN-54.
 - **No security headers**, and `robots.txt` allows everything — preprod would be indexed if
   it were reachable. (LUMN-37)
 - **Nameserver delegation to alwaysdata** is not done; `cardascia-it.org` still resolves

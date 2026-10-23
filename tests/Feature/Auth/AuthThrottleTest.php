@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
@@ -112,9 +113,7 @@ class AuthThrottleTest extends TestCase
      */
     private function validCode(string $secret, int $step = 1): string
     {
-        $google2fa = new Google2FA;
-
-        return $google2fa->oathTotp($secret, $google2fa->getTimestamp() + $step);
+        return (new Google2FA)->oathTotp($secret, intdiv(Carbon::now()->getTimestamp(), 30) + $step);
     }
 
     // --- Login ---

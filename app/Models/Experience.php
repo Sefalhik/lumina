@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -19,8 +20,8 @@ use Spatie\Translatable\HasTranslations;
  * @property string $employer
  * @property string $job_title
  * @property string|null $location
- * @property \Illuminate\Support\Carbon $started_at
- * @property \Illuminate\Support\Carbon|null $ended_at
+ * @property Carbon $started_at
+ * @property Carbon|null $ended_at
  */
 class Experience extends Model
 {

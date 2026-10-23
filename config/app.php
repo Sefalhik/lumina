@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\Release;
+
 return [
 
     /*
@@ -22,7 +24,7 @@ return [
     | that config:cache freezes it: no file read per request. Null on a
     | developer machine, where no RELEASE file exists.
     */
-    'release' => App\Services\Release::fromFile(base_path('RELEASE')),
+    'release' => Release::fromFile(base_path('RELEASE')),
 
     /*
     |--------------------------------------------------------------------------

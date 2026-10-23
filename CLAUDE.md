@@ -199,9 +199,9 @@ Key rules:
   fails without them.
 - `config:cache` freezes `.env` — after it runs, `env()` outside a config file returns `null`.
 
-**Known gaps, not yet closed**, each blocking production (LUMN-54): a TOTP code stays replayable
-in its window (LUMN-91), and `/up` has no ceiling though each call queries the database (LUMN-92).
-Login and 2FA attempts are limited since LUMN-36 — [Rate limiting](docs/authentication.md#rate-limiting).
+**Known gap, not yet closed**, blocking production (LUMN-54): `/up` has no ceiling though each call
+queries the database (LUMN-92). Login and 2FA attempts are limited (LUMN-36) and a code is accepted
+once (LUMN-91) — [Rate limiting](docs/authentication.md#rate-limiting).
 
 ## Environment variables
 [Environment variables](docs/environment-variables.md) says what each variable means and where its

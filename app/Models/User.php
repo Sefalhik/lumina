@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token', 'two_factor_secret'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_last_used_timestep'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -24,6 +24,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
             'two_factor_confirmed_at' => 'datetime',
+            // Null: no two-factor code accepted yet. See TwoFactorService::NO_CODE_ACCEPTED_YET.
+            'two_factor_last_used_timestep' => 'integer',
         ];
     }
 }
