@@ -2,8 +2,12 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Http\Controllers\Auth\TwoFactorController;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
+use Mockery;
+use Mockery\MockInterface;
 use PragmaRX\Google2FA\Google2FA;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -69,6 +73,19 @@ class TwoFactorTest extends TestCase
         $response->assertSee('<svg', false);
     }
 
+    public function test_setup_page_keeps_the_same_secret_across_refreshes(): void
+    {
+        // A secret regenerated on each display would invalidate the QR code already scanned.
+        $admin = $this->adminUser();
+
+        $first = $this->actingAs($admin)->get('/fr/two-factor/setup')->viewData('secret');
+        $second = $this->actingAs($admin)->get('/fr/two-factor/setup')->viewData('secret');
+
+        $this->assertIsString($first);
+        $this->assertSame($first, $second);
+        $this->assertSame($first, session('auth.two_factor_setup_secret'));
+    }
+
     public function test_setup_page_redirects_to_challenge_when_already_confirmed(): void
     {
         [$admin] = $this->adminUserWith2fa();
@@ -90,7 +107,11 @@ class TwoFactorTest extends TestCase
 
         $admin->refresh();
         $this->assertNotNull($admin->two_factor_confirmed_at);
-        $response->assertRedirect(route('admin.dashboard', ['lang' => config('app.locale')]));
+        $response->assertRedirect(route('admin.dashboard', ['lang' => config('app.locale')]))
+            // The temporary secret is gone once persisted, and the code just typed counts as this
+            // session's verification: no second challenge on the way to the dashboard.
+            ->assertSessionMissing('auth.two_factor_setup_secret')
+            ->assertSessionHas('auth.two_factor_verified', true);
     }
 
     public function test_invalid_setup_code_returns_error_and_does_not_confirm(): void
@@ -151,7 +172,44 @@ class TwoFactorTest extends TestCase
         $response = $this->actingAs($admin)
             ->post('/fr/two-factor/challenge', ['code' => $google2fa->getCurrentOtp($secret)]);
 
-        $response->assertSessionHas('auth.two_factor_verified', true);
+        // The response too, not only the flag: the flag is set before the redirect is built.
+        $response->assertSessionHas('auth.two_factor_verified', true)
+            ->assertRedirect(route('admin.dashboard', ['lang' => config('app.locale')]));
+    }
+
+    public function test_a_valid_challenge_returns_to_the_page_that_asked_for_it(): void
+    {
+        [$admin, $secret] = $this->adminUserWith2fa();
+
+        $this->actingAs($admin)
+            ->withSession(['url.intended' => url('/fr/admin/cv')])
+            ->post('/fr/two-factor/challenge', ['code' => (new Google2FA)->getCurrentOtp($secret)])
+            ->assertRedirect(url('/fr/admin/cv'));
+    }
+
+    public function test_challenge_page_is_shown_to_a_confirmed_admin_not_yet_verified(): void
+    {
+        [$admin] = $this->adminUserWith2fa();
+
+        $this->actingAs($admin)
+            ->get('/fr/two-factor/challenge')
+            ->assertOk()
+            ->assertViewIs('auth.two-factor-challenge');
+    }
+
+    public function test_challenge_page_sends_a_user_without_2fa_to_setup(): void
+    {
+        $this->actingAs($this->adminUser())
+            ->get('/fr/two-factor/challenge')
+            ->assertRedirect(route('two-factor.setup', ['lang' => 'fr']));
+    }
+
+    public function test_a_challenge_submitted_without_2fa_is_sent_to_setup(): void
+    {
+        $this->actingAs($this->adminUser())
+            ->post('/fr/two-factor/challenge', ['code' => '123456'])
+            ->assertRedirect(route('two-factor.setup', ['lang' => 'fr']))
+            ->assertSessionMissing('auth.two_factor_verified');
     }
 
     public function test_invalid_challenge_code_returns_error(): void
@@ -162,6 +220,84 @@ class TwoFactorTest extends TestCase
             ->post('/fr/two-factor/challenge', ['code' => '000000'])
             ->assertSessionHasErrors('code')
             ->assertSessionMissing('auth.two_factor_verified');
+    }
+
+    // --- Logging: each step names itself, with the mandatory context ---
+
+    private function assertLogged(MockInterface $log, string $level, string $message, string $method, string $step): void
+    {
+        // with() before once(): the count is then of matching calls, not of every call.
+        $log->shouldHaveReceived($level)->with(
+            $message,
+            Mockery::on(fn (array $context): bool => $context === [
+                'service' => TwoFactorController::class,
+                'method' => $method,
+                'step' => $step,
+            ]),
+        )->once();
+    }
+
+    public function test_generating_a_setup_secret_is_logged(): void
+    {
+        $log = Log::spy();
+
+        $this->actingAs($this->adminUser())->get('/fr/two-factor/setup');
+
+        $this->assertLogged($log, 'info', 'Two-factor setup initiated — secret generated', 'showSetup', 'secret_generated');
+    }
+
+    public function test_a_setup_without_a_pending_secret_is_logged(): void
+    {
+        $log = Log::spy();
+
+        $this->actingAs($this->adminUser())->post('/fr/two-factor/setup', ['code' => '123456']);
+
+        $this->assertLogged($log, 'warning', 'Two-factor setup submission with no pending secret in session', 'storeSetup', 'setup_secret_missing');
+    }
+
+    public function test_a_wrong_setup_code_is_logged(): void
+    {
+        $secret = (new Google2FA)->generateSecretKey();
+        $log = Log::spy();
+
+        $this->actingAs($this->adminUser())
+            ->withSession(['auth.two_factor_setup_secret' => $secret])
+            ->post('/fr/two-factor/setup', ['code' => '000000']);
+
+        $this->assertLogged($log, 'warning', 'Two-factor setup failed — invalid TOTP code submitted', 'storeSetup', 'setup_code_invalid');
+    }
+
+    public function test_a_completed_setup_is_logged(): void
+    {
+        $google2fa = new Google2FA;
+        $secret = $google2fa->generateSecretKey();
+        $log = Log::spy();
+
+        $this->actingAs($this->adminUser())
+            ->withSession(['auth.two_factor_setup_secret' => $secret])
+            ->post('/fr/two-factor/setup', ['code' => $google2fa->getCurrentOtp($secret)]);
+
+        $this->assertLogged($log, 'info', 'Two-factor setup completed successfully', 'storeSetup', 'setup_confirmed');
+    }
+
+    public function test_a_wrong_challenge_code_is_logged(): void
+    {
+        [$admin] = $this->adminUserWith2fa();
+        $log = Log::spy();
+
+        $this->actingAs($admin)->post('/fr/two-factor/challenge', ['code' => '000000']);
+
+        $this->assertLogged($log, 'warning', 'Two-factor challenge failed — invalid TOTP code submitted', 'verifyChallenge', 'challenge_code_invalid');
+    }
+
+    public function test_a_passed_challenge_is_logged(): void
+    {
+        [$admin, $secret] = $this->adminUserWith2fa();
+        $log = Log::spy();
+
+        $this->actingAs($admin)->post('/fr/two-factor/challenge', ['code' => (new Google2FA)->getCurrentOtp($secret)]);
+
+        $this->assertLogged($log, 'info', 'Two-factor challenge passed', 'verifyChallenge', 'challenge_verified');
     }
 
     // --- Admin access ---

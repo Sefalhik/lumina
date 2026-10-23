@@ -3,7 +3,7 @@
 return [
     'failed' => 'Tunnistetiedot ovat virheellisiä.',
     'password' => 'Salasana on virheellinen.',
-    'throttle' => 'Liian monta yritystä. Yritä uudelleen {seconds} sekunnin kuluttua.',
+    'throttle' => 'Liian monta yritystä. Yritä uudelleen :seconds sekunnin kuluttua.',
     'two_factor_invalid_code' => 'Koodi on virheellinen. Tarkista sovelluksesi ja yritä uudelleen.',
     'two_factor_setup_expired' => 'Määritysistunto on vanhentunut. Lataa sivu uudelleen.',
     'login_page_title' => 'Suojattu pääsy',
