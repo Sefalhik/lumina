@@ -82,7 +82,8 @@ class TwoFactorController extends Controller
             return back()->withErrors(['code' => __('auth.two_factor_setup_expired')]);
         }
 
-        if (! $this->twoFactorService->verify($secret, $request->input('code'))) {
+        $timestep = $this->twoFactorService->verify($user, $secret, $request->input('code'));
+        if ($timestep === null) {
             $this->throttle->recordTwoFactorFailure($user);
 
             Log::warning('Two-factor setup failed — invalid TOTP code submitted', [
@@ -95,7 +96,7 @@ class TwoFactorController extends Controller
         }
 
         $this->throttle->clearTwoFactor($user);
-        $this->twoFactorService->confirm($user, $secret);
+        $this->twoFactorService->confirm($user, $secret, $timestep);
 
         // Discard the temporary setup secret and mark 2FA as verified for this session.
         $request->session()->forget('auth.two_factor_setup_secret');
@@ -144,12 +145,16 @@ class TwoFactorController extends Controller
             return back()->withErrors(['code' => __('auth.throttle', ['seconds' => $wait])]);
         }
 
-        $secret = $user->two_factor_secret;
-        if ($secret === null) {
+        // Same test as showChallenge() and EnsureTwoFactorVerified. A confirmed 2FA whose secret is
+        // gone or unreadable is not sent back to setup — that would let a new secret be enrolled:
+        // verifyStored() refuses it and logs an error.
+        if ($user->two_factor_confirmed_at === null) {
             return redirect()->route('two-factor.setup', ['lang' => app()->getLocale()]);
         }
 
-        if (! $this->twoFactorService->verify($secret, $request->input('code'))) {
+        // A replayed code is refused like a wrong one, and counts as a failed attempt (LUMN-91).
+        $timestep = $this->twoFactorService->verifyStored($user, $request->input('code'));
+        if ($timestep === null || ! $this->twoFactorService->claim($user, $timestep)) {
             $this->throttle->recordTwoFactorFailure($user);
 
             Log::warning('Two-factor challenge failed — invalid TOTP code submitted', [

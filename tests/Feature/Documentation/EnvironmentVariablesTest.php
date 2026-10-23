@@ -41,7 +41,7 @@ class EnvironmentVariablesTest extends TestCase
             "These variables exist in .env.example and are explained nowhere.\n".
             "  → Add them to docs/environment-variables.md, in the group they come from — or to its\n".
             "    \"Deliberately absent from preprod and production\" table when they must never have\n".
-            "    a value on a server, which is a decision worth writing down rather than assuming.",
+            '    a value on a server, which is a decision worth writing down rather than assuming.',
         );
     }
 

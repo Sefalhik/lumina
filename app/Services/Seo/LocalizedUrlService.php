@@ -20,7 +20,7 @@ class LocalizedUrlService
     /**
      * @param  list<string>  $indexableLocales  locales advertised to crawlers
      * @param  list<string>  $supportedLocales  locales the site actually serves
-     * @param  list<string>  $publicRoutes      route names allowed to carry SEO tags
+     * @param  list<string>  $publicRoutes  route names allowed to carry SEO tags
      */
     public function __construct(
         array $indexableLocales,

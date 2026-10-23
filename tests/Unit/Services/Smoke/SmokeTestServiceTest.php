@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Services\Smoke;
 
 use App\Enums\SmokeStatus;
+use App\Services\Smoke\Probes\HealthProbe;
 use App\Services\Smoke\Report\SmokeCheck;
 use App\Services\Smoke\Site\SmokeTarget;
-use App\Services\Smoke\Probes\HealthProbe;
 use App\Services\Smoke\SmokeCatalogue;
 use App\Services\Smoke\SmokeTestService;
 use Illuminate\Http\Client\Request;
