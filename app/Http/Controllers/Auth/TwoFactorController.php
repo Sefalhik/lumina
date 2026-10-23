@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\TwoFactorCodeRequest;
 use App\Models\User;
+use App\Services\Auth\AuthThrottleService;
 use App\Services\Auth\TwoFactorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,10 @@ use Illuminate\View\View;
 
 class TwoFactorController extends Controller
 {
-    public function __construct(private readonly TwoFactorService $twoFactorService) {}
+    public function __construct(
+        private readonly TwoFactorService $twoFactorService,
+        private readonly AuthThrottleService $throttle,
+    ) {}
 
     /**
      * Show the TOTP setup page with the QR code and the manual key.
@@ -62,6 +66,11 @@ class TwoFactorController extends Controller
         $user = $request->user();
         assert($user instanceof User); // guaranteed by auth middleware
 
+        $wait = $this->throttle->twoFactorLockout($user);
+        if ($wait !== null) {
+            return back()->withErrors(['code' => __('auth.throttle', ['seconds' => $wait])]);
+        }
+
         $secret = $request->session()->get('auth.two_factor_setup_secret');
         if (! $secret) {
             Log::warning('Two-factor setup submission with no pending secret in session', [
@@ -74,6 +83,8 @@ class TwoFactorController extends Controller
         }
 
         if (! $this->twoFactorService->verify($secret, $request->input('code'))) {
+            $this->throttle->recordTwoFactorFailure($user);
+
             Log::warning('Two-factor setup failed — invalid TOTP code submitted', [
                 'service' => self::class,
                 'method' => __FUNCTION__,
@@ -83,6 +94,7 @@ class TwoFactorController extends Controller
             return back()->withErrors(['code' => __('auth.two_factor_invalid_code')]);
         }
 
+        $this->throttle->clearTwoFactor($user);
         $this->twoFactorService->confirm($user, $secret);
 
         // Discard the temporary setup secret and mark 2FA as verified for this session.
@@ -127,12 +139,19 @@ class TwoFactorController extends Controller
         $user = $request->user();
         assert($user instanceof User); // guaranteed by auth middleware
 
+        $wait = $this->throttle->twoFactorLockout($user);
+        if ($wait !== null) {
+            return back()->withErrors(['code' => __('auth.throttle', ['seconds' => $wait])]);
+        }
+
         $secret = $user->two_factor_secret;
         if ($secret === null) {
             return redirect()->route('two-factor.setup', ['lang' => app()->getLocale()]);
         }
 
         if (! $this->twoFactorService->verify($secret, $request->input('code'))) {
+            $this->throttle->recordTwoFactorFailure($user);
+
             Log::warning('Two-factor challenge failed — invalid TOTP code submitted', [
                 'service' => self::class,
                 'method' => __FUNCTION__,
@@ -142,6 +161,7 @@ class TwoFactorController extends Controller
             return back()->withErrors(['code' => __('auth.two_factor_invalid_code')]);
         }
 
+        $this->throttle->clearTwoFactor($user);
         $request->session()->put('auth.two_factor_verified', true);
 
         Log::info('Two-factor challenge passed', [

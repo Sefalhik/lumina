@@ -42,8 +42,8 @@ Log::info('Geo lookup served from cache', [
 ]);
 ```
 
-Request-level keys (`request_id`, `user_id`) are injected automatically by the
-correlation middleware — do **not** repeat them manually in service code.
+Nothing is injected at request level yet — see [Correlation](#5-correlation--not-implemented-yet-lumn-30).
+Pass `user_id` explicitly when a log line is about a user, as `AuthThrottleService` does.
 
 ---
 
@@ -102,20 +102,25 @@ Did something go wrong?
 
 ---
 
-## 5. Correlation — request ID injection
+## 5. Correlation — not implemented yet (LUMN-30)
 
-A middleware injects a `request_id` (UUID) into every log line for the duration
-of a request, using Laravel's `Context` facade. This ties together all log lines
-from a single HTTP request — including queued jobs dispatched from that request.
+**No middleware stamps log lines today.** No `request_id` exists, and no `user_id` is added for
+you: two lines of the same request can only be tied together by their timestamp and address.
 
-```php
-// app/Http/Middleware/LogRequestContext.php
-Context::add('request_id', $request->header('X-Request-ID') ?? Str::uuid()->toString());
-Context::add('user_id',    auth()->id());
-```
+This section once described a `LogRequestContext` middleware as if it existed, and told service
+code not to repeat what it would add. The file was never written, and the instruction kept every
+service from compensating — that gap is what LUMN-30 was opened for.
 
-Service code does **not** need to repeat these — they appear automatically in every
-log record emitted during that request.
+What LUMN-30 plans, so that nobody has to rediscover it:
+
+- a `request_id` set before anything else, through Laravel's `Context` facade — Laravel 13 then
+  writes it into every log record, as a second JSON object (Monolog's `extra`), not merged into
+  the first;
+- a `X-Request-ID` header taken over **only if it is shaped like a UUID**, otherwise ignored and
+  regenerated — a client must not choose an identifier, or slip line breaks into the log;
+- `user_id` on every line, `null` for a visitor — the key present, its absence an information.
+
+Until it ships: pass `user_id` yourself when it matters, and do not invent a `request_id`.
 
 ---
 
