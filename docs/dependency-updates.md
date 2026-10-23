@@ -22,7 +22,7 @@ only, no bypass.
 | GitHub Actions, CI Docker images | pinned to a SHA / digest, digests kept current |
 | Lockfiles | refreshed weekly |
 | Release age | 3 days for npm and for GitHub Actions; npm also in `.npmrc` — see [Release age](#release-age) |
-| Vulnerability fixes | immediately, bypassing schedule and release age — **only for an open Dependabot alert**, see [Installing — once](#installing--once) |
+| Vulnerability fixes | at Renovate's next run, bypassing schedule and release age — **only for an open Dependabot alert**, see [Installing — once](#installing--once), and **an alert does not trigger that run**: see [An alert does not wake Renovate up](#an-alert-does-not-wake-renovate-up) |
 | Known vulnerabilities | listed on the dashboard, **direct dependencies only** — see [Installing — once](#installing--once) |
 | Abandoned packages | flagged on the dashboard (`abandonments:recommended`) |
 
@@ -262,6 +262,26 @@ next visit, not immediately.
 **Logs and manual runs**: the Mend developer portal, **https://developer.mend.io/** (sign in with
 GitHub), lists the installed repositories, shows every job's log, and can trigger a run without
 waiting for the next visit. That is where to look when a PR that should exist does not.
+
+### An alert does not wake Renovate up
+
+A security fix skips the schedule and the release age, but it still waits for Renovate to run, and
+**the opening of a Dependabot alert starts no job**. The hosted app runs on a push to `main`, on its
+own visit — once a day at best on an inactive repository, at a time it chooses — and when a run is
+asked for from the Mend portal.
+
+Measured on 2026-10-22 (LUMN-85). The first vite alert opened on 21/10 at 09:34 UTC, its fix
+already published. No job ran for 32 hours. The next one started two minutes after a merge to
+`main`, read the three open alerts, and built the security rules as configured — `[SECURITY]`,
+`at any time`, no release age — then found nothing left to fix: the routine PR just merged had
+already moved vite past the fix. Renovate had not failed; it had not run. The same job shows why
+`shell-quote` never got a PR either: its rule asked for `< 1.11.0`, and `concurrently` pinned 1.9.0
+exactly, out of reach of any lockfile update.
+
+What reacted the same morning was the advisory audit: `security-audit.yml` failed on its daily
+run, at 10:16 UTC — see [Known vulnerabilities](quality-tooling.md#known-vulnerabilities). When it
+turns red on a direct dependency that has a fix, **ask for a run from the Mend portal** rather than
+wait for the visit.
 
 ### A ticked box, a green job, no PR
 
