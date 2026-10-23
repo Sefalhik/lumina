@@ -128,7 +128,8 @@
         },
     ],
 
-    // Security fixes bypass the release age and the schedule, and are raised immediately.
+    // Security fixes bypass the release age and the schedule, and are raised at the next run — which
+    // an alert does not trigger (LUMN-85, docs/dependency-updates.md).
     // Renovate learns of a flaw from an *open* Dependabot alert and nowhere else: an alert GitHub
     // dismissed on its own, or never raised, produces no fix — LUMN-73 met both in one week.
     vulnerabilityAlerts: {
