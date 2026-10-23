@@ -14,12 +14,14 @@ This file holds what must be known in every session. Each domain below has its o
 
 | Domain | Reference | Read it before… |
 |---|---|---|
+| Accessibility | `docs/accessibility.md` | choosing a text colour or opacity, marking an element decorative |
+| Architecture | `docs/architecture.md` | looking for where something lives, creating a service, model, controller or rule |
 | Authentication, 2FA, roles | `docs/authentication.md` | touching login, 2FA, roles, admin middleware |
 | CV timeline | `docs/cv-timeline.md` | touching `Experience` or adding a CV section |
 | Dependency updates | `docs/dependency-updates.md` | changing `renovate.json5`, handling a Renovate PR, touching `update-frankenphp.sh` |
 | Deployment | `docs/deployment.md` | touching environments, secrets, the server, the deploy sequence |
 | Environment variables | `docs/environment-variables.md` | adding a variable, or asking where a value comes from |
-| Git workflow | `docs/git-workflow.md` | changing the ruleset, re-keying a PR, diagnosing a blocked merge |
+| Git workflow | `docs/git-workflow.md` | changing the ruleset, re-keying a PR, diagnosing a blocked merge, shipping a brain dump |
 | Homepage content | `docs/homepage-content.md` | touching the homepage copy, its seeder, `cms:export-seed` |
 | Internationalisation | `docs/i18n.md` | adding a locale, a key, a translatable model |
 | JIRA workflow | `docs/jira-workflow-reference.md` | creating, estimating or transitioning a ticket, touching `jira-sync.yml` |
@@ -43,47 +45,24 @@ The same test checks every link and anchor.
 ## Commands
 
 ```bash
-# Backend
 php artisan octane:start        # Dev server via FrankenPHP (worker mode) — preferred
-php artisan serve               # Dev server (standard, port 8000)
 php artisan migrate             # Run migrations — requires explicit confirmation first
-php artisan i18n:translate      # Translate lang/fr/*.php + resources/js/i18n/fr.json via Anthropic API
-php artisan cms:translate       # Translate CMS DB content from French to EU locales via Anthropic API
-php artisan cms:export-seed     # Freeze the translated homepage row into its versioned seed file
-php artisan deploy:smoke --url=https://…   # Smoke-test a deployed environment — see docs/smoke-tests.md
-
-# Static analysis — PHPStan
-composer analyse                # Run both configs: app/ (level 8) then tests/ (level 5)
-
-# Testing — PHP
+composer analyse                # PHPStan: app/ (level 8) then tests/ (level 5)
 php artisan test                # Full PHPUnit suite (no coverage)
-composer test:unit              # Unit suite only (no coverage)
 composer test:coverage          # Unit + Feature suites + PCOV coverage report + 80% minimum threshold
-
-# Testing — JS
 npm run test:unit:run           # Vitest unit suite (no coverage)
-npm run test:unit:coverage      # Vitest unit suite + V8 coverage report + 80% minimum threshold
 npm run test:e2e                # Playwright end-to-end suite
-
-# Full quality audit
 npm run check:full              # ESLint + Stylelint + PHPStan + PHPUnit + Vitest + Playwright (~40s)
-
-# Linting & formatting — JS
-npm run lint:js                 # ESLint — check resources/js/**/*.{js,vue}
-npm run lint:js:fix             # ESLint — auto-fix
-npm run lint:scss               # Stylelint — check SCSS
-npm run lint:fix                # Stylelint — auto-fix SCSS
-npm run format                  # Prettier — format SCSS, Vue, JS
-
-# Frontend
+npm run lint:js                 # ESLint (lint:js:fix to fix) — resources/js/**/*.{js,vue}
+npm run lint:scss               # Stylelint (lint:fix to fix) — SCSS
+npm run format                  # Prettier — SCSS, Vue, JS
 npm run dev                     # Vite HMR dev server
 npm run build                   # Production asset build
-
-# Maintenance
-npm run update:frankenphp             # Update FrankenPHP — origin, release age (.npmrc) and SHA-256 verified; asks confirmation
-npm run update:frankenphp -- --force  # Update without prompt (CI/CD) — never skips a verification
-# Note: setcap cap_net_bind_service=+ep is re-applied automatically after each update
 ```
+
+The rarer commands live with their domain: translation in [i18n](docs/i18n.md), `cms:export-seed`
+in [Homepage content](docs/homepage-content.md), `deploy:smoke` in [Smoke tests](docs/smoke-tests.md),
+`update:frankenphp` in [The FrankenPHP binary](docs/dependency-updates.md#the-frankenphp-binary).
 
 ## Stack
 
@@ -126,65 +105,15 @@ Key rules:
 - `EnsureTwoFactorVerified` is a three-state gate: no confirmed 2FA → setup; confirmed but not verified this session → challenge; verified → through
 - Roles: `admin`, `maintainer`, `member`, public — via `spatie/laravel-permission`
 
-### Route parameters and the `{lang}` prefix
+### Routes under `{lang}`
+Every public and admin route sits under `Route::prefix('{lang}')`. `SetLocale` removes the `lang`
+parameter once the locale is set, so **a controller never takes a `string $lang` argument**, and URLs
+are built without an explicit `lang`. Why it is safe:
+[Route parameters and the `{lang}` prefix](docs/architecture.md#route-parameters-and-the-lang-prefix).
 
-Laravel passes route parameters to a controller **positionally**. Every public and admin route sits
-under `Route::prefix('{lang}')`, so `{lang}` would arrive as the *first* argument of any action — an
-action typed `edit(Experience $experience)` receives the locale string instead of the bound model.
-
-`SetLocale` therefore calls `$request->route()?->forgetParameter('lang')` once it has set the locale
-and the URL default. Without it, every controller taking a route-model-bound parameter would need a
-`string $lang` first argument, spreading a routing detail through the whole controller layer.
-
-Safe because nothing reads the parameter afterwards: URL generation goes through
-`URL::defaults(['lang' => …])`, and `LocalizedUrlService` always passes an explicit `lang` when
-building alternates.
-
-### Key directories
-| Path | Role |
-|------|------|
-| `app/Http/Controllers/Auth/` | Login, logout, 2FA setup + challenge |
-| `app/Http/Controllers/Public/` | Public-facing controllers |
-| `app/Http/Controllers/Dashboard/` | Private sections (auth required) |
-| `app/Http/Controllers/Admin/` | CMS and user management |
-| `app/Http/Requests/Auth/` | `LoginRequest`, `TwoFactorCodeRequest` — validation isolated from controllers |
-| `app/Http/Middleware/SetLocale.php` | Sets `App::setLocale()` from `{lang}` route param |
-| `app/Http/Middleware/EnsureTwoFactorVerified.php` | 2FA gate — three-state redirect logic |
-| `app/Services/` | Business logic — unit-tested, no HTTP dependency |
-| `app/Services/Auth/LoginService.php` | Post-login redirect resolution (role-based) |
-| `app/Services/Auth/TwoFactorService.php` | Secret generation, QR SVG, TOTP verify, DB confirm |
-| `app/Services/Auth/AuthThrottleService.php` | Counts failed login and 2FA attempts, says when to refuse the next — keys and limits in `docs/authentication.md` |
-| `app/Services/HomepageContentService.php` | Splits the bio into the hero's hook and the About section's paragraphs — no model, no request |
-| `database/data/homepage-content.php` | Homepage copy, 24 locales, generated by `cms:export-seed` — what a deployment reads |
-| `app/Console/Commands/CmsExportSeed.php` | Writes that file from the DB row; third step of the content pipeline |
-| `app/Services/AnthropicTranslator.php` | Anthropic API call + JSON flatten/unflatten helpers — shared by both translation commands |
-| `app/Services/TranslationCache.php` | File-checksum + per-key TTL cache for i18n and CMS translations |
-| `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
-| `app/Services/Smoke/` | `deploy:smoke` — probes a deployed environment from the outside; see `docs/smoke-tests.md` |
-| `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
-| `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
-| `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list. Also shapes the admin index (`adminRows()`), borrowing `CvService::period()` so the period rule has one home |
-| `app/Models/SiteIdentity.php` | Single-row site identity. **Nothing is translated**, `job_title` included — it is a `sameAs` cross-reference key (LUMN-15) |
-| `app/Models/Experience.php` | One position in the CV timeline. Partially translated: prose only — `job_title` is a cross-reference key, not prose |
-| `app/Http/Controllers/Public/CvController.php` | Public CV page — queries, delegates shaping to `CvService` |
-| `app/Http/Controllers/Admin/ExperienceController.php` | CV timeline CRUD — validates, delegates to `ExperienceService`, persists |
-| `resources/views/` | Blade templates |
-| `resources/js/` | Vue island components + utilities |
-| `resources/js/utils/` | Pure JS utility modules (unit-tested) |
-| `resources/js/i18n/` | vue-i18n locale files — one JSON per locale (24 EU languages) |
-| `resources/css/app.css` | Tailwind + DaisyUI entry point (`@import`/`@plugin`); utilities come from there |
-| `resources/css/scss/` | Hand-written SCSS — themes and the `_effects.scss` glow/glitch layer |
-| `config/geo.php` | Geo API proxy configuration (env-driven) |
-| `config/i18n.php` | Supported locales, **indexable locales**, default locale, native names, cache path, `cms_models` list |
-| `config/seo.php` | `public_routes` allowlist — route names allowed to carry canonical/`hreflang` |
-| `lang/fr/` | PHP translation files — French source of truth for Blade `__()` |
-| `storage/app/i18n/` | TranslationCache storage — checksums + per-key translations (gitignored) |
-| `docs/` | Technical documentation |
-| `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
-| `renovate.json5` | Renovate configuration — see `docs/dependency-updates.md` |
-| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update, the deployment scripts `release.sh` → `deploy.sh`, `rollback.sh` and their SSH gate `deploy-gate.sh`, the probe of the key `check-deploy-key.sh`, `watch-switch.sh`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
-| `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
-| `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
+### Where things live
+The map of the repository is [Key directories](docs/architecture.md#key-directories). **A new
+service, model, controller or rule gets its row there in the same ticket that creates it.**
 
 ### FrankenPHP / Octane notes
 - Worker mode keeps the app bootstrapped between requests — avoid storing state in static properties or singletons that should reset per request.
@@ -212,51 +141,22 @@ Key rules:
 - `i18n:translate --force` is required until LUMN-25 is fixed — the checksum answers `unchanged` forever
 
 ## Homepage content and the seed pipeline
-See `docs/homepage-content.md` before touching the homepage copy, its seeder or `cms:export-seed`.
-
-Key rules:
-- The homepage copy ships **with the deployment**, in all 24 locales, from `database/data/homepage-content.php` — the translation API is never called while deploying
-- Regenerating it is three steps, in order: edit French and `db:seed --class=HomepageContentSeeder`, then `cms:translate`, then `cms:export-seed`. **`setTranslations()` merges**: skipping `cms:translate` freezes new French beside stale locales
-- The seeder **never overwrites** published content — editing live copy is the admin form's job, not a redeploy's
-- The `fallback_*` keys of `lang/*/home.php` are deliberately neutral placeholders, never a second copy of the real text
+See `docs/homepage-content.md`. The copy ships **with the deployment**, in 24 locales, from
+`database/data/homepage-content.php` — the translation API is never called while deploying.
+Regenerating it is three steps, in order: seed the French, `cms:translate`, `cms:export-seed`. The
+seeder **never overwrites** published content.
 
 ## Accessibility (WCAG 2.1 AA)
-
-All views are axe-scanned against WCAG 2.1 AA via `@axe-core/playwright` in `tests/e2e/accessibility.spec.js` (3 themes × N pages).
-
-### Color contrast — safe opacity thresholds
-Dark-themed UIs with near-black backgrounds require higher opacity than typical designs. Thresholds below apply to lighter base colors (e.g., `text-base-content`, `text-primary`).
-
-| Text size | Utility opacity | Status |
-|-----------|----------------|--------|
-| 10px (`text-[10px]`) | `/40` | ❌ fails (~2.6:1) |
-| 10px | `/60` | ✅ passes (~4.8:1) for light base colors |
-| 12–14px (`text-xs`, `text-sm`) | `/50` | ❌ fails (~3.5–4.1:1) |
-| 12–14px | `/70` | ✅ passes (~5:1) for light base colors |
-| Any | `text-secondary/50` | ❌ fails — `text-secondary` is a dark mid-tone in these themes |
-| Any | `text-secondary` (full opacity) | ❌ still fails in some themes (e.g., neon-noir: ~2.5:1) |
-
-When in doubt, prefer higher opacity — the design intent of "muted" labels is preserved at `/60`–`/70`. Never assume `text-secondary` at any opacity will pass for small text against near-black backgrounds.
-
-### Decorative elements — axe-core exemption
-When an element is purely aesthetic (no semantic content, `select-none`, not meaningful for AT) and its color cannot reach 4.5:1 regardless of opacity, apply both:
-- `aria-hidden="true"` — removes the element from the accessibility tree (correct for screen readers)
-- `data-a11y-role="decorative"` — tells the `axeCheck()` helper to skip the element
-
-**Important**: `aria-hidden` alone does **not** suppress axe-core's color-contrast check — axe-core scans visually rendered elements regardless of AT visibility. The `.exclude('[data-a11y-role="decorative"]')` call in `accessibility.spec.js` is what actually removes the element from the scan, aligned with the WCAG 1.4.3 exception for incidental/decorative text.
-
-Example: the `> LIST_` terminal-style header in `SkillsEditor.vue` — pure aesthetic decoration, uses `text-secondary` which cannot reach 4.5:1 in any theme at any opacity.
+Every view is axe-scanned in three themes (`tests/e2e/accessibility.spec.js`). Near-black backgrounds
+need high opacity: small muted text at `/60`–`/70`, never `text-secondary`. A purely decorative
+element takes **both** `aria-hidden="true"` and `data-a11y-role="decorative"` — the first alone does
+not stop axe. Thresholds and the reasoning: [Accessibility](docs/accessibility.md).
 
 ## Site identity
-See `docs/site-identity.md` for the full reference.
-
-Key rules:
-- `SiteIdentity` is a **single-row, untranslated model**. It was designed as a mixed one — `spatie/laravel-translatable` works **column by column**, so translating `job_title` alone was possible — and LUMN-15 deliberately undid it on 2026-09-07, with its own migration: the title cross-references the GitHub, LinkedIn and Mastodon profiles a `sameAs` points at, and those carry one hand-typed title each. `Experience` repeats the same split for the same reason.
-- Profile URLs are validated on **three axes** — `url:https`, the host, **and the shape of the profile path**. A host check alone accepts `https://github.com/`, which would misinform a `sameAs` declaration.
-- Query strings and fragments are stripped in `prepareForValidation()` (LinkedIn's `?trk=…`)
-- Footer links carry `rel="me"` — Mastodon verifies identity by mutual link
-- The contact address is **deliberately** a plain `mailto:`; the reasoning is in the doc
-- Every field is nullable and the table is empty after migrating — blank fields must render nothing
+See `docs/site-identity.md`. `SiteIdentity` is a **single-row, untranslated model** — `job_title`
+included, since it cross-references the `sameAs` profiles (LUMN-15). Profile URLs are validated on
+**three axes**: `url:https`, the host, and the shape of the profile path. Every field is nullable:
+blank fields render nothing.
 
 ## SEO conventions
 See `docs/seo-conventions.md` for the full reference.
@@ -285,44 +185,28 @@ Key rules:
 - **`APP_ENV=production` on every internet-facing host, preprod included.** Any other value is what
   publishes the `/e2e/admin-auth` backdoor. Name the environment after its exposure, not its role.
 - **Secrets have three homes, none of them the repository**: a password manager (human), the
-  server-side `.env` at `/home/cardascia-it/lumina/preprod/shared/.env` — outside every release, above the `current/public` docroot by
-  construction — and GitHub **environment** secrets (pipeline; its SSH key is tied to `scripts/deploy-gate.sh`). `.env.example` documents *which*
-  variables exist; `docs/deployment.md` documents *where each value comes from*, with no values.
-- **`ANTHROPIC_API_KEY` does not exist in preprod or production.** Since LUMN-29 the translated
-  content ships with the deployment, so neither translation command runs on a server. A key that is
-  never used can only be leaked.
-- **One driver everywhere a browser or a deployment is involved.** `database`/`database`/`sync` for
-  session, cache and queue in dev, CI E2E, preprod and prod. `phpunit.xml` keeps `array` drivers on
-  purpose — in-memory doubles in a single process are what a unit harness is for, and they have no
-  behaviour a real driver lacks. Redis was dropped on 2026-09-14: no job, no queue, no `Redis::`
-  call anywhere in `app/`, and its asynchronous write had already cost two workarounds.
-- **A release is built in its own directory and put in service by one link** (`releases/`, `shared/`, `current`): never edit `current/` in place. Each release builds its own assets and keeps those of the one it replaces; going back is `rollback.sh`.
-  **OPcache does not follow that link**: the first lines of `public/index.php` ask `App\Services\ReleaseInService` which release is in service and hand the request over — they are not boilerplate, and `FrontControllerTest` fails without them.
+  server-side `.env` at `/home/cardascia-it/lumina/preprod/shared/.env`, and GitHub **environment**
+  secrets (pipeline; its SSH key is tied to `scripts/deploy-gate.sh`). `.env.example` says *which*
+  variables exist; `docs/deployment.md` says *where each value comes from*, with no values.
+- **`ANTHROPIC_API_KEY` does not exist in preprod or production.** Translated content ships with the
+  deployment (LUMN-29); a key that is never used can only be leaked.
+- **One driver everywhere a browser or a deployment is involved**: `database`/`database`/`sync` for
+  session, cache and queue. `phpunit.xml` keeps `array` drivers on purpose —
+  [One driver everywhere](docs/deployment.md#one-driver-everywhere).
+- **A release is built in its own directory and put in service by one link** (`releases/`, `shared/`,
+  `current`): never edit `current/` in place; going back is `rollback.sh`. **OPcache does not follow
+  that link**: the first lines of `public/index.php` are not boilerplate, and `FrontControllerTest`
+  fails without them.
 - `config:cache` freezes `.env` — after it runs, `env()` outside a config file returns `null`.
-
-Four defects found on 2026-09-14, before the first deployment, none reproducible on a development
-machine: a missing `public/.htaccess` (Octane never reads it, Apache needs it), a missing
-`trustProxies` (TLS terminated upstream → an endless login loop, not an obvious misconfiguration),
-`laravel/telescope` in `require-dev` while its provider was registered unconditionally
-(`composer install --no-dev` fatal at boot), and the E2E denylist above. All four are written up in
-`docs/deployment.md`.
 
 **Known gaps, not yet closed**, each blocking production (LUMN-54): a TOTP code stays replayable
 in its window (LUMN-91), and `/up` has no ceiling though each call queries the database (LUMN-92).
 Login and 2FA attempts are limited since LUMN-36 — [Rate limiting](docs/authentication.md#rate-limiting).
 
 ## Environment variables
-
-One file answers both questions a variable raises — what it means, and where its value comes from:
-[Environment variables](docs/environment-variables.md). It is grouped by **origin**, so the table
-that matters most has a name of its own:
-[Deliberately absent from preprod and production](docs/environment-variables.md#deliberately-absent-from-preprod-and-production),
-where `ANTHROPIC_API_KEY` and the `SMOKE_*` credentials live — a value a host never uses can only
-leak from it.
-
-`.env.example` declares which variables exist; that document says what each one means.
-`tests/Feature/Documentation/EnvironmentVariablesTest.php` fails on a variable declared in the first
-and missing from the second.
+[Environment variables](docs/environment-variables.md) says what each variable means and where its
+value comes from; `EnvironmentVariablesTest` fails on a variable of `.env.example` missing there. Some
+are [deliberately absent from preprod and production](docs/environment-variables.md#deliberately-absent-from-preprod-and-production).
 
 ## Quality tooling
 See `docs/quality-tooling.md` before changing the audit script, a linter config, PHPStan or the CI workflow.
@@ -334,17 +218,11 @@ Key rules:
 - CI: the required checks are listed once, in [Required checks](docs/git-workflow.md#required-checks) — PHP, JS, E2E and a dependency review that fails a PR *introducing* a vulnerable package. Dependabot alerts, CodeQL and secret scanning are **repository settings**, and the alerts do **not** cover every known flaw: a daily, non-required `security-audit.yml` fails on any advisory absent from `accepted-advisories.json`, where each acceptance carries a reason and a review date; PHP has no security analysis (LUMN-66)
 
 ## Dependency updates (Renovate)
-See `docs/dependency-updates.md` for the full reference — installation, day-to-day use, and how to
-test a configuration change before merging it.
-
-Key rules:
-- Configuration lives in `renovate.json5`; Renovate runs as the hosted Mend GitHub App, never in CI
-- Minor and patch updates are grouped per ecosystem; **every major of a library waits for approval** on the Dependency Dashboard. GitHub Actions are the exception: one grouped PR, majors included — valid only while every action runs on pull requests
-- **Runtime majors are never Renovate PRs** — Node and PostgreSQL in CI, and the `"php"` constraint, are disabled: moving CI alone would test a runtime production does not run
-- **Schedule windows stay at 24 hours or more**: the free app visits once a day on an inactive repository
-- Routine Renovate PRs carry no JIRA key, on purpose; a major of a library gets a human ticket
-- **An npm or GitHub Actions release waits 3 days**, written in `renovate.json5` and, for npm, in `.npmrc` and held together by `ReleaseAgeParityTest`; `update:frankenphp` reads that `.npmrc` number for [the FrankenPHP binary](docs/dependency-updates.md#the-frankenphp-binary); 14 days is for automerge, which is off. A ticked box with a green job and no PR means `lock file error` in the job log
-- Testing a config change locally: **`git add` it first**, or the dry run silently ignores it
+See `docs/dependency-updates.md`. Renovate runs as the hosted Mend app from `renovate.json5`. Minor
+and patch updates are grouped per ecosystem; **every library major waits for approval**; runtime
+majors (Node, PostgreSQL, PHP) are never a Renovate PR. An npm or Actions release waits **3 days**,
+written in `renovate.json5` and `.npmrc` and held together by `ReleaseAgeParityTest`. Testing a
+config change locally: **`git add` it first**, or the dry run silently ignores it.
 
 ## Branch protection and merge policy
 See `docs/git-workflow.md` before changing the ruleset, re-keying a pull request, or diagnosing a blocked merge.
@@ -357,43 +235,12 @@ Key rules:
 - Check protection with `gh api repos/Sefalhik/lumina/rules/branches/main`, never the classic `/protection` endpoint — it is blind to rulesets
 
 ## CV timeline (`Experience`)
-See `docs/cv-timeline.md` before touching `Experience`, `CvService`, `ExperienceService`, or adding a CV section — it is the pattern to replicate.
-
-Key rules:
-- Partial translation, decided at design time: prose is translated, `job_title` is not — it is a `sameAs` cross-reference key
-- A null `ended_at` means **"still in this position"**, named by `isCurrent()` and `scopeCurrent()`, never implied
-- The period sentence has one author, `CvService::period()`, read by both the public page and the admin index
-- Views receive shaped arrays, never models; route URLs take no explicit `lang`
+See `docs/cv-timeline.md` — it is the pattern to replicate for a new CV section. Prose is translated,
+`job_title` is not; a null `ended_at` means **"still in this position"**, named by `isCurrent()`,
+never implied; the period sentence has one author, `CvService::period()`; views receive shaped
+arrays, never models.
 
 ## Session brain dumps
-
-`docs/blog-prep/` holds one Markdown file per working session — what was found, what resisted, and
-the article leads that came out of it. Named `session-YYYY-MM-DD.md`, with a `b`, `c`… suffix when a
-day has more than one.
-
-**A brain dump travels with the ticket in flight — unless no ticket is in flight.**
-
-It is not a deliverable: it documents a session, not a feature. Attaching it to a ticket it does not
-implement ties a piece of prose to that ticket's fate — and if the ticket is blocked, the writing
-sits in an open pull request waiting on something it has nothing to do with. That happened once, for
-a day, on LUMN-13.
-
-Nothing was actually stuck there: `jira-sync.yml` gates every transition on the expected source
-state, so merging could never have moved a blocked ticket. The pull request was simply pointless.
-Commit the dump alongside the work of the session that produced it and the question does not arise.
-
-**The exception, and its condition.** When a session ends with nothing in flight — the last ticket
-merged, the next not started — the dump has nothing to travel with. Holding it until the next ticket
-opens is not what the rule asked for: the rule exists to keep prose off a ticket's critical path, and
-there is no critical path to stay off.
-
-It then ships alone, as a `[HORS-TICKET]` pull request with no JIRA key, and the branch is named after the
-session rather than after a ticket: `docs/session-YYYY-MM-DD`.
-
-The condition is what makes this an exception rather than a loophole: **no ticket in flight** means
-none — not "none I feel like waiting for". If a ticket is open and the dump documents its session,
-the dump goes with it. The failure mode being avoided is a dump blocked by someone else's work, not a
-dump that has to wait its turn.
-
-Recorded 2026-09-14, the first time the case arose: the rule as written would have held a finished
-session's writing hostage to a ticket that did not exist yet.
+One file per working session in `docs/blog-prep/`, `session-YYYY-MM-DD.md`. **It travels with the
+ticket in flight**; only when none is in flight does it ship alone, as a `[HORS-TICKET]` PR from
+`docs/session-YYYY-MM-DD`: [Session brain dumps](docs/git-workflow.md#session-brain-dumps).

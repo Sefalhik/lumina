@@ -103,7 +103,7 @@ absent entirely. Duplicating the real text there would give it a second home and
 
 Shrinking the font was considered and rejected. `text-lg` to `text-base` buys about 11% of height —
 two lines out of fifteen, with the buttons still below the fold — and the bio is
-`text-base-content/70`, which [the contrast table](../CLAUDE.md#color-contrast--safe-opacity-thresholds) already places near its limit at that size.
+`text-base-content/70`, which [the contrast table](accessibility.md#color-contrast--safe-opacity-thresholds) already places near its limit at that size.
 A content-length problem is not a typography problem.
 
 `HomepageProseTest` asserts the **ordering**, not the presence: hook before buttons, buttons before
