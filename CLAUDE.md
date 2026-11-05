@@ -199,9 +199,10 @@ Key rules:
   fails without them.
 - `config:cache` freezes `.env` — after it runs, `env()` outside a config file returns `null`.
 
-**Known gap, not yet closed**, blocking production (LUMN-54): `/up` has no ceiling though each call
-queries the database (LUMN-92). Login and 2FA attempts are limited (LUMN-36) and a code is accepted
-once (LUMN-91) — [Rate limiting](docs/authentication.md#rate-limiting).
+**The application limits attempts, not load.** Login and 2FA attempts are limited (LUMN-36) and a
+code is accepted once (LUMN-91) — [Rate limiting](docs/authentication.md#rate-limiting). `/up` has
+no ceiling, by decision: it is the cheapest route of the site, and `HealthRouteCostTest` keeps it
+so — [What protects the site from a flood of requests](docs/deployment.md#what-protects-the-site-from-a-flood-of-requests).
 
 ## Environment variables
 [Environment variables](docs/environment-variables.md) says what each variable means and where its

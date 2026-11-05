@@ -1121,17 +1121,64 @@ runs of `deploy.yml` the same day, through the key once it was rotated onto the 
 | Pages that would have been broken | none, in 500 rounds across the three |
 | `deploy:smoke --expect-release` | 19 probes passed after each |
 
+## What protects the site from a flood of requests
+
+**The application limits attempts, not load.** Since LUMN-36, `/{lang}/login` and both two-factor
+forms refuse further attempts after repeated failures, and since LUMN-91 a code is accepted once —
+[Rate limiting](authentication.md#rate-limiting). Nothing in Laravel caps how often a page may be
+requested, and that is a decision, not a gap.
+
+**`/up` has no ceiling, decided on 2026-11-05 (LUMN-92).** A limit on it was planned because it is
+public and queries the database. Measured that day with the drivers production runs — sessions and
+cache in the database:
+
+| Route | Queries per request |
+|---|---|
+| `/up` | **1** — `select 1`, no session |
+| `/{lang}` | 5 |
+| `/{lang}/cv` | 4 |
+| `/{lang}/login` | 2 |
+
+Every page reads and writes its session; `/up` sits outside the `web` group and does neither. It is
+the cheapest route of the site: a loop meant to load the database runs on a page instead, which a
+ceiling on `/up` alone never reaches. The planned limiter, counting in the default cache, would have
+made it worse — **7 queries instead of 1 on every call, a row lock among them**, refused calls
+included.
+
+Only the first line of the table is held by a test; the others are that day's measurement — take it
+again before relying on them, with a `DB::listen` around a request and both drivers set to
+`database`. `HealthRouteCostTest` holds two things:
+
+- `/up` makes one query: put it in the `web` group, or give it a limiter counting in the database,
+  and the test fails;
+- `/up` answers a hundred calls in a row: a limiter counting in a file or in memory costs no query,
+  and only this one sees it. A ceiling above a hundred a minute would pass — it would contradict
+  the decision without refusing the supervision, which polls far less often.
+
+Either failure means this decision has to be taken again.
+
+A ceiling on every route would not stop a flood either: each request boots PHP before it can be
+refused, and a determined sender changes address. What stands in front is the host's, as alwaysdata
+describes it:
+
+- layer 3/4 anti-DDoS on every server, absorbing medium attacks without intervention, with
+  protection at the network provider beyond that;
+- Fail2ban, banning an address for ten minutes after about fifty failed connections;
+- the WAF, set to `basic` — protocol compliance and malicious robots. It offers no per-address
+  request rate for a site.
+
+If floods ever become a real problem, the lever is in front of the host — a proxy or CDN that rate
+limits — not in Laravel. It would change what `$request->ip()` means, and with it the keys of the
+login limiters: re-read
+[`trustProxies` was configured, and had to be removed](#trustproxies-was-configured-and-had-to-be-removed)
+before adding one. Re-measure the table above as well: it changes the day a page adds a query.
+
+---
+
 ## Not done yet
 
 - **No deployment on merge.** The pipeline can release a commit and undo it on request (LUMN-50,
   LUMN-51), but someone still has to ask. Deploying every merge is LUMN-53.
-- **Rate limiting covers login and two-factor only.** Since LUMN-36, `/{lang}/login` and both
-  two-factor forms refuse further attempts after repeated failures — see
-  [Rate limiting](authentication.md#rate-limiting), and since LUMN-91 a code is accepted once —
-  [A code is accepted once](authentication.md#a-code-is-accepted-once). One gap remains, closed by
-  HTTP Basic authentication on preprod: `/up` has no ceiling although each call queries the
-  database (LUMN-92). **It must be closed before `cardascia-it.org` points here** — it blocks
-  LUMN-54.
 - **No security headers**, and `robots.txt` allows everything — preprod would be indexed if
   it were reachable. (LUMN-37)
 - **Nameserver delegation to alwaysdata** is not done; `cardascia-it.org` still resolves
