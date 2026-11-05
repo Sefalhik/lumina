@@ -273,4 +273,64 @@ describe('the deployment scripts, one after the other', () => {
         expect(served(box)).toBe(commit.c3);
         expect(releases(box)).toEqual([named(commit.c1, 0), named(commit.c3, 3)]);
     });
+
+    it.each([
+        ['the connection hangs up', 'SIGHUP', 129],
+        ['somebody presses Ctrl-C', 'SIGINT', 130],
+        ['the machine is told to stop', 'SIGTERM', 143],
+    ])('keeps the report of a build stopped when %s on the whole deployment', async (_, signal, status) => {
+        // release.sh starts the copies of the output and hands them to deploy.sh, which runs the
+        // long steps. A terminal signals the whole group: release.sh's copies, deploy.sh, and the
+        // build. Each suite alone sees one side of this; the report of the build lives on both.
+        const box = sandbox();
+        firstRelease(box, commit.c1, 0);
+        const hanging = join(box.root, 'hanging');
+
+        const stopped = spawn(
+            join(box.bin, 'bash'),
+            [join(paths(box.site).current, 'scripts', 'release.sh'), commit.c2],
+            {
+                cwd: box.root,
+                detached: true,
+                stdio: ['ignore', 'pipe', 'pipe'],
+                env: {
+                    PATH: box.bin,
+                    HOME: box.root,
+                    GIT_CONFIG_GLOBAL: '/dev/null',
+                    GIT_CONFIG_NOSYSTEM: '1',
+                    STUB_LOG: join(box.root, 'calls.log'),
+                    STUB_HANG: 'npm run build',
+                    STUB_HANGING: hanging,
+                    ...at(1),
+                },
+            },
+        );
+        let stderr = '';
+        stopped.stderr.on('data', (chunk) => (stderr += chunk));
+        stopped.stdout.resume();
+        const ended = new Promise((resolve) => stopped.on('close', (code) => resolve(code)));
+        const deadline = Date.now() + 10000;
+        while (!existsSync(hanging)) {
+            if (Date.now() > deadline) {
+                process.kill(-stopped.pid, 'SIGKILL');
+                throw new Error('The deployment never reached the step it was meant to be stopped in.');
+            }
+            await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+
+        process.kill(-stopped.pid, signal);
+
+        const report = `Deployment of ${commit.c2} FAILED while running "npm run build" (exit status ${status}, interrupted by a signal).`;
+        expect(await ended).toBe(status);
+        expect(stderr).toContain(report);
+        const kept = read(join(box.site, 'shared', 'storage', 'logs', 'deployments', `${named(commit.c2, 1)}.log`));
+        expect(kept).toContain('── npm run build');
+        expect(kept).toContain(report);
+        expect(lines(join(box.site, 'shared', 'storage', 'logs', 'deployments.log')).at(-1)).toContain(
+            `failed ${commit.c2} while running "npm run build" (exit ${status})`,
+        );
+        expect(served(box)).toBe(commit.c1);
+        expect(releases(box)).toEqual([named(commit.c1, 0)]);
+        expect(isLocked(box.site)).toBe(false);
+    });
 });

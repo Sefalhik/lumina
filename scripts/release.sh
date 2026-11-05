@@ -82,6 +82,12 @@ TARGET="${SITE}/releases/${NAME}"
 # they ignore it, and go on writing the file when nobody reads the other end any more (-p) — the
 # last words of a script that is being interrupted are the ones worth keeping. Not being able to
 # keep them is said, and is no reason to fail.
+#
+# They are started ignoring the signals, rather than told to ignore them once started: bash 5.3
+# drops a `trap '' INT` written inside a process substitution, and a Ctrl-C then killed both, along
+# with the report of the failure and its line in the journal (LUMN-94). A signal ignored when a
+# process starts stays ignored through exec, in every version. This script takes the signals back
+# at once: until its own traps are set below, an interruption ends it as it did before.
 OUTPUT_KEPT=20
 OUTPUTS="${SITE}/shared/storage/logs/deployments"
 OUTPUT="${OUTPUTS}/${NAME}.log"
@@ -90,13 +96,9 @@ if { mkdir -p "$OUTPUTS" && : >> "$OUTPUT"; } 2> /dev/null; then
   for ((old = 0; old < ${#KEPT[@]} - OUTPUT_KEPT; old++)); do
     rm -f "${KEPT[old]}"
   done
-  exec > >(
-    trap '' HUP INT TERM
-    exec tee -a -p "$OUTPUT"
-  ) 2> >(
-    trap '' HUP INT TERM
-    exec tee -a -p "$OUTPUT" >&2
-  )
+  trap '' HUP INT TERM
+  exec > >(exec tee -a -p "$OUTPUT") 2> >(exec tee -a -p "$OUTPUT" >&2)
+  trap - HUP INT TERM
 else
   printf 'Warning: %s could not be opened: what this deployment says is not kept on the server.\n' "$OUTPUT" >&2
 fi
