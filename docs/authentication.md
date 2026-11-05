@@ -64,7 +64,8 @@ The refusal reuses `auth.throttle`, which announces the wait in seconds. Each re
 logs a `warning` (`login_throttled`, `two_factor_throttled`); the failure that starts a lockout
 logs one `alert` (`login_lockout`, `two_factor_lockout`) — brute force is its likeliest reading.
 
-Not covered here, and tracked: the health route `/up` has no ceiling (LUMN-92).
+These limits cap attempts, not load: the health route `/up` has no ceiling, by decision —
+[What protects the site from a flood of requests](deployment.md#what-protects-the-site-from-a-flood-of-requests).
 
 ## A code is accepted once
 
