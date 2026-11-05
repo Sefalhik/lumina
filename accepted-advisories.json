@@ -1,16 +1,16 @@
 [
     {
-        "id": "GHSA-vfj7-8cjw-p6xm",
-        "package": "braces",
-        "reason": "No fixed version exists: 3.0.3 is the latest release. Reached through stylelint, a development tool that only reads the files of this repository; the flaw is a denial of service on a crafted pattern.",
-        "acceptedOn": "2026-10-07",
-        "reviewBy": "2027-01-07"
+        "id": "GHSA-3g3m-2fjr-6pw4",
+        "package": "glob",
+        "reason": "Fixed in 14.0.2 only; js-beautify 2.0.3, its latest release, requires ^13.0.6, and is reached through @vue/test-utils. It runs in the Vitest suite alone, over the files of this repository: deploy.sh installs it on the server, but nothing in npm run build calls it, and nothing an attacker controls reaches it.",
+        "acceptedOn": "2026-11-05",
+        "reviewBy": "2026-12-05"
     },
     {
-        "id": "GHSA-pqg4-j6r4-53mv",
-        "package": "shell-quote",
-        "reason": "Fixed in 1.11.0, but concurrently pins 1.9.0 exactly, in its latest release too: waiting for open-cli-tools/concurrently#622. concurrently only runs `npm start`, with arguments written in package.json, so nothing an attacker controls reaches quote().",
-        "acceptedOn": "2026-10-07",
-        "reviewBy": "2026-11-07"
+        "id": "GHSA-g3hv-75wg-m249",
+        "package": "minimatch",
+        "reason": "Fixed in 11.0.1 only; eslint 10.14.0, @eslint/config-array 0.23.5, editorconfig 3.0.2 and glob 13, all at their latest release, require ^10. It only matches patterns written in this repository (the ESLint configuration, .editorconfig): the flaw is a denial of service on a crafted pattern, and nobody else can hand it one. Not called by npm run build.",
+        "acceptedOn": "2026-11-05",
+        "reviewBy": "2026-12-05"
     }
 ]
