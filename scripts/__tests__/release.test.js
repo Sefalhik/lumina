@@ -53,7 +53,12 @@ ${LOCK_STATE}
 here=$(cd -P "$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)
 printf 'deploy.sh\\x1f${version}\\x1f%s\\x1f%s\\x1f%s\\x1f%s\\x1f%s\\n' \\
   "\${here##*/}" "$(cat "$here/RELEASE")" "$lock_state" "\${DEPLOY_LOCK_FD:-}" "$#" >> "$STUB_LOG"
-if [[ -n "\${STUB_DEPLOY_SAYS:-}" ]]; then
+if [[ "\${STUB_DEPLOY_SAYS:-}" == 'complaining-first' ]]; then
+  # Long enough for the complaint to be in the file before anything else is said.
+  printf 'complained of by the build\\n' >&2
+  sleep 0.2
+  printf 'said by the build\\n'
+elif [[ -n "\${STUB_DEPLOY_SAYS:-}" ]]; then
   printf 'said by the build\\n'
   printf 'complained of by the build\\n' >&2
 fi
@@ -74,6 +79,16 @@ trap '' HUP INT TERM
 kill "-\${STUB_SIGNAL:-TERM}" "\${STUB_SIGNAL_TO:-$PPID}"
 [[ "\${STUB_SIGNAL_TO:-}" == '0' ]] && printf 'said after the signal\\n'
 exit 0
+`;
+
+// git, except that the whole process group is told to stop when the script lists the names of its
+// releases: after the copies of its output are started, before its own traps are set.
+const INTERRUPTING_GIT = `#!/bin/bash
+if [[ " $* " == *' for-each-ref '* ]]; then
+  trap '' HUP INT TERM
+  kill "-\${STUB_SIGNAL}" 0
+fi
+exec ${locate('git')} "$@"
 `;
 
 let template;
@@ -141,7 +156,7 @@ beforeAll(() => {
     git(template, 'clone', '--quiet', '--bare', 'work', join('site', 'repo'));
 
     fillPath(join(template, 'bin'), {
-        real: ['bash', 'git', 'tar', 'dirname', 'rm', 'cat', 'flock', 'tee'],
+        real: ['bash', 'git', 'tar', 'dirname', 'rm', 'cat', 'flock', 'tee', 'sleep'],
         standins: { date: DATE, mkdir: failingWhenFull('mkdir') },
     });
     fillPath(join(template, 'bin-broken-tar'), {
@@ -151,6 +166,10 @@ beforeAll(() => {
     fillPath(join(template, 'bin-interrupted-tar'), {
         real: ['bash', 'git', 'dirname', 'mkdir', 'rm', 'cat', 'flock', 'tee', 'setsid'],
         standins: { date: DATE, tar: INTERRUPTED_TAR },
+    });
+    fillPath(join(template, 'bin-interrupting-git'), {
+        real: ['bash', 'tar', 'dirname', 'mkdir', 'rm', 'cat', 'flock', 'tee', 'setsid'],
+        standins: { date: DATE, git: INTERRUPTING_GIT },
     });
 });
 
@@ -205,7 +224,7 @@ function release(
                 STUB_DIR: box.root,
                 STUB_FULL: full,
                 STUB_SIGNAL: signal,
-                STUB_DEPLOY_SAYS: says ? '1' : '',
+                STUB_DEPLOY_SAYS: says === true ? '1' : says || '',
                 ...(lockFd === undefined ? {} : { DEPLOY_LOCK_FD: lockFd }),
             },
         },
@@ -536,6 +555,17 @@ describe('release.sh — what a deployment said, kept on the server', () => {
         );
     });
 
+    it('keeps what went wrong though what was said comes after it, each copy adding to the file', () => {
+        // Two copies write the same file. One that wrote from where it last stopped, instead of at
+        // the end, would write over what the other had added in between.
+        const box = sandbox();
+        release(box, [commit.c2], { says: 'complaining-first' });
+
+        expect(output(box).split('\n').filter(Boolean).sort()).toEqual(
+            [`Release ${releaseName(commit.c2)}`, 'complained of by the build', 'said by the build'].sort(),
+        );
+    });
+
     it('still gives the caller what was said and what went wrong, each on its own stream', () => {
         const result = release(sandbox(), [commit.c2], { says: true });
 
@@ -601,8 +631,45 @@ describe('release.sh — what a deployment said, kept on the server', () => {
         // Both streams: what a command still said after the signal, and the report of the failure.
         expect(output(box)).toContain('said after the signal');
         expect(output(box)).toContain(`Release of ${commit.c2} FAILED while extracting it (exit status ${status}).`);
+        // Written after the report: a report that cannot be written must not take the journal with it.
+        expect(lines(join(site.shared, 'storage', 'logs', 'deployments.log'))).toEqual([
+            expect.stringContaining(`failed ${commit.c2} while extracting it (exit ${status})`),
+        ]);
         expect(readdirSync(site.releases)).toEqual([SERVED()]);
     });
+
+    it.each(['HUP', 'INT', 'TERM'])(
+        'stops, and releases nothing, when %s reaches it before its own traps are set',
+        (signal) => {
+            // The copies of the output are started with the signals ignored, and inherit that. The
+            // script must not keep it: an interruption at that moment would be swallowed, and the
+            // deployment would carry on as if nobody had asked it to stop.
+            const box = sandbox();
+            const site = paths(box.site);
+            const bin = join(box.root, 'bin-interrupting-git');
+            const result = spawnSync(
+                join(bin, 'setsid'),
+                ['--wait', join(bin, 'bash'), join(site.current, 'scripts', 'release.sh'), commit.c2],
+                {
+                    encoding: 'utf8',
+                    env: {
+                        PATH: bin,
+                        GIT_CONFIG_GLOBAL: '/dev/null',
+                        GIT_CONFIG_NOSYSTEM: '1',
+                        STUB_LOG: box.log,
+                        STUB_LOCK: site.lock,
+                        STUB_DIR: box.root,
+                        STUB_STAMP: STAMP,
+                        STUB_SIGNAL: signal,
+                    },
+                },
+            );
+
+            expect(result.status).not.toBe(0);
+            expect(callsIn(box.log).filter(([tool]) => tool === 'deploy.sh')).toEqual([]);
+            expect(readdirSync(site.releases)).toEqual([SERVED()]);
+        },
+    );
 
     it('goes on writing the file, and the deployment goes on, when nobody reads its output any more', () => {
         // A connection that drops: whatever was reading is gone, and the script is not told.
