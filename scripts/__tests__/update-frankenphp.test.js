@@ -34,7 +34,7 @@ const DAY = 24 * 60 * 60;
 const NOW = Date.UTC(2026, 9, 10, 12, 0, 0) / 1000;
 
 const REPO = 'php/frankenphp';
-const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
+const API_URL = `https://api.github.com/repos/${REPO}/releases?per_page=100`;
 const ASSET = 'frankenphp-linux-x86_64';
 const CURRENT = 'v1.12.7';
 const LATEST = 'v1.13.0';
@@ -188,6 +188,8 @@ function anAsset(name, { tag = LATEST, bytes = NEW_BINARY, ...overrides } = {}) 
 function aRelease({ tag = LATEST, age = 10 * DAY, asset = {}, ...overrides } = {}) {
     return {
         tag_name: tag,
+        draft: false,
+        prerelease: false,
         published_at: iso(NOW - age),
         assets: [
             anAsset('frankenphp-linux-aarch64', { tag, bytes: OTHER_BINARY }),
@@ -211,10 +213,11 @@ function run(
         args = ['--force'],
         input = '',
         release = aRelease(),
-        apiBody = JSON.stringify(release),
+        releases = [release],
+        apiBody = JSON.stringify(releases),
         apiCode = 200,
         apiExit = 0,
-        redirectsTo = aRelease(),
+        redirectsTo = [aRelease()],
         served = NEW_BINARY,
         downloadCode = 200,
         downloadExit = 0,
@@ -337,7 +340,7 @@ describe('update-frankenphp.sh — the nominal update', () => {
 });
 
 describe('update-frankenphp.sh — where the binary comes from', () => {
-    it('asks php/frankenphp for its latest release, and downloads from that repository', () => {
+    it('asks php/frankenphp for its releases, in one request, and downloads from that repository', () => {
         const result = run(sandbox());
 
         expectInstalled(result);
@@ -358,7 +361,7 @@ describe('update-frankenphp.sh — where the binary comes from', () => {
         // The stand-in follows the redirect when asked to, and what lies behind it is a perfectly
         // valid release: with -L on that request, this update goes through.
         const apiBody = JSON.stringify({ message: 'Moved Permanently', url: 'https://api.github.com/repositories/1' });
-        const result = run(sandbox(), { apiCode, apiBody, redirectsTo: aRelease() });
+        const result = run(sandbox(), { apiCode, apiBody, redirectsTo: [aRelease()] });
 
         expectRefused(result, `GitHub answered ${apiCode} for ${REPO}: the repository has moved.`);
         expect(result.stderr).toContain('change REPO in scripts/update-frankenphp.sh');
@@ -382,14 +385,27 @@ describe('update-frankenphp.sh — where the binary comes from', () => {
 
     it.each([
         ['a page that is not JSON', '<html>rate limited</html>'],
-        ['half a release', JSON.stringify(aRelease()).slice(0, 40)],
-        ['a list', '[]'],
+        ['half a list', JSON.stringify([aRelease()]).slice(0, 40)],
+        ['a single release, as /releases/latest answers', JSON.stringify(aRelease())],
         ['a bare string', '"v1.13.0"'],
         ['a number', '200'],
+        ['null', 'null'],
+        ['an empty answer', ''],
     ])('refuses %s as an answer', (_, apiBody) => {
         const result = run(sandbox(), { apiBody });
 
-        expectRefused(result, "GitHub's answer is not a release this script can read.");
+        expectRefused(result, "GitHub's answer is not a list of releases this script can read.");
+        expect(result.downloads).toEqual([]);
+    });
+
+    it.each([
+        ['no release at all', []],
+        ['nothing but drafts and pre-releases', [aRelease({ draft: true }), aRelease({ prerelease: true })]],
+        ['nothing but entries that are not releases', ['v1.13.0', 42, null, [aRelease()]]],
+    ])('refuses a list with %s', (_, releases) => {
+        const result = run(sandbox(), { releases });
+
+        expectRefused(result, `GitHub lists no published release of ${REPO}.`);
         expect(result.downloads).toEqual([]);
     });
 
@@ -409,13 +425,6 @@ describe('update-frankenphp.sh — where the binary comes from', () => {
         // addresses left on another version, the address check refuses first and this one is never
         // reached — which is how it went untested at first.
         const result = run(sandbox(), { release: aRelease({ tag, tag_name: tag }) });
-
-        expectRefused(result, 'the latest release carries no version this script reads');
-        expect(result.downloads).toEqual([]);
-    });
-
-    it('refuses an empty answer', () => {
-        const result = run(sandbox(), { apiBody: '' });
 
         expectRefused(result, 'the latest release carries no version this script reads');
         expect(result.downloads).toEqual([]);
@@ -605,6 +614,232 @@ describe('update-frankenphp.sh — the release age', () => {
 
         expectRefused(result, `release ${LATEST} carries no publication date this script reads`);
         expect(result.downloads).toEqual([]);
+    });
+});
+
+// LUMN-98. Until then only the latest release was read: a young latest held back an older one
+// that was old enough — v1.13.5 holding back v1.13.4 on 2026-11-07. Every release now waits its
+// own delay, and the highest version that has waited it is installed, as npm and Renovate do.
+describe('update-frankenphp.sh — choosing among releases', () => {
+    // A release of `tag`, `age` seconds old, whose binary is its own: installing the wrong one of
+    // two releases cannot pass for installing the right one.
+    const aVersion = (tag, age, overrides = {}) =>
+        aRelease({ tag, age, asset: { bytes: binaryOf(tag) }, ...overrides });
+    const installs = (box, releases, tag, options = {}) => {
+        const result = run(box, { releases, served: binaryOf(tag), ...options });
+        expectInstalled(result, binaryOf(tag));
+        expect(result.downloads.map((call) => call.at(-1))).toEqual([urlOf(tag, ASSET)]);
+        return result;
+    };
+    const holds = (box, releases, options = {}) => {
+        const result = run(box, { releases, ...options });
+        expect(result.status).toBe(0);
+        expect(result.stderr).toBe('');
+        expect(result.downloads).toEqual([]);
+        return result;
+    };
+
+    it('installs the release that is old enough when the latest is not, and names the one that waits', () => {
+        const result = installs(sandbox(), [aVersion('v1.13.1', DAY), aVersion('v1.13.0', 10 * DAY)], 'v1.13.0');
+
+        expect(result.stdout).toContain('Install    v1.13.0');
+        // The date and age shown are those of the release installed, not of the latest.
+        expect(result.stdout).toContain(`Published  ${iso(NOW - 10 * DAY)} (10 days ago)`);
+        expect(result.stdout).toContain(`Held back  v1.13.1 until ${iso(NOW + 2 * DAY)}`);
+        expect(result.stdout).toContain('a release waits 3 days (./.npmrc)');
+        expect(result.stdout).toContain('Updated v1.12.7 → v1.13.0');
+    });
+
+    it('installs the highest of several releases that are old enough', () => {
+        const releases = [aVersion('v1.13.2', DAY), aVersion('v1.13.1', 5 * DAY), aVersion('v1.13.0', 10 * DAY)];
+
+        installs(sandbox(), releases, 'v1.13.1');
+    });
+
+    it('installs nothing when every newer release is too young, and says which comes of age first', () => {
+        const result = holds(sandbox(), [aVersion('v1.13.1', DAY), aVersion('v1.13.0', 2 * DAY)]);
+
+        expect(result.stdout).toContain('FrankenPHP v1.13.1 is held back');
+        expect(result.stdout).toContain(`Held until  ${iso(NOW + 2 * DAY)}`);
+        expect(result.stdout).toContain(`Sooner      v1.13.0, installable from ${iso(NOW + DAY)}`);
+        expectNothingInstalled(result);
+    });
+
+    it('names no sooner release when the latest is the only one waiting', () => {
+        const result = holds(sandbox(), [aVersion('v1.13.0', DAY), aVersion('v1.12.7', 10 * DAY)]);
+
+        expect(result.stdout).toContain('FrankenPHP v1.13.0 is held back');
+        expect(result.stdout).not.toContain('Sooner');
+    });
+
+    it('never goes back to an older release, however old enough it is', () => {
+        // v1.13.1 was installed early, with --min-release-age=0. v1.13.0 is old enough, v1.13.2 is
+        // not: the only upgrade waits, and nothing is installed.
+        const box = sandbox({ current: binaryOf('v1.13.1') });
+        const releases = [aVersion('v1.13.2', DAY), aVersion('v1.13.1', DAY), aVersion('v1.13.0', 10 * DAY)];
+        const result = holds(box, releases);
+
+        expect(result.stdout).toContain('FrankenPHP v1.13.2 is held back');
+        expectNothingInstalled(result, binaryOf('v1.13.1'));
+    });
+
+    it('is up to date when the binary is the highest release, even one installed before its time', () => {
+        const box = sandbox({ current: binaryOf('v1.13.1') });
+        const result = holds(box, [aVersion('v1.13.1', DAY), aVersion('v1.13.0', 10 * DAY)]);
+
+        expect(result.stdout).toContain('FrankenPHP is already up to date (v1.13.1)');
+        expectNothingInstalled(result, binaryOf('v1.13.1'));
+    });
+
+    it('is up to date without reading the date of the release it already runs', () => {
+        // As when only the latest release was read: there is nothing to install, so nothing to date.
+        const box = sandbox({ current: binaryOf('v1.13.1') });
+        const result = holds(box, [aVersion('v1.13.1', DAY, { published_at: null })]);
+
+        expect(result.stdout).toContain('FrankenPHP is already up to date (v1.13.1)');
+        expectNothingInstalled(result, binaryOf('v1.13.1'));
+    });
+
+    it('is up to date when the binary is above every release', () => {
+        const box = sandbox({ current: binaryOf('v2.0.0') });
+        const result = holds(box, [aVersion('v1.13.0', 10 * DAY)]);
+
+        expect(result.stdout).toContain('FrankenPHP is already up to date (v2.0.0)');
+        expectNothingInstalled(result, binaryOf('v2.0.0'));
+    });
+
+    it('compares versions as numbers: v1.13.10 is above v1.13.9', () => {
+        const box = sandbox({ current: binaryOf('v1.13.8') });
+
+        installs(box, [aVersion('v1.13.9', 10 * DAY), aVersion('v1.13.10', 10 * DAY)], 'v1.13.10');
+    });
+
+    it('chooses by number, not by date: a fix of an older line published later is not taken', () => {
+        // v1.12.9 is the most recent publication, listed first, and old enough.
+        installs(sandbox(), [aVersion('v1.12.9', 4 * DAY), aVersion('v1.13.0', 10 * DAY)], 'v1.13.0');
+    });
+
+    it.each([
+        ['a pre-release', { prerelease: true }],
+        ['a draft', { draft: true }],
+    ])('never takes %s, however high and old enough', (_, flag) => {
+        const result = installs(
+            sandbox(),
+            [aVersion('v1.14.0', 10 * DAY, flag), aVersion('v1.13.0', 10 * DAY)],
+            'v1.13.0',
+        );
+
+        expect(result.stdout).not.toContain('v1.14.0');
+    });
+
+    it.each([
+        ['a pre-release flag written as text', { prerelease: 'true' }],
+        ['a draft flag written as text', { draft: 'true' }],
+        ['a pre-release flag of "false" written as text', { prerelease: 'false' }],
+        ['a null pre-release flag', { prerelease: null }],
+        ['no pre-release flag', { prerelease: undefined }],
+        ['no draft flag', { draft: undefined }],
+    ])('never takes a release with %s: a flag that cannot be read as false is not "published"', (_, flags) => {
+        const result = installs(
+            sandbox(),
+            [aVersion('v1.14.0', 10 * DAY, flags), aVersion('v1.13.0', 10 * DAY)],
+            'v1.13.0',
+        );
+
+        expect(result.stdout).not.toContain('v1.14.0');
+    });
+
+    it('reads the latest release past the drafts and pre-releases listed before it', () => {
+        // A draft has no tag of the expected shape: it is not the latest release, and refusing it
+        // as such would block every update until it is published.
+        const draft = aRelease({ tag: 'untagged-4f2a', tag_name: 'untagged-4f2a', draft: true });
+        const preRelease = aRelease({ tag: 'v1.14.0-rc.1', tag_name: 'v1.14.0-rc.1', prerelease: true });
+
+        installs(sandbox(), [draft, preRelease, aVersion('v1.13.0', 10 * DAY)], 'v1.13.0');
+    });
+
+    it.each(['v1.0.0-rc.4', 'v1.13.1-beta.2', 'latest', 'v1.14', 'caddy-v2.11.9', 113, null, undefined])(
+        'ignores an older release tagged %s, as GitHub lists the 2023 candidates without the flag',
+        (tag) => {
+            const odd = aRelease({ tag, tag_name: tag, age: 900 * DAY });
+
+            installs(sandbox(), [aVersion('v1.13.0', 10 * DAY), odd], 'v1.13.0');
+        },
+    );
+
+    it('ignores entries that are not releases', () => {
+        installs(
+            sandbox(),
+            ['v1.14.0', 42, null, [aVersion('v1.14.0', 10 * DAY)], aVersion('v1.13.0', 10 * DAY)],
+            'v1.13.0',
+        );
+    });
+
+    it('never installs a release that cannot be dated, even below one that can', () => {
+        // v1.13.0 has no readable date: it is never old enough, and v1.13.1 is too young.
+        const releases = [aVersion('v1.13.1', DAY), aVersion('v1.13.0', 10 * DAY, { published_at: 'yesterday' })];
+        const result = holds(sandbox(), releases);
+
+        expect(result.stdout).toContain('FrankenPHP v1.13.1 is held back');
+        // Nor is it named as the next to come of age: nobody can say when it would.
+        expect(result.stdout).not.toContain('Sooner');
+        expectNothingInstalled(result);
+    });
+
+    it('installs past an older release that cannot be dated', () => {
+        const releases = [aVersion('v1.13.0', 10 * DAY), aVersion('v1.12.9', 20 * DAY, { published_at: null })];
+
+        installs(sandbox(), releases, 'v1.13.0');
+    });
+
+    it('refuses when the highest release cannot be dated, though a lower one could be installed', () => {
+        // Nobody can say when v1.13.1 becomes installable, which is what this script has to say.
+        const releases = [
+            aVersion('v1.13.1', DAY, { published_at: '2026-02-30T00:00:00Z' }),
+            aVersion('v1.13.0', 10 * DAY),
+        ];
+        const result = run(sandbox(), { releases, served: binaryOf('v1.13.0') });
+
+        expectRefused(result, 'release v1.13.1 carries no publication date this script reads');
+        expect(result.downloads).toEqual([]);
+    });
+
+    it('takes the latest at once when --min-release-age is zero', () => {
+        installs(sandbox(), [aVersion('v1.13.1', 60), aVersion('v1.13.0', 10 * DAY)], 'v1.13.1', {
+            args: ['--force', '--min-release-age=0'],
+        });
+    });
+
+    it('refuses two published releases carrying the tag it chose', () => {
+        const releases = [
+            aVersion('v1.13.0', 10 * DAY),
+            aVersion('v1.13.0', 10 * DAY, { asset: { bytes: OTHER_BINARY } }),
+        ];
+        const result = run(sandbox(), { releases, served: binaryOf('v1.13.0') });
+
+        expectRefused(result, 'GitHub lists 2 published releases tagged v1.13.0, where one was expected.');
+        expect(result.downloads).toEqual([]);
+    });
+
+    it('verifies the address of the release it chose, not of the latest', () => {
+        // The older release points its binary at the younger one's: a download nobody waited for.
+        const chosen = aVersion('v1.13.0', 10 * DAY, { asset: { tag: 'v1.13.1', bytes: binaryOf('v1.13.1') } });
+        const result = run(sandbox(), { releases: [aVersion('v1.13.1', DAY), chosen], served: binaryOf('v1.13.1') });
+
+        expectRefused(result, `release v1.13.0 does not serve ${ASSET} from where it is expected.`);
+        expect(result.stderr).toContain(`expected:  ${urlOf('v1.13.0', ASSET)}`);
+        expect(result.downloads).toEqual([]);
+    });
+
+    it('verifies the download against the digest of the release it chose', () => {
+        // Served: the binary of the latest release, whose digest the chosen one does not carry.
+        const result = run(sandbox(), {
+            releases: [aVersion('v1.13.1', DAY), aVersion('v1.13.0', 10 * DAY)],
+            served: binaryOf('v1.13.1'),
+        });
+
+        expectRefused(result, `the downloaded file is not the ${ASSET} that release v1.13.0 publishes.`);
+        expect(result.stderr).toContain(`expected SHA-256: ${sha256(binaryOf('v1.13.0'))}`);
     });
 });
 
@@ -806,10 +1041,11 @@ describe('update-frankenphp.sh — what it shows', () => {
     it('says what it is about to install, and what it did', () => {
         const { stdout } = run(sandbox());
 
-        expect(stdout).toContain('Checking latest FrankenPHP release…');
+        expect(stdout).toContain('Checking FrankenPHP releases…');
         expect(stdout).toContain('FrankenPHP update available');
         expect(stdout).toContain('Current    v1.12.7');
-        expect(stdout).toContain('Latest     v1.13.0');
+        expect(stdout).toContain('Install    v1.13.0');
+        expect(stdout).not.toContain('Held back');
         expect(stdout).toContain(`Published  ${iso(NOW - 10 * DAY)} (10 days ago)`);
         expect(stdout).toContain(`Binary     ${ASSET}`);
         expect(stdout).toContain('Downloading v1.13.0…');
