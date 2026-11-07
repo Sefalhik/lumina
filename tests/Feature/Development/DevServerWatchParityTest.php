@@ -22,7 +22,7 @@ use Tests\TestCase;
  * What it does not prove: that FrankenPHP restarts the workers. CI has no FrankenPHP binary — it
  * serves development only — so that proof is manual, recorded on LUMN-88.
  *
- * @see CLAUDE.md#commands
+ * @see docs/architecture.md#the-development-server
  */
 class DevServerWatchParityTest extends TestCase
 {

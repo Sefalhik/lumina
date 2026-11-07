@@ -2,7 +2,8 @@
 
 The rules of the architecture — islands, named routes, the service layer — are in
 [CLAUDE.md](../CLAUDE.md#architecture), because every task needs them. This document holds what is
-looked up rather than known: the map of the repository, and the reasoning behind one routing rule.
+looked up rather than known: the map of the repository, the reasoning behind one routing rule, and
+how the development server runs.
 
 ## Key directories
 
@@ -70,3 +71,23 @@ and the URL default. Without it, every controller taking a route-model-bound par
 Safe because nothing reads the parameter afterwards: URL generation goes through
 `URL::defaults(['lang' => …])`, and `LocalizedUrlService` always passes an explicit `lang` when
 building alternates.
+
+## The development server
+
+**`npm start` serves the site the way `.env` describes it** — HTTPS, the real host, a session cookie
+bound to `dev.cardascia-it.org` — through the repository's `Caddyfile` and Octane's worker
+(configuration in `config/octane.php`). The workers keep the application booted, so the `Caddyfile`
+restarts them when the code changes: its `watch` directives, FrankenPHP's own watcher, logged as
+`filesystem changes detected`. They repeat the `watch` list of `config/octane.php`, which
+`octane:start --watch` feeds to the same watcher; `DevServerWatchParityTest` fails when the two
+differ.
+
+`php artisan octane:start` serves plain HTTP on `127.0.0.1`, where a browser refuses a cookie bound
+to another domain, and shows the restarts only with `--log-level=info`. Octane's Node watcher, the
+one that needs `chokidar`, only serves Swoole and RoadRunner: `chokidar` is not a dependency of this
+project (LUMN-88).
+
+Worker mode keeps the application booted between requests: state kept in a static property or a
+singleton outlives the request that set it. Production does not run Octane — Apache serves PHP over
+FastCGI ([Deployment](deployment.md)) — so a bug of that kind shows in development only, and is
+still a bug.
