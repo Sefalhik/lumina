@@ -60,8 +60,18 @@ function isToleratedEvalProbe(violation) {
 }
 
 async function violationsOn(page, url) {
+    // The fonts are served by the site (LUMN-102): a request to Google's font hosts would send the
+    // visitor's address there. Checked on the network, since a Report-Only policy lets it through.
+    const googleFontRequests = [];
+    page.on('request', (request) => {
+        if (/^fonts\.(googleapis|gstatic)\.com$/.test(new URL(request.url()).hostname)) {
+            googleFontRequests.push(request.url());
+        }
+    });
+
     const response = await page.goto(url);
     await page.waitForLoadState('networkidle');
+    expect(googleFontRequests, 'a page loads a font from Google').toEqual([]);
 
     // The check is only meaningful while the policy is actually sent.
     expect(response.headers()['content-security-policy-report-only']).toContain("'nonce-");

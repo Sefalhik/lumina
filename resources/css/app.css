@@ -1,4 +1,12 @@
 @import "tailwindcss";
+
+/* The site's fonts, served by the site itself (LUMN-102) — never from Google Fonts, which would send
+   every visitor's address to Google. Imported here because every layout loads this file, the
+   authentication one included, which loads no JavaScript. See docs/architecture.md#fonts. */
+@import "@fontsource-variable/orbitron";
+@import "@fontsource-variable/cinzel";
+@import "@fontsource/share-tech-mono";
+@import "@fontsource/vt323";
 @plugin "daisyui";
 
 @source "../views/**/*.blade.php";

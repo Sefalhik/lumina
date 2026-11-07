@@ -188,12 +188,18 @@ final class SecurityHeaders
             throw new InvalidArgumentException('The development server must be given as an http(s) origin.');
         }
 
-        // Vite serves the scripts and styles, and pushes reloads over a WebSocket on the same origin.
+        // Vite serves the scripts, the styles and the font files they import, and pushes reloads over
+        // a WebSocket on the same origin.
         $socket = ($origin[1] === 'https' ? 'wss' : 'ws').substr($url, strlen($origin[1]));
 
         // A directive the policy leaves out falls back to default-src: it is created from it, or the
         // development server would become the only source allowed, and 'self' would be lost.
-        $additions = ['script-src' => [$url], 'style-src' => [$url], 'connect-src' => [$url, $socket]];
+        $additions = [
+            'script-src' => [$url],
+            'style-src' => [$url],
+            'font-src' => [$url],
+            'connect-src' => [$url, $socket],
+        ];
         foreach ($additions as $directive => $sources) {
             $policy[$directive] = [...($policy[$directive] ?? $policy['default-src'] ?? []), ...$sources];
         }

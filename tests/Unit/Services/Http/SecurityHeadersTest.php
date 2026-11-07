@@ -152,6 +152,8 @@ class SecurityHeadersTest extends TestCase
             $policy,
         );
         $this->assertStringContainsString("style-src 'self' https://dev.cardascia-it.org:5173 'nonce-r4nd0mN0nce';", $policy);
+        // In development, Vite serves the font files too — the Fontsource packages (LUMN-102).
+        $this->assertStringContainsString("font-src 'self' https://dev.cardascia-it.org:5173", $policy);
         $this->assertStringContainsString(
             "connect-src 'self' https://dev.cardascia-it.org:5173 wss://dev.cardascia-it.org:5173;",
             $policy,
@@ -169,6 +171,7 @@ class SecurityHeadersTest extends TestCase
             "default-src 'self'; "
             ."script-src 'self' https://dev.cardascia-it.org:5173 'nonce-r4nd0mN0nce'; "
             ."style-src 'self' https://dev.cardascia-it.org:5173 'nonce-r4nd0mN0nce'; "
+            ."font-src 'self' https://dev.cardascia-it.org:5173; "
             ."connect-src 'self' https://dev.cardascia-it.org:5173 wss://dev.cardascia-it.org:5173",
             $policy,
         );
