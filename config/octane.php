@@ -181,6 +181,9 @@ return [
     | the --watch option offered by Octane. If any of the directories and
     | files are changed, Octane will automatically reload your workers.
     |
+    | The Caddyfile of `npm start` repeats this list in its `watch` directives:
+    | DevServerWatchParityTest fails when the two differ.
+    |
     */
 
     'watch' => [
