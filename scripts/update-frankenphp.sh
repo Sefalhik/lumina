@@ -307,7 +307,13 @@ echo ""
 
 if [[ "$FORCE" -eq 0 ]]; then
   printf "  Proceed? ${DIM}[y/N]${RESET} "
-  read -r CONFIRM
+  # At the end of the input, `read` fails — under `set -e` the script used to stop right here,
+  # exit 1, without a word. It fails too on a line that never ends, whatever it holds: an answer
+  # nobody finished typing is not a confirmation.
+  if ! read -r CONFIRM; then
+    printf "\n  Aborted: no answer.\n\n"
+    exit 0
+  fi
   case "$CONFIRM" in
     [yY]|[yY][eE][sS]) echo "" ;;
     *) printf "  Aborted.\n\n"; exit 0 ;;

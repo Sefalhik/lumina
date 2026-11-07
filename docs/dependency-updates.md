@@ -349,6 +349,9 @@ replaced only once all three have passed:
 
 `--force` skips the confirmation prompt and nothing else. An argument the script does not know is
 refused: ignoring a mistyped `--min-release-age` would install the release it was meant to hold.
+Without `--force`, no answer is a refusal too: at the end of the input, or on a line that never
+ends — `printf y` piped in — the script says `Aborted: no answer.` and exits 0, as after `n`. Until
+2026-11-07 it stopped on `read` itself, under `set -e`: exit 1, and not a word.
 
 ### What each check is worth
 

@@ -938,9 +938,18 @@ describe('update-frankenphp.sh — the confirmation', () => {
         expectNothingInstalled(result);
     });
 
-    it('installs nothing when nobody is there to answer', () => {
-        const result = run(sandbox(), { args: [], input: '' });
+    it.each([
+        ['nobody is there to answer', ''],
+        // `read` fails at the end of the input even when it read something: a line that never ends
+        // is not a confirmation.
+        ['the answer never ends its line', 'y'],
+    ])('installs nothing, and says so, when %s', (_, input) => {
+        // It used to stop on `read` itself, under `set -e`: exit 1, and not a word.
+        const result = run(sandbox(), { args: [], input });
 
+        expect(result.status).toBe(0);
+        expect(result.stderr).toBe('');
+        expect(result.stdout).toContain('Aborted: no answer.');
         expect(result.downloads).toEqual([]);
         expectNothingInstalled(result);
     });
