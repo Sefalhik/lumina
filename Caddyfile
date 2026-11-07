@@ -23,6 +23,20 @@ https://dev.cardascia-it.org:443 {
 		worker {
 			file public/frankenphp-worker.php
 			num 4
+
+			# Restart the workers when the code changes: they keep the application booted between
+			# requests. The same list as `watch` in config/octane.php, which `octane:start --watch`
+			# reads — DevServerWatchParityTest fails when they differ. Never a bare `watch`: its
+			# default pattern covers storage/framework/views, rewritten by Blade on every compile.
+			watch app
+			watch bootstrap
+			watch config/**/*.php
+			watch database/**/*.php
+			watch public/**/*.php
+			watch resources/**/*.php
+			watch routes
+			watch composer.lock
+			watch .env
 		}
 	}
 }

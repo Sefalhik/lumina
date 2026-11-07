@@ -45,7 +45,8 @@ The same test checks every link and anchor.
 ## Commands
 
 ```bash
-php artisan octane:start        # Dev server via FrankenPHP (worker mode) — preferred
+npm start                       # Dev server: FrankenPHP (worker mode) on https://dev.cardascia-it.org + Vite — preferred
+php artisan octane:start        # Variant: Octane's own Caddyfile, plain HTTP on 127.0.0.1:8000 — see below
 php artisan migrate             # Run migrations — requires explicit confirmation first
 composer analyse                # PHPStan: app/ (level 8) then tests/ (level 5)
 php artisan test                # Full PHPUnit suite (no coverage)
@@ -59,6 +60,16 @@ npm run format                  # Prettier — SCSS, Vue, JS
 npm run dev                     # Vite HMR dev server
 npm run build                   # Production asset build
 ```
+
+**`npm start` serves the site the way `.env` describes it** — HTTPS, the real host, a session cookie
+bound to `dev.cardascia-it.org` — through the repository's `Caddyfile` and Octane's worker. The
+workers keep the application booted, so the `Caddyfile` restarts them when the code changes: its
+`watch` directives, FrankenPHP's own watcher, logged as `filesystem changes detected`. They repeat the
+`watch` list of `config/octane.php`, which `octane:start --watch` feeds to the same watcher;
+`DevServerWatchParityTest` fails when the two differ. `octane:start` serves plain HTTP on
+`127.0.0.1`, where a browser refuses a cookie bound to another domain, and shows the restarts only with
+`--log-level=info`. Octane's Node watcher, the one that needs `chokidar`, only serves Swoole and
+RoadRunner: `chokidar` is not a dependency of this project (LUMN-88).
 
 The rarer commands live with their domain: translation in [i18n](docs/i18n.md), `cms:export-seed`
 in [Homepage content](docs/homepage-content.md), `deploy:smoke` in [Smoke tests](docs/smoke-tests.md),
