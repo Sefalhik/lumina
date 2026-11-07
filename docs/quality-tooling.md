@@ -142,8 +142,8 @@ from the Actions tab, or with `gh workflow run ci.yml --ref <branch>`.
 | Job | Steps |
 |-----|-------|
 | `PHP — PHPStan + PHPUnit` | setup-php 8.5 (pcov) → composer install → key:generate → PHPStan app (level 8) → PHPStan tests (level 5) → `composer test:coverage` (80% threshold enforced) |
-| `JS — ESLint + Stylelint + Vitest` | Node 24 → npm ci → ESLint → Stylelint → Vitest |
-| `E2E — Playwright` | setup-php 8.5 + Node 24 → composer + npm install → `npm run build` → Playwright Chromium → key:generate → `npm run test:e2e` |
+| `JS — ESLint + Stylelint + Vitest` | Node from `.nvmrc` → npm ci → ESLint → Stylelint → Vitest |
+| `E2E — Playwright` | setup-php 8.5 + Node from `.nvmrc` → composer + npm install → `npm run build` → Playwright Chromium → key:generate → `npm run test:e2e` |
 | `Security — Dependency review` | pull requests only → fails when the PR introduces a package with a known vulnerability, severity high or worse |
 
 **PostgreSQL** : each PHP-dependent job spins up its own `postgres:16` service. The PHP job uses `cardascia_it_test`; the E2E job uses `cardascia_it_e2e`. The workflow sets `DB_PORT: 5432` which overrides the phpunit.xml default (5433).

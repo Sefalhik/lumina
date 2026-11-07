@@ -106,15 +106,30 @@
             separateMultipleMajor: false,
         },
         {
-            // Renovate would move the CI alone to Node 26 or PostgreSQL 19, while the developer
-            // machine and alwaysdata stay behind: CI would then test a runtime production does not
-            // run. A runtime major is a coordinated change across every environment, with its own
-            // ticket — see LUMN-55 for PostgreSQL. Patches, minors and image digests still flow.
-            description: 'Runtime majors in CI are coordinated changes, never a Renovate PR.',
+            // Renovate would move the CI alone to PostgreSQL 19, while the developer machine and
+            // alwaysdata stay behind: CI would then test a runtime production does not run.
+            // PostgreSQL has no LTS to wait for — each major is supported five years — and the
+            // version this project runs is the one of the latest Ubuntu LTS (LUMN-55): a decision,
+            // never a Renovate PR. Patches, minors and image digests still flow.
+            description: 'PostgreSQL majors in CI are coordinated changes, never a Renovate PR.',
             matchManagers: ['github-actions'],
-            matchDepNames: ['node', 'postgres'],
+            matchDepNames: ['postgres'],
             matchUpdateTypes: ['major'],
             enabled: false,
+        },
+        {
+            // The Node version is written once, in .nvmrc: every setup-node step reads it with
+            // node-version-file, nvm reads it on the developer machine. Its majors are proposed
+            // once they reach LTS, and only then: Renovate's node versioning treats a major as
+            // unstable until its line is LTS, and ignoreUnstable keeps it out (LUMN-97). It is
+            // still a coordinated change — alwaysdata's panel, where `npm ci` and `npm run build`
+            // run on every deployment, follows by hand under a ticket. Hence approval, stated here
+            // even though the rule for every major already asks for it.
+            description: 'Node majors: on the Dependency Dashboard once they are LTS, held for approval.',
+            matchManagers: ['nvm'],
+            matchDepNames: ['node'],
+            matchUpdateTypes: ['major'],
+            dependencyDashboardApproval: true,
         },
         {
             // composer.json's "php" constraint is the runtime, not a library. ^8.5 already admits

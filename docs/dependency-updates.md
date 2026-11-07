@@ -17,7 +17,8 @@ only, no bypass.
 | Composer minor + patch | one grouped PR per week |
 | Any major of a library | held until approved from the **Dependency Dashboard** issue |
 | GitHub Actions | one grouped PR for every update, **majors included**, no approval — see [GitHub Actions are routine](#github-actions-are-routine-majors-included) |
-| **Node and PostgreSQL majors in CI** | **disabled** — see [Runtime majors](#runtime-majors) |
+| **Node majors** | **once LTS**, held until approved from the dashboard — read from `.nvmrc`, see [Node: the next LTS, never a release before it](#node-the-next-lts-never-a-release-before-it) |
+| **PostgreSQL majors in CI** | **disabled** — see [Runtime majors](#runtime-majors) |
 | **`"php"` constraint of `composer.json`** | **disabled** — same reason |
 | GitHub Actions, CI Docker images | pinned to a SHA / digest, digests kept current |
 | Lockfiles | refreshed weekly |
@@ -146,14 +147,47 @@ npm 12.
 
 ### Runtime majors
 
-Renovate can only change the version written in `ci.yml`. Accepting "Node 26" or
-"postgres 19" would move CI alone while the developer machine and alwaysdata stay behind — CI would
-then test a runtime production does not run. A runtime major is a coordinated change across every
-environment, with its own ticket (LUMN-55 for PostgreSQL 18). Patches and image digests still flow.
+Renovate can only change the version written in the repository. Accepting "postgres 19" would
+move CI alone while the developer machine and alwaysdata stay behind — CI would then test a runtime
+production does not run. A runtime major is a coordinated change across every environment, with its
+own ticket (LUMN-55 for PostgreSQL 18). Patches and image digests still flow.
+
+PostgreSQL majors stay disabled: PostgreSQL has no LTS — each major is supported five years — and
+the version this project runs is the one of the latest Ubuntu LTS, a rule Renovate cannot express.
 
 The `"php"` constraint is disabled for the same reason. `^8.5` already admits 8.6, so nothing would
 be proposed today — but only as a side effect of the range strategy, which is not a guarantee.
 Renovate does not read `setup-php`'s `php-version` at all.
+
+### Node: the next LTS, never a release before it
+
+Node is the exception, since LUMN-97: its majors are **proposed once they reach LTS**, and held for
+approval on the dashboard like any other major.
+
+**The version is written once, in `.nvmrc`** — a bare major, `24`, so that its patches flow. Every
+`actions/setup-node` step reads it with `node-version-file`, nvm reads it on the developer machine,
+and Renovate tracks it with its `nvm` manager. `scripts/__tests__/node-version.test.js` fails when a
+workflow writes a version of its own, or when the alwaysdata row of `docs/deployment.md` names a
+number instead of pointing to the file. That row is the one copy left: the panel is set by hand.
+
+**Why only LTS lines are proposed.** Renovate's `node` versioning treats a major as unstable until
+its line reaches LTS, and `ignoreUnstable` — on by default — keeps unstable releases out. Measured
+on 2026-11-07 with `.nvmrc` set to `24`: `nodejs/node` listed v25.0.0, v26.0.0 and
+v27.0.0-alpha.0.0.0; the dry run proposed `major:26` alone, on `renovate/node-26.x`. Set to `26`,
+it proposed nothing. Node 25 never reached LTS; 27 is the first major of the yearly schedule, and
+will be proposed when it does.
+
+**Still a coordinated change.** The pull request changes `.nvmrc`, which moves CI and the
+developer machine at once — but not alwaysdata, where `npm ci` and `npm run build` run on every
+deployment with the version the panel selects. Approving the update means a ticket that moves the
+panel, deploys, and checks the build there.
+
+**Where it stands, 2026-11-07: Node 24, with 26 waiting on the dashboard.** Node 26 is LTS since
+2026-10-28, but alwaysdata's panel offers Node 24 alone — as it already did on 2026-11-05. Moving
+CI and the developer machine ahead of it would test a runtime the preproduction does not run, the
+very thing this section forbids. `.nvmrc` therefore stays at `24`, and Renovate proposes
+`renovate/node-26.x` for approval: approve it the day the panel offers 26, under LUMN-99, which
+moves the panel first.
 
 ### `:pinDevDependencies` is ignored
 
@@ -189,8 +223,9 @@ see [The pipeline's access to the server](deployment.md#the-pipelines-access-to-
 it keeps this rule true as a consequence. **Narrow the rule the day a deployment workflow needs an
 action** (LUMN-51 to 54).
 
-The rule matches `depType: action`, which leaves out the `postgres` service image and the Node
-version: see [Runtime majors](#runtime-majors).
+The rule matches `depType: action`, which leaves out the `postgres` service image: see
+[Runtime majors](#runtime-majors). The Node version is no longer in the workflows at all — see
+[Node: the next LTS, never a release before it](#node-the-next-lts-never-a-release-before-it).
 
 ### No auto-merge
 
