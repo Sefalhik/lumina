@@ -410,6 +410,43 @@ version, and — when an older one between the two comes of age first — that o
 The origin and checksum checks apply to the release chosen, unchanged: its download address must be
 its own, and the file must carry its digest — not the latest release's.
 
+### A second way in: `octane:start`
+
+**`php artisan octane:start` can replace `./frankenphp` on its own, past every check above.**
+Before starting, Octane reads the binary's version (`frankenphp build-info`) and compares it with
+the minimum it requires — `$requiredFrankenPhpVersion` in
+`vendor/laravel/octane/src/Commands/Concerns/InstallsFrankenPhpDependencies.php`. Below it, Octane
+asks *"Should Octane download the latest FrankenPHP binary version for your operating system?"*,
+with **yes as the default**. Started without a terminal — in the background, from a script, by an
+agent — nobody answers, and the default is taken.
+
+Measured on 2026-11-07: Octane required 1.13.2, the machine ran 1.13.0, and an `octane:start` run
+in the background replaced it with 1.13.5. Against the script, that download:
+
+| | `npm run update:frankenphp` | `octane:start` |
+|---|---|---|
+| Release | the highest one old enough | the latest, two days old that day |
+| Asset | `frankenphp-linux-x86_64` | `frankenphp-linux-x86_64-gnu`, wherever glibc answers |
+| Origin, checksum | verified | neither |
+| The binary it replaces | left in place on any refusal | renamed `.backup`, deleted once the download succeeds |
+| `cap_net_bind_service` | restored | lost |
+
+The last line is what shows first: `npm start` then fails on
+`listen tcp :443: bind: permission denied`. The capability is attached to the file, and **any**
+replacement of the binary other than the script's loses it — a copy by hand included. Restore it
+with `sudo setcap cap_net_bind_service=+ep ./frankenphp`.
+
+**Before `octane:start`, compare the two versions**, and run `npm run update:frankenphp` first if
+the binary is below the minimum:
+
+```bash
+./frankenphp version
+grep requiredFrankenPhpVersion vendor/laravel/octane/src/Commands/Concerns/InstallsFrankenPhpDependencies.php
+```
+
+`npm start`, the reference command, runs `./frankenphp` directly and never asks Octane for a
+download.
+
 ### How it is tested
 
 `scripts/__tests__/update-frankenphp.test.js` runs the real script in a temporary directory, with
