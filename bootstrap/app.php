@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AddReleaseHeader;
 use App\Http\Middleware\EnsureTwoFactorVerified;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -64,6 +65,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Every response names the release that produced it, for the smoke test (LUMN-49).
         $middleware->append(AddReleaseHeader::class);
+
+        // Security headers on every response (LUMN-37). Prepended: the outermost middleware sees
+        // the response of every other one, including a maintenance page or a request refused by
+        // a global middleware before it reaches the router.
+        $middleware->prepend(SecurityHeaders::class);
 
         $middleware->alias([
             'locale' => SetLocale::class,

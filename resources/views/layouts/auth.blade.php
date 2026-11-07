@@ -6,7 +6,7 @@
     <title>@yield('title', '// Secure Access') | cardascia-it</title>
 
     {{-- Anti-FOUC: restore theme before first paint --}}
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (function () {
             const saved = localStorage.getItem('theme');
             const valid = ['sprawl', 'steampunk', 'neon-noir'];
@@ -20,6 +20,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
 
+    {{-- Vite reads the CSP nonce from here for what it injects itself: styles in development,
+         preloaded chunks in a build (LUMN-37). --}}
+    <meta property="csp-nonce" nonce="{{ Vite::cspNonce() }}">
     @vite(['resources/css/app.css', 'resources/css/scss/main.scss'])
 </head>
 <body class="min-h-screen bg-base-100 text-base-content font-mono flex items-center justify-center p-4">

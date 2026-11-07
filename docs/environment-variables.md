@@ -3,7 +3,7 @@
 `.env.example` declares **which** variables exist. This file says what each one means and, for the
 ones a server needs, **where its value comes from** — never the value itself.
 
-51 variables, grouped by where the value originates rather than by the feature that reads them.
+55 variables, grouped by where the value originates rather than by the feature that reads them.
 That grouping is the useful one in practice: "what do I have to put in this file, and who gives it
 to me" is the question being asked, and it is also what makes the last table — the variables that
 must **never** exist on a server — a group rather than a footnote.
@@ -26,6 +26,7 @@ the same in every environment that serves a browser.
 | `LOG_LEVEL` | `warning` | `debug` on a public site writes a lot, and writes things worth not writing |
 | `SESSION_DOMAIN` | the site's hostname | A mismatch here is a silent "login does nothing" |
 | `SESSION_SECURE_COOKIE` | `true` | The host sets `HTTPS=on` itself; no trusted proxy is needed — see [Traps](deployment.md#traps-this-file-exists-because-of) |
+| `SITE_INDEXABLE` | absent, or `false` | Whether search engines may index the site: `false` sends `X-Robots-Tag: noindex, nofollow` on every response. **Absent or misspelt reads as `false`**, so preprod needs nothing. Production goes live without it too, and gets `true` the day its content deserves an index — one line, no deployment of code. Never deduced from `APP_ENV`. See [SEO conventions](seo-conventions.md#indexing-is-decided-by-one-variable) |
 
 > ⚠️ **`APP_ENV` must be `production` on every internet-facing host, preprod included.**
 > `routes/e2e.php` defines `GET /e2e/admin-auth`, which creates an admin account, sets
