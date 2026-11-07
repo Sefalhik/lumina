@@ -18,13 +18,67 @@ value *comes from*, so that a new environment can be rebuilt without hunting.
 | prod (current) | `cardascia-it.org` | one.com answers `308` to `cardascia-it.alwaysdata.net`, the hosting account's default address, where the previous site is served | Stays online and untouched |
 | prod (target) | `cardascia-it.org` | alwaysdata, Apache | Not yet — see [Not done yet](#not-done-yet) |
 
-The old site stays reachable while the new one is built at a temporary address. No
-cutover happens until the editorial content is ready.
+The old site stays reachable while the new one is built at a temporary address. The cutover
+does not wait for the editorial content: the site goes live with its homepage alone, **out of
+search engines' index**, and is opened to indexing by one line of the production `.env` once its
+content deserves it (decision of 2026-11-07, LUMN-96) — see
+[Indexing is decided by one variable](seo-conventions.md#indexing-is-decided-by-one-variable).
 
 Measured on 2026-10-10: `cardascia-it.org` does not *serve* the old site, it redirects to it, and
 a deep link loses its path on the way — `/fr/cv` lands on the root of the other address. This table
 said "one.com, previous technology" until then. It is the starting point of LUMN-35, not something
 to repair on the old site.
+
+---
+
+## The domain and its mail
+
+`cardascia-it.org` is registered at one.com (reseller of Ascio Technologies) until **2027-02-26**,
+and its nameservers are still one.com's. Its **mail lives at alwaysdata** since 2026-11-07
+(LUMN-95): the site and the mail at one provider, simpler to hold — and an outage or a suspension
+of the account takes both at once, which is accepted.
+
+| Mailbox | Notes |
+|---|---|
+| `contact@cardascia-it.org` | The site's public address, and `MAIL_FROM_ADDRESS` |
+| one personal mailbox | Not named here: this repository is public |
+
+Both were imported from one.com by IMAP (*Emails → Addresses → Modify*, server `imap.one.com:993`).
+The catch-all one.com delivered to `noreply@` was **not** recreated: the application sends no mail
+(`MAIL_MAILER=log`), and a catch-all mostly collects spam. No mail reached one.com after the MX
+moved — checked by hand once the old MX's two-hour TTL had run out.
+
+**The records the zone carries** — in one.com's zone today, and to be carried into alwaysdata's
+**before** the nameservers move (LUMN-96), checked with `dig` against the new servers:
+
+| Type | Name | Value |
+|---|---|---|
+| `MX` | `@` | `10 mx1.alwaysdata.com`, `20 mx2.alwaysdata.com` |
+| `TXT` | `@` | `v=spf1 include:_spf.alwaysdata.com ~all` |
+| `TXT` | `alwaysdata._domainkey` | `v=DKIM1; k=rsa; p=…` — the key from the alwaysdata panel |
+| `TXT` | `_dmarc` | `v=DMARC1; p=none; rua=mailto:<an address outside the domain>` |
+
+A message sent from `contact@` passed SPF, DKIM and DMARC at Gmail on 2026-11-07. Three traps met
+on the way:
+
+- **The DKIM key is not published as the panel shows it.** The panel gives a PEM block; the record
+  wants its base64 alone, after `v=DKIM1; k=rsa; p=`, under the name `<selector>._domainkey`. The
+  selector is `alwaysdata` — it is the `s=` of the `DKIM-Signature` header on a sent message.
+- **one.com's two nameservers disagreed for seven and a half minutes** after a change, while
+  announcing the same SOA serial: the zone's refresh time says nothing about how long that lasts.
+  Query both before concluding.
+- **The webmail (Roundcube) writes the sender's own IP address** into every message it sends. A mail
+  client sending through alwaysdata's SMTP does not.
+
+**Two rules that outlive the move:**
+
+- **Every account's contact address lives outside the domain** — alwaysdata, one.com, the domain's
+  registrant. An address on `cardascia-it.org` cannot receive the warning that the domain or the
+  account is about to be lost. They were moved on 2026-11-07; alwaysdata's invoices used to arrive
+  on the domain it hosts.
+- **The domain is transferred before one.com is cancelled.** At one.com the domain is part of the
+  package: ending the package ends the registration. The transfer takes six to eight days and must
+  land before 2027-02-26; it moves the nameservers too, so it follows LUMN-96 or is part of it.
 
 ---
 
@@ -1203,9 +1257,11 @@ before adding one. Re-measure the table above as well: it changes the day a page
 
 - **No deployment on merge.** The pipeline can release a commit and undo it on request (LUMN-50,
   LUMN-51), but someone still has to ask. Deploying every merge is LUMN-53.
-- **Nameserver delegation to alwaysdata** is not done; `cardascia-it.org` still resolves
-  through one.com, which redirects to the previous site, untouched. It depends on settling the
-  `contact@cardascia-it.org` mailbox first.
+- **Nameserver delegation to alwaysdata** is not done (LUMN-96); `cardascia-it.org` still
+  resolves through one.com, which redirects to the previous site, untouched. It no longer waits for
+  the mail, which moved first — see [The domain and its mail](#the-domain-and-its-mail).
+- **DMARC only observes** (`p=none`). Moving to `quarantine` is a decision to take once the
+  aggregate reports show nothing but alwaysdata sending for the domain.
 - **No backup of the preprod database.**
 - **Nothing distinguishes preprod from production in the logs**, since both run
   `APP_ENV=production` deliberately. A dedicated variable is needed. (LUMN-40)
