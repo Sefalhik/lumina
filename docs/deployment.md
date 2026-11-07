@@ -331,7 +331,7 @@ The fix is not a wrapper script or absolute paths. It is **Admin → Environment
 | Setting | Value | Why |
 |---|---|---|
 | PHP | **8.5** | Pick the *major*, not `8.5.10` — the panel then tracks the latest minor, so security fixes land without action |
-| Node.js | **24** | Same. `package.json` declares `"node": ">=24"` |
+| Node.js | the major written in `.nvmrc` | Same. `.nvmrc` is the one place the project writes its Node version: CI and nvm read it, Renovate proposes its next LTS — [Node: the next LTS, never a release before it](dependency-updates.md#node-the-next-lts-never-a-release-before-it). This panel is the one copy that cannot read it: set it by hand when `.nvmrc` changes. `package.json` declares `"node": ">=24"`, a floor, not the version run |
 | Python, Ruby, Elixir, Java, Deno, .NET | **leave alone** | Nothing in this project executes them. Changing a runtime nothing uses is risk without benefit |
 | Custom `php.ini` | **leave empty** (besides what the panel put there) | See below |
 
