@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\SiteIdentity;
 use App\Services\AnthropicTranslator;
+use App\Services\Http\SecurityHeaders;
 use App\Services\LocaleResolver;
 use App\Services\Seo\LocalizedUrlService;
 use App\Services\SiteIdentityService;
@@ -12,6 +13,7 @@ use App\Services\Smoke\Site\StreamCertificateInspector;
 use App\Services\TranslationCache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View as ViewFacade;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\View;
 use Laravel\Telescope\Telescope;
@@ -57,6 +59,15 @@ class AppServiceProvider extends ServiceProvider
             indexableLocales: config('i18n.indexable_locales', ['fr']),
             supportedLocales: config('i18n.supported_locales', ['fr']),
             publicRoutes: config('seo.public_routes', []),
+        ));
+
+        // Glue only: every decision — types, the development server — is made and unit-tested in
+        // SecurityHeaders::fromConfiguration(). This reads the raw values and the hot file.
+        $this->app->bind(SecurityHeaders::class, fn () => SecurityHeaders::fromConfiguration(
+            indexable: config('seo.indexable'),
+            configuration: config('security-headers'),
+            developerMachine: $this->app->environment('local'),
+            hotFile: Vite::isRunningHot() ? (string) file_get_contents(Vite::hotFile()) : null,
         ));
     }
 

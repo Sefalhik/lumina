@@ -17,6 +17,7 @@ looked up rather than known: the map of the repository, and the reasoning behind
 | `app/Http/Requests/Auth/` | `LoginRequest`, `TwoFactorCodeRequest` — validation isolated from controllers |
 | `app/Http/Middleware/SetLocale.php` | Sets `App::setLocale()` from `{lang}` route param |
 | `app/Http/Middleware/EnsureTwoFactorVerified.php` | 2FA gate — three-state redirect logic |
+| `app/Http/Middleware/SecurityHeaders.php` | Sets the security headers on **every** response, error pages, `/up` and the API included — first of the global middleware. Draws the CSP nonce before the view renders (LUMN-37) |
 | `app/Services/` | Business logic — unit-tested, no HTTP dependency |
 | `app/Services/Auth/LoginService.php` | Post-login redirect resolution (role-based) |
 | `app/Services/Auth/TwoFactorService.php` | Secret generation, QR SVG, TOTP verify, DB confirm — and a code accepted once: `claim()` records its step in one conditional `UPDATE` (LUMN-91) |
@@ -27,6 +28,7 @@ looked up rather than known: the map of the repository, and the reasoning behind
 | `app/Services/AnthropicTranslator.php` | Anthropic API call + JSON flatten/unflatten helpers — shared by both translation commands |
 | `app/Services/TranslationCache.php` | File-checksum + per-key TTL cache for i18n and CMS translations |
 | `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
+| `app/Services/Http/SecurityHeaders.php` | Decides the security headers from the configuration and two facts of the request — HTTPS or not, the nonce. Refuses any value that would add a directive to a header (LUMN-37) |
 | `app/Services/Smoke/` | `deploy:smoke` — probes a deployed environment from the outside; see `docs/smoke-tests.md` |
 | `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
 | `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
@@ -36,6 +38,7 @@ looked up rather than known: the map of the repository, and the reasoning behind
 | `app/Http/Controllers/Public/CvController.php` | Public CV page — queries, delegates shaping to `CvService` |
 | `app/Http/Controllers/Admin/ExperienceController.php` | CV timeline CRUD — validates, delegates to `ExperienceService`, persists |
 | `resources/views/` | Blade templates |
+| `resources/views/errors/minimal.blade.php` | Laravel's own error layout, copied **only** to stamp the CSP nonce on its two inline styles — compare it with the vendor original after a Laravel upgrade (LUMN-37) |
 | `resources/js/` | Vue island components + utilities |
 | `resources/js/utils/` | Pure JS utility modules (unit-tested) |
 | `resources/js/i18n/` | vue-i18n locale files — one JSON per locale (24 EU languages) |
@@ -43,7 +46,8 @@ looked up rather than known: the map of the repository, and the reasoning behind
 | `resources/css/scss/` | Hand-written SCSS — themes and the `_effects.scss` glow/glitch layer |
 | `config/geo.php` | Geo API proxy configuration (env-driven) |
 | `config/i18n.php` | Supported locales, **indexable locales**, default locale, native names, cache path, `cms_models` list |
-| `config/seo.php` | `public_routes` allowlist — route names allowed to carry canonical/`hreflang` |
+| `config/seo.php` | `public_routes` allowlist — route names allowed to carry canonical/`hreflang` — and `indexable`, read from `SITE_INDEXABLE` |
+| `config/security-headers.php` | HSTS duration and the content security policy (LUMN-37) |
 | `lang/fr/` | PHP translation files — French source of truth for Blade `__()` |
 | `storage/app/i18n/` | TranslationCache storage — checksums + per-key translations (gitignored) |
 | `docs/` | Technical documentation |

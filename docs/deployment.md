@@ -311,6 +311,30 @@ which reads as a circular dependency and is not one: point the DNS, wait, then t
 
 ---
 
+### Security headers, set by the application
+
+Every response carries them — pages, errors, `/up`, the API — from the `SecurityHeaders`
+middleware, first of the global stack (LUMN-37). Nothing is set in the panel: what the application
+sends is versioned and tested, what the panel sends is neither. One consequence of that choice:
+**static files Apache serves itself (`build/`, favicons) carry none of them**, since PHP never sees
+those requests. They are not documents, and the headers that matter — frame, sniffing, HSTS — are
+held by the pages that load them.
+
+| Header | Why it matters on this host |
+|---|---|
+| `Strict-Transport-Security` | HTTPS only. **Its duration climbs by steps** — see below |
+| `X-Frame-Options: DENY` | Forbids showing the site inside another page's frame. It also forbids pointing the domain at the site through a framing redirect, as one.com's "web relay" once did: the domain moves by delegating its nameservers (LUMN-96), never by a frame |
+| `X-Robots-Tag: noindex, nofollow` | Sent while `SITE_INDEXABLE` is not `true` — see [Indexing is decided by one variable](seo-conventions.md#indexing-is-decided-by-one-variable) |
+| `Content-Security-Policy-Report-Only` | Reports, blocks nothing yet. Each inline script carries a per-request nonce, and so does every style Vite injects. `content-security-policy.spec.js` requires zero violations in the three themes, 404 page included, but one: vuedraggable's eval probe, until LUMN-90 removes it. Error pages render through Laravel's own layout, republished in `resources/views/errors/` for the nonce alone |
+| `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` | The usual three; the site uses no camera, microphone or geolocation |
+
+**Raising the HSTS duration.** A browser that has seen `max-age` refuses plain HTTP for that long,
+and with `includeSubDomains` on every subdomain of the host that sent it — for the apex, every name
+under `cardascia-it.org`, `ftp.` included. Nothing takes it back before it expires. The duration is
+`security-headers.hsts.max_age` in `config/security-headers.php`: **one day** (`86400`) until the
+production domain is live and every subdomain in the zone is known to answer over HTTPS, then one
+year (`31536000`), through a pull request like any other change.
+
 ## The account environment — set this before anything else
 
 **This section is why [the deployment sequence](#deploying) is short.** The commands are bare
@@ -1179,8 +1203,6 @@ before adding one. Re-measure the table above as well: it changes the day a page
 
 - **No deployment on merge.** The pipeline can release a commit and undo it on request (LUMN-50,
   LUMN-51), but someone still has to ask. Deploying every merge is LUMN-53.
-- **No security headers**, and `robots.txt` allows everything — preprod would be indexed if
-  it were reachable. (LUMN-37)
 - **Nameserver delegation to alwaysdata** is not done; `cardascia-it.org` still resolves
   through one.com, which redirects to the previous site, untouched. It depends on settling the
   `contact@cardascia-it.org` mailbox first.

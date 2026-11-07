@@ -5,6 +5,7 @@ import {
     ADMIN_A11Y_AUTH_FILE,
     ADMIN_IDENTITY_AUTH_FILE,
     ADMIN_EXPERIENCES_AUTH_FILE,
+    ADMIN_CSP_AUTH_FILE,
 } from './helpers/auth.js';
 
 /**
@@ -23,6 +24,7 @@ const SESSIONS = [
     ADMIN_IDENTITY_AUTH_FILE, // site identity form
     ADMIN_A11Y_AUTH_FILE, // axe-core scans — submit nothing, but still consume flashes
     ADMIN_EXPERIENCES_AUTH_FILE, // CV experiences CRUD
+    ADMIN_CSP_AUTH_FILE, // content security policy scan — submits nothing, still consumes flashes
 ];
 
 setup('create admin sessions', async ({ browser }) => {

@@ -1,6 +1,7 @@
 # SEO — conventions
 
-Reference for canonical and `hreflang` handling on cardascia-it.org.
+Reference for canonical and `hreflang` handling on cardascia-it.org, and for whether the site may be
+indexed at all.
 
 ## Two locale lists, two different questions
 
@@ -78,6 +79,31 @@ Resulting behaviour:
 `Accept-Language` header — exactly `x-default` semantics: what to serve when no declared locale
 fits the visitor.
 
+## Indexing is decided by one variable
+
+`SITE_INDEXABLE` says whether search engines may index the site. When it is not `true`, every
+response carries `X-Robots-Tag: noindex, nofollow` — pages, errors, `/up` and the API alike
+(LUMN-37). Switching the site into the index is one line of the server's `.env`, not a deployment.
+
+Three rules come with it:
+
+- **It is never deduced from `APP_ENV`.** Preprod runs `APP_ENV=production` on purpose — see
+  [Environment variables](environment-variables.md#decided-per-environment). A decision about exposure
+  carried by a name chosen for something else is the defect LUMN-38 removed from the e2e routes.
+- **Absent or misspelt reads as `false`.** Only a recognised boolean (`true`, `1`, `yes`, `on`)
+  makes the site indexable; `flase`, `oui` or an empty value keep it out. A site left out of the
+  index by mistake shows and is fixed in a line; a preprod indexed by mistake is not taken back.
+  `.env.example` says `true`, the nominal case, while the fallback in `config/seo.php` guards the
+  forgotten one.
+- **`robots.txt` stays permissive, and static.** A crawler forbidden to fetch a page never reads
+  its `noindex` — Google documents it ("Block Search indexing with noindex") — and the bare URL can
+  still be indexed, without content, from any link pointing at it: a Mastodon profile, a LinkedIn
+  post. Blocking the crawl would undo what the header does. `IndexabilityTest` fails on a
+  `Disallow` that forbids anything.
+
+The site goes live **without** the variable, so out of the index, and gets `true` once its content
+deserves one — the decision recorded in LUMN-35.
+
 ## Where the code lives
 
 | Path | Role |
@@ -86,7 +112,8 @@ fits the visitor.
 | `app/Providers/AppServiceProvider.php` | Binds the service, and a `layouts.app` view composer feeds `$seoCanonical` / `$seoAlternates`. Glue only. |
 | `resources/views/layouts/app.blade.php` | Renders the tags. No logic. |
 | `config/i18n.php` | `indexable_locales` |
-| `config/seo.php` | `public_routes` |
+| `config/seo.php` | `public_routes`, and `indexable` from `SITE_INDEXABLE` |
+| `app/Services/Http/SecurityHeaders.php` | Adds `X-Robots-Tag` when the site is not indexable, among the other security headers |
 
 The view composer means no controller wires anything: a new public page gets its tags by being
 added to `config/seo.php`, nothing else.
@@ -101,6 +128,8 @@ alternates must keep it. Only the `lang` parameter is substituted, overriding th
 |-------|------|
 | Unit | `tests/Unit/Services/Seo/LocalizedUrlServiceTest.php` |
 | Feature | `tests/Feature/Seo/HreflangTest.php` |
+| Feature | `tests/Feature/Seo/IndexabilityTest.php` — how the variable is read, `robots.txt`, `.env.example` |
+| Feature | `tests/Feature/Http/SecurityHeadersTest.php` — the header on every kind of response |
 
 The Feature suite asserts on rendered HTML, including the **absence** of tags on auth pages —
 that assertion is the regression guard for [the allowlist rule](#public-routes-are-an-allowlist). Do not weaken it.
