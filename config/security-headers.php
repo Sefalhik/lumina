@@ -37,13 +37,15 @@ return [
     | eval probe vuedraggable bundles, harmless under an enforced policy and
     | removed with vuedraggable itself (LUMN-90).
     |
-    | Google Fonts is allowed until LUMN-102 serves the fonts from the site.
+    | Fonts and stylesheets come from the site alone: the fonts are served by
+    | the site since LUMN-102, and Google Fonts would hand every visitor's
+    | address to Google. See docs/architecture.md#fonts.
     */
     'csp' => [
         'default-src' => ["'self'"],
         'script-src' => ["'self'"],
-        'style-src' => ["'self'", 'https://fonts.googleapis.com'],
-        'font-src' => ["'self'", 'https://fonts.gstatic.com'],
+        'style-src' => ["'self'"],
+        'font-src' => ["'self'"],
         'img-src' => ["'self'", 'data:'],
         'connect-src' => ["'self'"],
         'object-src' => ["'none'"],

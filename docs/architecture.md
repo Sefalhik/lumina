@@ -2,8 +2,8 @@
 
 The rules of the architecture — islands, named routes, the service layer — are in
 [CLAUDE.md](../CLAUDE.md#architecture), because every task needs them. This document holds what is
-looked up rather than known: the map of the repository, the reasoning behind one routing rule, and
-how the development server runs.
+looked up rather than known: the map of the repository, the reasoning behind one routing rule, how
+the development server runs, and where the fonts come from.
 
 ## Key directories
 
@@ -91,3 +91,41 @@ Worker mode keeps the application booted between requests: state kept in a stati
 singleton outlives the request that set it. Production does not run Octane — Apache serves PHP over
 FastCGI ([Deployment](deployment.md)) — so a bug of that kind shows in development only, and is
 still a bug.
+
+## Fonts
+
+**The site serves its own fonts. Never load one from Google Fonts**, nor from any other font CDN: each
+page would send the visitor's IP address to Google, a transfer of personal data the GDPR does not
+allow without consent — the Munich regional court ruled so in January 2022, about Google Fonts loaded
+exactly this way. The content security policy enforces it: `font-src` and `style-src` allow `'self'`
+alone (`config/security-headers.php`), and `tests/e2e/content-security-policy.spec.js` fails on any
+request to Google's font hosts (LUMN-102).
+
+The fonts come from [Fontsource](https://fontsource.org) packages, imported at the top of
+`resources/css/app.css` — the one stylesheet every layout loads, the authentication one included,
+which loads no JavaScript. Vite fingerprints the files, and Renovate updates the packages under the
+same release age as every other dependency.
+
+| Font | Package | Used for | Licence |
+|---|---|---|---|
+| Orbitron | `@fontsource-variable/orbitron` | headings — Sprawl, Neon Noir | SIL OFL 1.1 |
+| Cinzel | `@fontsource-variable/cinzel` | headings — steampunk | SIL OFL 1.1 |
+| Share Tech Mono | `@fontsource/share-tech-mono` | body text, every theme | SIL OFL 1.1 |
+| VT323 | `@fontsource/vt323` | the `.font-vt323` class — used by no page yet | SIL OFL 1.1 |
+
+**A variable font is named after its package, not after the font**: `'Orbitron Variable'`,
+`'Cinzel Variable'`. Written `'Orbitron'`, the browser silently falls back to `monospace`. Two tests
+catch it: `scripts/__tests__/fonts.test.js` fails on a family the stylesheets name that no imported
+package declares, and `tests/e2e/fonts.spec.js` checks the font each theme actually renders.
+
+Each package is split by alphabet (`unicode-range`): a browser downloads only the subsets a page
+uses, and a declared font no page uses costs nothing. **Coverage is narrower than the 24 locales**,
+exactly as it was with Google's files: Orbitron and Share Tech Mono cover basic Latin only, Cinzel
+adds Latin Extended, VT323 Latin Extended and Vietnamese, and none covers Greek or Cyrillic. A
+letter outside a font's range — `ł`, `ř` or `ő` in Orbitron, any letter of an `el` or `bg` page —
+is drawn in the next font of the stack, the system one.
+
+**Adding a font**: check its licence allows self-hosting; install its Fontsource package (the
+`-variable` one when it exists — one file for every weight); `@import` it in `resources/css/app.css`;
+use the family name its `index.css` declares; add its row here. Nothing changes in the content
+security policy.
