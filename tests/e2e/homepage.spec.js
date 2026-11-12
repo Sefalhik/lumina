@@ -27,39 +27,14 @@ import { ADMIN_SESSION } from './helpers/auth.js';
 test.describe.configure({ mode: 'serial' });
 
 test.describe('Homepage', () => {
-    // The hero is the first section. Everything measured here is scoped to it:
-    // the navbar repeats both call-to-action labels.
+    // The hero is the first section. Everything measured here is scoped to it.
+    // Its profile buttons read the identity row, which the admin specs rewrite:
+    // they are tested in site-identity.spec.js, serialised with those specs.
     const hero = (page) => page.locator('section').first();
 
     test.beforeEach(async ({ page }) => {
         await page.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
         await page.goto('/de/');
-    });
-
-    test('both calls to action are visible without scrolling', async ({ page }) => {
-        const viewport = page.viewportSize();
-        expect(viewport).not.toBeNull();
-
-        for (const name of [/Projekte/i, /Lebenslauf/i]) {
-            // Scoped to the hero, never .first() on the page: the navbar
-            // carries the same two labels and is sticky at top:0, so a page-wide
-            // locator measures an element that is above the fold by construction
-            // and the assertion below can never fail.
-            const cta = hero(page).getByRole('link', { name });
-
-            await expect(cta).toBeVisible();
-
-            const box = await cta.boundingBox();
-            expect(box).not.toBeNull();
-
-            // toBeVisible() is true for an element 3000px down the page. The
-            // assertion that matters is where its bottom edge sits relative to
-            // the fold.
-            expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
-        }
-
-        // Nothing has been scrolled to reach them.
-        expect(await page.evaluate(() => window.scrollY)).toBe(0);
     });
 
     test('the hero shows one paragraph and the biography lives below', async ({ page }) => {
@@ -72,22 +47,22 @@ test.describe('Homepage', () => {
         expect(await about.locator('p').count()).toBeGreaterThan(1);
     });
 
-    test('the about section sits after the calls to action', async ({ page }) => {
-        const cta = hero(page).getByRole('link', { name: /Projekte/i });
+    test('the about section sits after the hero', async ({ page }) => {
+        const lead = hero(page).locator('[data-smoke="bio"]');
         const about = page.locator('section[aria-labelledby="about-heading"]');
 
         // Asserted before measured: boundingBox() on a locator that resolves to
         // nothing waits out the whole timeout and then reports a timeout, which
         // says nothing about what is missing.
-        await expect(cta).toBeVisible();
+        await expect(lead).toBeVisible();
         await expect(about).toBeVisible();
 
-        const ctaBox = await cta.boundingBox();
+        const leadBox = await lead.boundingBox();
         const aboutBox = await about.boundingBox();
 
-        expect(ctaBox).not.toBeNull();
+        expect(leadBox).not.toBeNull();
         expect(aboutBox).not.toBeNull();
-        expect(aboutBox.y).toBeGreaterThan(ctaBox.y);
+        expect(aboutBox.y).toBeGreaterThan(leadBox.y);
     });
 
     test('decorative glyphs are hidden from assistive technology', async ({ page }) => {
@@ -105,7 +80,73 @@ test.describe('Homepage', () => {
 
         // The French page is rendered from the same code path; asserting it here
         // would only measure whatever the admin specs left behind.
-        await expect(hero(page).getByRole('link', { name: /Lebenslauf/i })).toBeVisible();
+        await expect(
+            page.getByRole('navigation', { name: 'Hauptnavigation' }).getByRole('link', { name: 'Startseite' }),
+        ).toBeVisible();
+    });
+});
+
+test.describe('Homepage — mobile', () => {
+    // An iPhone-sized viewport: the navigation collapses into the menu button.
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
+        await page.goto('/de/');
+    });
+
+    test('nothing overflows the screen sideways', async ({ page }) => {
+        const overflow = await page.evaluate(
+            () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        );
+
+        expect(overflow).toBe(0);
+    });
+
+    test('the menu opens on the links that remain, none of them empty', async ({ page }) => {
+        await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toBeHidden();
+        // Closed until asked for: without its dropdown wrapper the menu would
+        // sit open over the hero, and every assertion below would still pass.
+        await expect(page.locator('#mobile-menu')).toBeHidden();
+
+        await page.getByRole('button', { name: 'Menü' }).click();
+
+        // CV, projects and blog are withdrawn until their pages are ready
+        // (LUMN-104): a visitor's menu holds the home link alone.
+        const links = page.locator('#mobile-menu a');
+        await expect(links).toHaveCount(1);
+        await expect(links.first()).toBeVisible();
+        await expect(links.first()).toHaveText('Startseite');
+    });
+
+    test('the menu is operable from the keyboard alone', async ({ page }) => {
+        const menuButton = page.getByRole('button', { name: 'Menü' });
+        const menu = page.locator('#mobile-menu');
+        const isFocused = (locator) => locator.evaluate((element) => element === document.activeElement);
+
+        // Real Tab presses from the top of the page, not .focus(): the point is
+        // that the button is reachable in the tab order at all. The bound is a
+        // guard against an endless loop, not a target: it takes 34 presses
+        // today, because the language switcher opens on focus and puts its 24
+        // locales in the tab order before the menu button.
+        for (let i = 0; i < 60 && !(await isFocused(menuButton)); i++) {
+            await page.keyboard.press('Tab');
+        }
+        expect(await isFocused(menuButton)).toBe(true);
+
+        // The menu opens on focus (DaisyUI's dropdown), and stays open while
+        // the focus moves inside it.
+        await expect(menu).toBeVisible();
+
+        const homeLink = menu.getByRole('link', { name: 'Startseite' });
+        for (let i = 0; i < 3 && !(await isFocused(homeLink)); i++) {
+            await page.keyboard.press('Tab');
+        }
+        expect(await isFocused(homeLink)).toBe(true);
+        await expect(homeLink).toBeVisible();
+
+        await page.keyboard.press('Enter');
+        await expect(page).toHaveURL(/\/de\/?$/);
     });
 });
 

@@ -52,12 +52,11 @@
             </a>
         </div>
 
-        <nav class="navbar-center hidden md:flex" aria-label="Navigation principale">
+        <nav class="navbar-center hidden md:flex" aria-label="{{ __('nav.main_label') }}">
             <ul class="menu menu-horizontal gap-1 text-sm tracking-widest uppercase">
+                {{-- CV, projects and blog come back with their pages (LUMN-104): see
+                     UnfinishedPagesTest, which forbids any link to them meanwhile. --}}
                 <li><a href="{{ route('home') }}" class="hover:text-primary transition-colors">{{ __('nav.home') }}</a></li>
-                <li><a href="{{ route('cv') }}" class="hover:text-primary transition-colors">{{ __('nav.cv') }}</a></li>
-                <li><a href="{{ route('projects') }}" class="hover:text-primary transition-colors">{{ __('nav.projects') }}</a></li>
-                <li><a href="{{ route('blog') }}" class="hover:text-primary transition-colors">{{ __('nav.blog') }}</a></li>
             </ul>
         </nav>
 
@@ -100,16 +99,14 @@
 
             {{-- Mobile menu --}}
             <div class="dropdown dropdown-end md:hidden">
-                <button tabindex="0" class="btn btn-ghost btn-sm" aria-label="Menu">
+                <button tabindex="0" class="btn btn-ghost btn-sm" aria-label="{{ __('nav.menu') }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
-                <ul tabindex="0" class="dropdown-content menu bg-base-200 border border-primary/30 w-52 mt-2 text-sm tracking-widest uppercase">
+                <ul id="mobile-menu" tabindex="0" class="dropdown-content menu bg-base-200 border border-primary/30 w-52 mt-2 text-sm tracking-widest uppercase">
+                    {{-- Same as the navigation above: CV, projects and blog return with their pages. --}}
                     <li><a href="{{ route('home') }}">{{ __('nav.home') }}</a></li>
-                    <li><a href="{{ route('cv') }}">{{ __('nav.cv') }}</a></li>
-                    <li><a href="{{ route('projects') }}">{{ __('nav.projects') }}</a></li>
-                    <li><a href="{{ route('blog') }}">{{ __('nav.blog') }}</a></li>
                     @auth
                     <li class="border-t border-primary/20 mt-1 pt-1">
                         <span class="text-base-content/60 text-[10px] px-3">⬡ {{ auth()->user()->name }}</span>

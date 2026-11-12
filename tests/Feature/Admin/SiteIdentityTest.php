@@ -399,6 +399,23 @@ class SiteIdentityTest extends TestCase
         $response->assertDontSee('mailto:', false);
     }
 
+    public function test_footer_never_renders_a_url_that_is_not_https(): void
+    {
+        // The form refuses it; a value written to the column by other means
+        // must not become an href on every page of the site.
+        $identity = SiteIdentity::firstOrNew([]);
+        $identity->fill([
+            'github_url' => 'javascript:alert(1)',
+            'mastodon_url' => 'https://mastodon.social/@Sefalhik',
+        ]);
+        $identity->save();
+
+        $this->get('/fr/cv')
+            ->assertOk()
+            ->assertDontSee('javascript:', false)
+            ->assertSee('https://mastodon.social/@Sefalhik', false);
+    }
+
     public function test_footer_renders_with_no_identity_at_all(): void
     {
         // The state of a fresh install, right after migrating.

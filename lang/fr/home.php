@@ -2,6 +2,8 @@
 
 return [
     'title' => 'Accueil',
+    // Not rendered while their pages are unfinished (LUMN-104), and kept on purpose in every
+    // locale: they come back with their buttons. UnfinishedPagesTest fails if one disappears.
     'cta_projects' => 'Voir mes projets',
     'cta_cv' => 'Mon CV',
 

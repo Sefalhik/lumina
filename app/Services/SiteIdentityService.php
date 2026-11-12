@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\SiteIdentity;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Turns a SiteIdentity record into the list of links worth rendering.
@@ -24,6 +25,14 @@ class SiteIdentityService
         'linkedin' => ['field' => 'linkedin_url', 'label' => 'LinkedIn'],
         'mastodon' => ['field' => 'mastodon_url', 'label' => 'Mastodon'],
     ];
+
+    /**
+     * The networks the homepage hero offers, in place of the calls to action
+     * whose pages are not ready yet (LUMN-104). GitHub stays in the footer.
+     *
+     * @var list<string>
+     */
+    private const HERO_NETWORKS = ['linkedin', 'mastodon'];
 
     /**
      * Social links that are actually filled in.
@@ -50,6 +59,20 @@ class SiteIdentityService
                 continue;
             }
 
+            if (! $this->isHttpsUrl(trim($url))) {
+                // The admin form only saves https URLs, but the column accepts anything, and
+                // this value lands in an href on every page: javascript: or data: would run.
+                // Logged, not rendered — the network only, never the stored value.
+                Log::warning('Site identity profile URL is not https — not rendered', [
+                    'service' => self::class,
+                    'method' => __FUNCTION__,
+                    'step' => 'reject_url',
+                    'network' => $key,
+                ]);
+
+                continue;
+            }
+
             $links[] = [
                 'key' => $key,
                 'label' => $network['label'],
@@ -58,6 +81,34 @@ class SiteIdentityService
         }
 
         return $links;
+    }
+
+    /**
+     * An absolute https URL with a host. Anything else — another scheme, a
+     * relative or protocol-relative path, a bare host — is refused.
+     */
+    private function isHttpsUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+
+        return strtolower($parts['scheme'] ?? '') === 'https'
+            && ($parts['host'] ?? '') !== '';
+    }
+
+    /**
+     * The filled-in profiles the homepage hero shows: LinkedIn, then Mastodon.
+     *
+     * Built on socialLinks(), so blank values, trimming, labels and order follow
+     * the footer's rules — the two can never disagree on a URL.
+     *
+     * @return list<array{key: string, label: string, url: string}>
+     */
+    public function heroLinks(?SiteIdentity $identity): array
+    {
+        return array_values(array_filter(
+            $this->socialLinks($identity),
+            static fn (array $link): bool => in_array($link['key'], self::HERO_NETWORKS, true),
+        ));
     }
 
     /**

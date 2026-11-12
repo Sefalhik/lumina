@@ -34,16 +34,23 @@
         </p>
         @endif
 
-        <div class="flex flex-wrap gap-4">
-            <a href="{{ route('projects') }}"
-               class="btn btn-primary font-display tracking-widest uppercase text-sm glow-box">
-                {{ __('home.cta_projects') }}
+        {{-- The "projects" and "CV" calls to action are withdrawn until their pages are ready
+             (LUMN-104); each comes back with its page, and its route leaves the registry in
+             UnfinishedPagesTest. Meanwhile the hero offers the profiles — same source and same
+             rel as the footer: rel="me" is what lets Mastodon verify the site. --}}
+        @if ($heroProfiles !== [])
+        <div id="hero-profiles" class="flex flex-wrap gap-4">
+            @foreach ($heroProfiles as $heroProfile)
+            <a href="{{ $heroProfile['url'] }}"
+               target="_blank"
+               rel="me noopener noreferrer"
+               aria-label="{{ __('footer.social_aria', ['network' => $heroProfile['label']]) }}"
+               class="btn {{ $loop->first ? 'btn-primary glow-box' : 'btn-outline btn-secondary' }} font-display tracking-widest uppercase text-sm">
+                {{ $heroProfile['label'] }}
             </a>
-            <a href="{{ route('cv') }}"
-               class="btn btn-outline btn-secondary font-display tracking-widest uppercase text-sm">
-                {{ __('home.cta_cv') }}
-            </a>
+            @endforeach
         </div>
+        @endif
     </div>
 </section>
 

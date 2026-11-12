@@ -31,7 +31,7 @@ the development server runs, and where the fonts come from.
 | `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
 | `app/Services/Http/SecurityHeaders.php` | Decides the security headers from the configuration and two facts of the request — HTTPS or not, the nonce. Refuses any value that would add a directive to a header (LUMN-37) |
 | `app/Services/Smoke/` | `deploy:smoke` — probes a deployed environment from the outside; see `docs/smoke-tests.md` |
-| `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer today, `sameAs` next |
+| `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer and homepage hero today, `sameAs` next |
 | `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
 | `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list. Also shapes the admin index (`adminRows()`), borrowing `CvService::period()` so the period rule has one home |
 | `app/Models/SiteIdentity.php` | Single-row site identity. **Nothing is translated**, `job_title` included — it is a `sameAs` cross-reference key (LUMN-15) |
