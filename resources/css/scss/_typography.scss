@@ -13,3 +13,22 @@
 .font-vt323 {
     font-family: 'VT323', monospace;
 }
+
+// Touches of a pixel font: a command prompt, a small label (LUMN-103). Sprawl sets --font-pixel to
+// VT323; the other themes have none, and fall back to their body font.
+.font-pixel {
+    font-family: var(--font-pixel, var(--font-body, 'Share Tech Mono'), monospace);
+}
+
+// VT323 draws small: at the same font-size its letters are about a fifth shorter than the body font's.
+// 1.25em of the parent's size — it replaces the element's own size utility, on purpose: the hero's
+// prompt goes from 14px of Share Tech Mono to 20px of VT323, which reads at the same height.
+[data-theme='sprawl'] .font-pixel {
+    font-size: 1.25em;
+}
+
+// Space Mono is heavy in bold at button size: small, spaced capitals, and the N closes up. Sprawl's
+// buttons take its regular weight (Laurent, 2026-11-12); the headings keep the bold.
+[data-theme='sprawl'] .btn.font-display {
+    font-weight: 400;
+}

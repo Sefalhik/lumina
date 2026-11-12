@@ -38,13 +38,27 @@ const GENERIC = new Set([
     'revert-layer',
 ]);
 
-const importedPackages = () =>
+/**
+ * What app.css imports from Fontsource: a whole package (`@fontsource/vt323`, its index.css) or one
+ * of its files (`@fontsource/space-mono/700.css`) — a package whose index.css ships the regular weight
+ * alone needs its bold imported by file (LUMN-103).
+ */
+const fontImports = () =>
     [...read('resources/css/app.css').matchAll(/^@import\s+"(@fontsource[^"]+)";/gm)].map((m) => m[1]);
+
+/** The package an import comes from: its scope and name, without the file. */
+export const packageOf = (specifier) => specifier.split('/').slice(0, 2).join('/');
+
+/** The stylesheet an import loads: the file it names, or the package's index.css. */
+export const stylesheetOf = (specifier) =>
+    specifier.split('/').length > 2 ? `node_modules/${specifier}` : `node_modules/${specifier}/index.css`;
+
+const importedPackages = () => [...new Set(fontImports().map(packageOf))];
 
 const declaredFamilies = () =>
     new Set(
-        importedPackages().flatMap((name) =>
-            [...read(`node_modules/${name}/index.css`).matchAll(/font-family:\s*'([^']+)'/g)].map((m) => m[1]),
+        fontImports().flatMap((specifier) =>
+            [...read(stylesheetOf(specifier)).matchAll(/font-family:\s*'([^']+)'/g)].map((m) => m[1]),
         ),
     );
 
@@ -96,6 +110,18 @@ const usedFamilies = () =>
             .filter((file) => !NOT_THE_SITES_CODE.includes(file))
             .flatMap((file) => familiesIn(read(file))),
     );
+
+describe('packageOf and stylesheetOf', () => {
+    it('read a whole package as its index.css', () => {
+        expect(packageOf('@fontsource/vt323')).toBe('@fontsource/vt323');
+        expect(stylesheetOf('@fontsource/vt323')).toBe('node_modules/@fontsource/vt323/index.css');
+    });
+
+    it('read a file of a package as that file, from that package', () => {
+        expect(packageOf('@fontsource/space-mono/700.css')).toBe('@fontsource/space-mono');
+        expect(stylesheetOf('@fontsource/space-mono/700.css')).toBe('node_modules/@fontsource/space-mono/700.css');
+    });
+});
 
 describe('familiesIn', () => {
     it('reads quoted families from declarations and --font-* variables, without the generic ones', () => {
@@ -160,7 +186,7 @@ describe('the fonts', () => {
 
     it('are imported from packages listed with what ships to the browser, with a caret', () => {
         const packages = importedPackages();
-        expect(packages).toHaveLength(4);
+        expect(packages).toHaveLength(5);
 
         // In dependencies, beside vue, tailwindcss and daisyui: what reaches the browser. And a caret,
         // as for every npm package of the project.

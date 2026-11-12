@@ -54,7 +54,7 @@ the development server runs, and where the fonts come from.
 | `docs/` | Technical documentation |
 | `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
 | `renovate.json5` | Renovate configuration — see `docs/dependency-updates.md` |
-| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update, the deployment scripts `release.sh` → `deploy.sh`, `rollback.sh` and their SSH gate `deploy-gate.sh`, the probe of the key `check-deploy-key.sh`, `watch-switch.sh`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
+| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update, the deployment scripts `release.sh` → `deploy.sh`, `rollback.sh` and their SSH gate `deploy-gate.sh`, the probe of the key `check-deploy-key.sh`, `watch-switch.sh`, the theme contrast arithmetic `palette-contrast.js`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
 
@@ -108,10 +108,11 @@ same release age as every other dependency.
 
 | Font | Package | Used for | Licence |
 |---|---|---|---|
-| Orbitron | `@fontsource-variable/orbitron` | headings — Sprawl, Neon Noir | SIL OFL 1.1 |
+| Space Mono | `@fontsource/space-mono` (regular and bold imported) | headings — Sprawl; buttons in its regular weight (LUMN-103) | SIL OFL 1.1 |
+| Orbitron | `@fontsource-variable/orbitron` | headings — Neon Noir | SIL OFL 1.1 |
 | Cinzel | `@fontsource-variable/cinzel` | headings — steampunk | SIL OFL 1.1 |
 | Share Tech Mono | `@fontsource/share-tech-mono` | body text, every theme | SIL OFL 1.1 |
-| VT323 | `@fontsource/vt323` | the `.font-vt323` class — used by no page yet | SIL OFL 1.1 |
+| VT323 | `@fontsource/vt323` | `.font-pixel` in Sprawl (`--font-pixel`): the hero's command prompt; other themes fall back to their body font. `.font-vt323` is used by no page | SIL OFL 1.1 |
 
 **A variable font is named after its package, not after the font**: `'Orbitron Variable'`,
 `'Cinzel Variable'`. Written `'Orbitron'`, the browser silently falls back to `monospace`. Two tests
