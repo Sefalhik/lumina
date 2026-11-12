@@ -41,6 +41,10 @@
     {{-- Boot sequence island (once per session) --}}
     <div id="boot-sequence"></div>
 
+    {{-- Sprawl's sky: the dead channel's snow, behind everything (LUMN-103). Hidden in the other
+         themes; the island draws it only while it can be seen. --}}
+    <div id="dead-channel"></div>
+
     {{-- Atmospheric overlays --}}
     <div class="scanlines" aria-hidden="true"></div>
     <div class="rain-overlay" aria-hidden="true"></div>

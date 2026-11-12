@@ -7,9 +7,11 @@
 
 {{-- Hero --}}
 <section class="container mx-auto px-4 pt-24 pb-16 min-h-[80vh] flex flex-col justify-center">
-    <div class="max-w-3xl">
+    {{-- console-panel: in Sprawl, the text sits on a console screen and the snow is the sky around
+         it (LUMN-103, option A of 2026-11-12). The other themes do not style the class. --}}
+    <div class="max-w-3xl console-panel console-panel-hero">
 
-        <p class="text-secondary text-sm tracking-[0.3em] uppercase mb-6 font-mono">
+        <p class="text-secondary text-sm tracking-[0.3em] uppercase mb-6 font-pixel">
             <span class="text-primary opacity-60" aria-hidden="true">//</span>
             <span class="cursor-blink"> {{ $content?->getTranslation('tagline', app()->getLocale(), true) ?? __('home.fallback_tagline') }}</span>
         </p>
@@ -59,7 +61,7 @@
 
 {{-- About: the rest of the bio, as real paragraphs --}}
 @if ($prose['body'] !== [])
-<section class="container mx-auto px-4 py-20" aria-labelledby="about-heading">
+<section class="container mx-auto px-4 py-20 console-panel" aria-labelledby="about-heading">
     <h2 id="about-heading"
         class="font-display text-xs tracking-[0.4em] uppercase text-primary mb-10">
         <span class="text-primary glow-primary" aria-hidden="true">›</span> {{ __('home.about_heading') }}
@@ -78,7 +80,7 @@
 @endif
 
 {{-- Skills snapshot --}}
-<section class="container mx-auto px-4 py-20" aria-labelledby="skills-heading">
+<section class="container mx-auto px-4 py-20 console-panel" aria-labelledby="skills-heading">
     <h2 id="skills-heading"
         class="font-display text-xs tracking-[0.4em] uppercase text-primary mb-10">
         <span class="text-primary glow-primary" aria-hidden="true">›</span> {{ __('home.skills_heading') }}

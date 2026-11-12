@@ -23,11 +23,15 @@ export default defineConfig({
             //
             // tests/e2e/helpers/workers.js maps each Playwright worker to its server and database
             // (LUMN-111): a wrong line sends a test to another worker's data. Held to 100% too.
+            //
+            // scripts/palette-contrast.js is what checks a theme's contrast promises (LUMN-103), where
+            // the axe scan cannot see: held to 100% as well.
             include: [
                 'resources/js/utils/**/*.js',
                 'scripts/audit-advisories.js',
                 'scripts/mutate-lines.js',
                 'tests/e2e/helpers/workers.js',
+                'scripts/palette-contrast.js',
             ],
             thresholds: {
                 statements: 80,
@@ -47,6 +51,12 @@ export default defineConfig({
                     lines: 100,
                 },
                 'tests/e2e/helpers/workers.js': {
+                    statements: 100,
+                    branches: 100,
+                    functions: 100,
+                    lines: 100,
+                },
+                'scripts/palette-contrast.js': {
                     statements: 100,
                     branches: 100,
                     functions: 100,

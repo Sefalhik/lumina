@@ -390,6 +390,7 @@ test.describe.configure({ mode: 'serial' });
 | `admin-a11y` | `ADMIN_A11Y_SESSION` | `accessibility.spec.js` |
 | `admin-experiences` | `ADMIN_EXPERIENCES_SESSION` | `admin/experiences.spec.js` |
 | `admin-csp` | `ADMIN_CSP_SESSION` | `content-security-policy.spec.js` |
+| `admin-snow` | `ADMIN_SNOW_SESSION` | `dead-channel.spec.js` (its admin describe) |
 
 **Why one per file**: two browser contexts created from the same session file send the same session cookie → the same server-side session store. A flash message set by one spec's submission is consumed by the next page load in *any* spec sharing that session, regardless of browser-context isolation. Per-slot databases do not remove this: two spec files of the same slot still run one after another on one database, and a session left with a pending flash is inherited.
 

@@ -2,30 +2,44 @@
 // CUSTOM DAISYUI THEMES
 // ============================================================
 
-// --- Sprawl (Gibson cyberpunk, terminal green) --------------
+// --- Sprawl (Gibson's Neuromancer — LUMN-103) --------------
+// The visitor sits at a cowboy's console. Behind it, a sky "the color of television, tuned to a dead
+// channel": grey-blue, never black. Phosphor green is kept for the data. Every contrast below was
+// computed (OKLCH → sRGB, WCAG 2.1) and is listed in LUMN-103; the tightest pair is error on
+// base-300, at 4.8:1. Change a value only after recomputing.
 [data-theme='sprawl'] {
     color-scheme: dark;
-    --color-base-100: oklch(7% 0.015 265deg);
-    --color-base-200: oklch(11% 0.015 265deg);
-    --color-base-300: oklch(15% 0.015 265deg);
-    --color-base-content: oklch(82% 0.12 142deg);
-    --color-primary: oklch(88% 0.28 142deg);
-    --color-primary-content: oklch(8% 0.02 142deg);
-    --color-secondary: oklch(76% 0.17 65deg);
-    --color-secondary-content: oklch(8% 0.02 65deg);
-    --color-accent: oklch(70% 0.22 142deg);
-    --color-accent-content: oklch(8% 0.02 142deg);
-    --color-neutral: oklch(18% 0.02 265deg);
-    --color-neutral-content: oklch(68% 0.05 265deg);
-    --color-info: oklch(72% 0.14 220deg);
-    --color-success: oklch(80% 0.25 142deg);
-    --color-warning: oklch(76% 0.17 65deg);
-    --color-error: oklch(65% 0.24 25deg);
+    --color-base-100: oklch(25% 0.01 250deg); // #1e2226 — the dead channel
+    --color-base-200: oklch(29% 0.01 250deg); // #282c30
+    --color-base-300: oklch(34% 0.012 250deg); // #33393e
+    --color-base-content: oklch(92% 0.012 250deg); // #dfe5ec — 12.6:1 on base-100; /60 5.4, /70 6.9
+    --color-primary: oklch(88% 0.24 142deg); // #67fd5a — phosphor, 12.0:1
+    --color-primary-content: oklch(14% 0.03 142deg); // #030c03 — 14.9:1 on primary
+    --color-secondary: oklch(82% 0.15 70deg); // #ffb147 — amber, 8.9:1
+    --color-secondary-content: oklch(14% 0.03 70deg);
+    --color-accent: oklch(78% 0.17 350deg); // #ff85c7 — Chiba's neon through the window, 7.2:1
+    --color-accent-content: oklch(14% 0.03 350deg);
+    --color-neutral: oklch(31% 0.012 250deg); // #2c3136
+    --color-neutral-content: oklch(85% 0.015 250deg); // #c7cfd7 — 8.3:1
+    --color-info: oklch(80% 0.1 220deg);
+    --color-success: oklch(88% 0.24 142deg);
+    --color-warning: oklch(82% 0.15 70deg);
+    --color-error: oklch(76% 0.17 25deg); // #ff8079 — 4.8:1 on base-300, the tightest pair
 
-    --font-display: 'Orbitron Variable', monospace;
+    --font-display: 'Space Mono', monospace;
     --font-body: 'Share Tech Mono', monospace;
+    --font-pixel: 'VT323', monospace;
     --scanlines-opacity: 0.08;
     --rain-opacity: 0;
+}
+
+// DaisyUI layers a grain image under every button — `background-image: none, var(--fx-noise)` —
+// even with its grain switched off (--noise: 0). Invisible, but axe cannot compute a contrast
+// through an image, and answered "incomplete" for the hero's primary button: its contrast had never
+// been judged (found on LUMN-103). Emptying --fx-noise is not enough — axe reads `none, none` as an
+// image still. Sprawl has its own grain, the dead channel's snow; DaisyUI's goes, as one `none`.
+[data-theme='sprawl'] .btn {
+    background-image: none;
 }
 
 // --- Steampunk (brass, copper, Victorian) -------------------

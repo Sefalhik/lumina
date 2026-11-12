@@ -27,6 +27,10 @@
 </head>
 <body class="min-h-screen bg-base-100 text-base-content font-mono">
 
+    {{-- Sprawl's sky, as on the public pages: the whole interface is one console (LUMN-103,
+         Laurent's decision of 2026-11-12). --}}
+    <div id="dead-channel"></div>
+
     <div class="scanlines" aria-hidden="true"></div>
 
     <header class="navbar sticky top-0 z-50 bg-base-200/80 backdrop-blur-sm border-b border-primary/20">

@@ -7,6 +7,10 @@
 @import "@fontsource-variable/cinzel";
 @import "@fontsource/share-tech-mono";
 @import "@fontsource/vt323";
+/* Sprawl's heading font (LUMN-103), chosen over IBM Plex Mono on screenshots. Regular and bold: the
+   headings are bold, and a bold the font does not ship would be faked by the browser. */
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
 @plugin "daisyui";
 
 @source "../views/**/*.blade.php";

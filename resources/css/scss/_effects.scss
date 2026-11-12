@@ -373,14 +373,15 @@ body.booting {
 // GLITCH ON HOVER — same RGB split as .glitch, but only while the
 // parent .fn-item is hovered or focused. Four items glitching
 // permanently would be noise; a burst on approach is atmosphere.
+// Néon only: it loops while the pointer stays, and Sprawl's links have
+// the intrusion below instead, which never does (LUMN-103).
 // ============================================================
 
-:is([data-theme='sprawl'], [data-theme='neon-noir']) .glitch-hover {
+[data-theme='neon-noir'] .glitch-hover {
     position: relative;
 
     &::before,
     &::after {
-        animation-play-state: paused;
         content: attr(data-text);
         font: inherit;
         inset: 0;
@@ -390,20 +391,22 @@ body.booting {
         white-space: nowrap;
     }
 
+    // Paused inside the shorthand: a separate animation-play-state written before it was reset by
+    // it, and the labels glitched all the time, hover or not (found on LUMN-103).
     &::before {
-        animation: glitch-red 1.4s step-end infinite;
+        animation: glitch-red 1.4s step-end infinite paused;
         color: oklch(70% 0.28 25deg);
         text-shadow: none;
     }
 
     &::after {
-        animation: glitch-cyan 1.4s step-end infinite;
+        animation: glitch-cyan 1.4s step-end infinite paused;
         color: oklch(80% 0.22 210deg);
         text-shadow: none;
     }
 }
 
-:is([data-theme='sprawl'], [data-theme='neon-noir']) .fn-item:is(:hover, :focus-visible) .glitch-hover {
+[data-theme='neon-noir'] .fn-item:is(:hover, :focus-visible) .glitch-hover {
     &::before,
     &::after {
         animation-play-state: running;
@@ -417,5 +420,120 @@ body.booting {
     .glitch-hover::after {
         animation: none !important;
         content: none !important;
+    }
+}
+
+// ============================================================
+// INTRUSION — Sprawl's ice giving way (LUMN-103)
+// On hover or keyboard focus, a link or a button shudders once: the RGB
+// split of .glitch, for 200 ms, then nothing. A CSS animation starts when
+// its selector begins to match, and only then: once per approach, never a
+// loop, and no script to decide it.
+// It moves the text and splits its colours, and touches nothing that draws
+// the focus ring — no outline, no clip-path, no opacity (LUMN-27).
+// tests/e2e/sprawl-intrusion.spec.js samples the ring through the burst.
+// Inline links do not take a transform: on them, only the colours split.
+// ============================================================
+
+// The two channels of .glitch.
+$intrusion-red: oklch(70% 0.28 25deg);
+$intrusion-cyan: oklch(80% 0.22 210deg);
+
+[data-theme='sprawl'] :is(a[href], button, .btn):is(:hover, :focus-visible) {
+    animation: sprawl-intrusion 200ms step-end 1;
+}
+
+@keyframes sprawl-intrusion {
+    0% {
+        text-shadow:
+            -2px 0 $intrusion-red,
+            2px 0 $intrusion-cyan;
+        transform: translateX(-2px);
+    }
+
+    25% {
+        text-shadow:
+            3px 0 $intrusion-red,
+            -2px 0 $intrusion-cyan;
+        transform: translateX(2px) skewX(-8deg);
+    }
+
+    50% {
+        text-shadow:
+            -1px 0 $intrusion-red,
+            1px 0 $intrusion-cyan;
+        transform: translateX(-1px);
+    }
+
+    75% {
+        text-shadow:
+            1px 0 $intrusion-red,
+            -1px 0 $intrusion-cyan;
+        transform: none;
+    }
+}
+
+// Under reduced motion, the intrusion is a change of colour: its two
+// channels, still, for as long as the pointer or the focus stays.
+@media (prefers-reduced-motion: reduce) {
+    [data-theme='sprawl'] :is(a[href], button, .btn):is(:hover, :focus-visible) {
+        animation: none;
+        text-shadow:
+            -1px 0 $intrusion-red,
+            1px 0 $intrusion-cyan;
+    }
+}
+
+// ============================================================
+// DEAD CHANNEL — Sprawl's sky (LUMN-103)
+// ============================================================
+
+// The canvas of DeadChannel.vue. Hidden outside Sprawl: the island draws nothing there either.
+.dead-channel {
+    display: none;
+}
+
+// Behind every page element, stretched from a third of the screen's resolution, pixels kept square.
+// It paints above <body>'s background — <body> is its stacking context — so no background has to be
+// cleared for it; tests/e2e/dead-channel.spec.js checks on screen that it is seen.
+[data-theme='sprawl'] .dead-channel {
+    display: block;
+    height: 100vh;
+    image-rendering: pixelated;
+    inset: 0;
+    pointer-events: none;
+    position: fixed;
+    width: 100vw;
+    z-index: -1;
+}
+
+// ============================================================
+// CONSOLE PANELS — Sprawl's screens (LUMN-103)
+// ============================================================
+
+// The text sits on the console's screens; the snow is the sky around them (option A, decided on
+// 2026-11-12). Opaque base-100, the darkest background: no grain under the text, and the screens
+// read darker than the sky, whose grain lies between base-100 and base-300. Not base-200: the
+// subtitle's pulsing glow (neon-pulse-slow) lightens what axe takes for its background, and on
+// base-200 it fell to 4.29:1 at the peak of the pulse. The other themes leave the class alone.
+[data-theme='sprawl'] .console-panel {
+    background-color: var(--color-base-100);
+    border: 1px solid color-mix(in oklch, var(--color-primary) 28%, transparent);
+    box-shadow: inset 0 0 24px oklch(0% 0 0deg / 35%);
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+    padding: 2.5rem 3rem;
+}
+
+// Wide enough for the name to hold on one line at desktop width: the hero's panel is the widest.
+[data-theme='sprawl'] .console-panel-hero {
+    margin-bottom: 0;
+    margin-top: 0;
+    max-width: 58rem;
+}
+
+@media (width < 768px) {
+    [data-theme='sprawl'] .console-panel {
+        padding: 1.5rem 1.25rem;
     }
 }
