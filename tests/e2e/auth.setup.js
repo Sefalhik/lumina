@@ -1,40 +1,38 @@
-import { test as setup } from '@playwright/test';
-import {
-    ADMIN_AUTH_FILE,
-    ADMIN_EDITOR_AUTH_FILE,
-    ADMIN_A11Y_AUTH_FILE,
-    ADMIN_IDENTITY_AUTH_FILE,
-    ADMIN_EXPERIENCES_AUTH_FILE,
-    ADMIN_CSP_AUTH_FILE,
-} from './helpers/auth.js';
+import { test as setup } from './helpers/test.js';
+import { ADMIN_SESSIONS } from './helpers/auth.js';
+import { sessionFileFor, slots, urlFor } from './helpers/workers.js';
 
 /**
- * Creates one isolated server-side admin session per group of specs.
+ * Creates one isolated server-side admin session per group of specs, on every worker slot's server.
  *
  * Separate browser contexts are not enough: two contexts built from the same
  * storageState send the same laravel_session cookie and therefore share one
  * server-side session. Distinct auth files mean distinct cookies, hence fully
  * isolated flash-message stores.
  *
- * See helpers/auth.js for why each group needs its own.
+ * Each slot has its own database (LUMN-111), and a session exists only in the database that
+ * created it: every group therefore gets one session per slot, and helpers/test.js hands each test
+ * the one of its own slot. See helpers/auth.js for why each group needs its own.
  */
-const SESSIONS = [
-    ADMIN_AUTH_FILE, // general admin specs — homepage form
-    ADMIN_EDITOR_AUTH_FILE, // skills editor
-    ADMIN_IDENTITY_AUTH_FILE, // site identity form
-    ADMIN_A11Y_AUTH_FILE, // axe-core scans — submit nothing, but still consume flashes
-    ADMIN_EXPERIENCES_AUTH_FILE, // CV experiences CRUD
-    ADMIN_CSP_AUTH_FILE, // content security policy scan — submits nothing, still consumes flashes
-];
+/**
+ * The slots are prepared in parallel, and each slot's sessions one after the other. Parallel across
+ * slots, because every slot has its own server and database. In series within a slot, because
+ * `php artisan serve` handles one request at a time — nothing to gain — and /e2e/admin-auth runs
+ * User::firstOrCreate: two concurrent calls on one database could both try to create the admin.
+ */
+setup('create admin sessions on every slot', async ({ browser }) => {
+    await Promise.all(
+        slots().map(async (slot) => {
+            for (const group of ADMIN_SESSIONS) {
+                // An explicit baseURL: this setup runs in one worker and prepares all of them.
+                const context = await browser.newContext({ baseURL: urlFor(slot) });
+                const page = await context.newPage();
 
-setup('create admin sessions', async ({ browser }) => {
-    for (const file of SESSIONS) {
-        const context = await browser.newContext();
-        const page = await context.newPage();
-
-        await page.goto('/e2e/admin-auth');
-        await page.waitForURL(/\/fr\/admin$/);
-        await context.storageState({ path: file });
-        await context.close();
-    }
+                await page.goto('/e2e/admin-auth');
+                await page.waitForURL(/\/fr\/admin$/);
+                await context.storageState({ path: sessionFileFor(group, slot) });
+                await context.close();
+            }
+        }),
+    );
 });

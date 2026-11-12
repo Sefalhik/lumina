@@ -1,10 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { ADMIN_EDITOR_AUTH_FILE } from '../helpers/auth.js';
+import { test, expect } from '../helpers/test.js';
+import { ADMIN_EDITOR_SESSION } from '../helpers/auth.js';
 
 test.describe('Admin — SkillsEditor', () => {
     // Serial mode: saves in later tests accumulate in the DB across the suite.
     test.describe.configure({ mode: 'serial' });
-    test.use({ storageState: ADMIN_EDITOR_AUTH_FILE });
+    test.use({ adminSession: ADMIN_EDITOR_SESSION });
 
     let originalContent;
 
@@ -14,7 +14,7 @@ test.describe('Admin — SkillsEditor', () => {
     });
 
     test.afterAll(async ({ request }) => {
-        await request.post('/e2e/homepage-content', { data: originalContent });
+        expect((await request.post('/e2e/homepage-content', { data: originalContent })).ok()).toBe(true);
     });
 
     test.beforeEach(async ({ page }) => {

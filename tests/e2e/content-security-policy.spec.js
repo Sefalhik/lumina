@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { ADMIN_CSP_AUTH_FILE } from './helpers/auth.js';
+import { test, expect } from './helpers/test.js';
+import { ADMIN_CSP_SESSION } from './helpers/auth.js';
 
 /**
  * The content security policy is sent as Report-Only (LUMN-37): it blocks nothing, so "no page
@@ -103,7 +103,7 @@ test.describe('Content security policy — public pages', () => {
 });
 
 test.describe('Content security policy — administration', () => {
-    test.use({ storageState: ADMIN_CSP_AUTH_FILE });
+    test.use({ adminSession: ADMIN_CSP_SESSION });
 
     for (const theme of THEMES) {
         for (const url of ADMIN_PAGES) {

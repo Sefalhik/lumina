@@ -1,6 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/test.js';
 import AxeBuilder from '@axe-core/playwright';
-import { ADMIN_A11Y_AUTH_FILE } from './helpers/auth.js';
+import { ADMIN_A11Y_SESSION } from './helpers/auth.js';
 
 const THEMES = ['sprawl', 'steampunk', 'neon-noir'];
 
@@ -70,7 +70,7 @@ test.describe('Accessibility — login page', () => {
 });
 
 test.describe('Accessibility — 2FA challenge page', () => {
-    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+    test.use({ adminSession: ADMIN_A11Y_SESSION });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
@@ -85,7 +85,7 @@ test.describe('Accessibility — 2FA challenge page', () => {
 });
 
 test.describe('Accessibility — admin dashboard', () => {
-    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+    test.use({ adminSession: ADMIN_A11Y_SESSION });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
@@ -100,7 +100,7 @@ test.describe('Accessibility — admin dashboard', () => {
 });
 
 test.describe('Accessibility — admin homepage edit', () => {
-    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+    test.use({ adminSession: ADMIN_A11Y_SESSION });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
@@ -115,7 +115,7 @@ test.describe('Accessibility — admin homepage edit', () => {
 });
 
 test.describe('Accessibility — admin experiences list', () => {
-    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+    test.use({ adminSession: ADMIN_A11Y_SESSION });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
@@ -130,7 +130,7 @@ test.describe('Accessibility — admin experiences list', () => {
 });
 
 test.describe('Accessibility — admin experience form', () => {
-    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+    test.use({ adminSession: ADMIN_A11Y_SESSION });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
@@ -145,7 +145,7 @@ test.describe('Accessibility — admin experience form', () => {
 });
 
 test.describe('Accessibility — admin site identity edit', () => {
-    test.use({ storageState: ADMIN_A11Y_AUTH_FILE });
+    test.use({ adminSession: ADMIN_A11Y_SESSION });
 
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {

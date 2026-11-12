@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { ADMIN_EXPERIENCES_AUTH_FILE } from '../helpers/auth.js';
+import { test, expect } from '../helpers/test.js';
+import { ADMIN_EXPERIENCES_SESSION } from '../helpers/auth.js';
 
 /**
  * The CV timeline, driven through the real admin screens.
@@ -9,7 +9,7 @@ import { ADMIN_EXPERIENCES_AUTH_FILE } from '../helpers/auth.js';
  */
 test.describe.configure({ mode: 'serial' });
 
-test.use({ storageState: ADMIN_EXPERIENCES_AUTH_FILE });
+test.use({ adminSession: ADMIN_EXPERIENCES_SESSION });
 
 /**
  * Values must not collide with anything else rendered on the page — the seeded

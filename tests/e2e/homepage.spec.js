@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { ADMIN_AUTH_FILE } from './helpers/auth.js';
+import { test, expect } from './helpers/test.js';
+import { ADMIN_SESSION } from './helpers/auth.js';
 
 /**
  * The public homepage and the admin form that feeds it, in one serial file.
@@ -110,7 +110,7 @@ test.describe('Homepage', () => {
 });
 
 test.describe('Admin — Homepage form', () => {
-    test.use({ storageState: ADMIN_AUTH_FILE });
+    test.use({ adminSession: ADMIN_SESSION });
 
     let originalContent;
 
@@ -120,7 +120,7 @@ test.describe('Admin — Homepage form', () => {
     });
 
     test.afterAll(async ({ request }) => {
-        await request.post('/e2e/homepage-content', { data: originalContent });
+        expect((await request.post('/e2e/homepage-content', { data: originalContent })).ok()).toBe(true);
     });
 
     test.beforeEach(async ({ page }) => {

@@ -18,7 +18,7 @@
 
 Exits 0 on success, 1 on any failure (shows the relevant output for the failing step).
 
-**Prerequisite for E2E** : the `cardascia_it_e2e` database must exist — see [Playwright — dedicated E2E database](testing-conventions.md#playwright--dedicated-e2e-database).
+**Prerequisite for E2E** : the `cardascia_it_e2e` template database must exist, and the database role must be allowed to create databases — one copy per Playwright worker is made from it on every run. See [The databases](testing-conventions.md#the-databases).
 
 ### E2E preflight — the audit refuses rather than lies (LUMN-12)
 

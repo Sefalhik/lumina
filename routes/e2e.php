@@ -10,6 +10,7 @@
 use App\Models\HomepageContent;
 use App\Models\SiteIdentity;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +63,10 @@ Route::get('/e2e/homepage-content', function () {
 })->middleware('web');
 
 // Restores homepage FR content from a JSON body { tagline, subtitle, bio, meta_description }.
+// The two restore routes below are called by Playwright's request fixture, which holds no CSRF
+// token: under the web middleware they answered 419, and every restore the suite ran since they
+// were written was refused without anyone checking (found on 2026-11-12, LUMN-111). They are
+// exempted here, route by route, inside a file that only loads in local and testing.
 Route::post('/e2e/homepage-content', function () {
     $data = request()->validate([
         'tagline' => ['required', 'string'],
@@ -79,7 +84,7 @@ Route::post('/e2e/homepage-content', function () {
     $content->save();
 
     return response()->json(['ok' => true]);
-})->middleware('web');
+})->middleware('web')->withoutMiddleware(PreventRequestForgery::class);
 
 // Returns the current site identity as JSON so tests can snapshot and restore it.
 // Form-submission specs mutate this row, and it feeds the footer of every page —
@@ -121,4 +126,4 @@ Route::post('/e2e/site-identity', function () {
     $identity->save();
 
     return response()->json(['ok' => true]);
-})->middleware('web');
+})->middleware('web')->withoutMiddleware(PreventRequestForgery::class);
