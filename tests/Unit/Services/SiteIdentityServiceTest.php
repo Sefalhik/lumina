@@ -6,6 +6,8 @@ namespace Tests\Unit\Services;
 
 use App\Models\SiteIdentity;
 use App\Services\SiteIdentityService;
+use Illuminate\Support\Facades\Log;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class SiteIdentityServiceTest extends TestCase
@@ -97,6 +99,139 @@ class SiteIdentityServiceTest extends TestCase
         ]));
 
         $this->assertSame('https://github.com/Sefalhik', $links[0]['url']);
+    }
+
+    // ─── Only https reaches an href ──────────────────────────────────────────
+
+    /** @return array<string, array{string}> */
+    public static function refusedUrls(): array
+    {
+        return [
+            'javascript scheme' => ['javascript:alert(1)'],
+            'javascript scheme, mixed case and padded' => ['  JavaScript:alert(1)  '],
+            'data scheme' => ['data:text/html,<script>alert(1)</script>'],
+            'plain http' => ['http://github.com/Sefalhik'],
+            'another scheme' => ['ftp://github.com/Sefalhik'],
+            'no scheme' => ['github.com/Sefalhik'],
+            'protocol-relative' => ['//github.com/Sefalhik'],
+            'relative path' => ['/fr/cv'],
+            // parse_url() returns false for the next three: refused before any host check.
+            'https without a host' => ['https://'],
+            'https with an empty authority' => ['https:///Sefalhik'],
+            'unparseable' => ['https://:80'],
+            // Parsed, scheme https, but no host at all: only the host check refuses it.
+            'https scheme without slashes' => ['https:github.com/Sefalhik'],
+        ];
+    }
+
+    #[DataProvider('refusedUrls')]
+    public function test_a_url_that_is_not_absolute_https_is_never_returned(string $url): void
+    {
+        Log::spy();
+
+        $links = $this->service->socialLinks($this->identity([
+            'github_url' => $url,
+            'mastodon_url' => 'https://mastodon.social/@Sefalhik',
+        ]));
+
+        // The refused link alone disappears: its neighbours still render.
+        $this->assertSame(['mastodon'], array_column($links, 'key'));
+        $this->assertSame([], $this->service->heroLinks($this->identity(['linkedin_url' => $url])));
+    }
+
+    public function test_a_refused_url_is_logged_without_its_value(): void
+    {
+        $log = Log::spy();
+
+        $this->service->socialLinks($this->identity(['linkedin_url' => 'javascript:alert(1)']));
+
+        $log->shouldHaveReceived('warning')->once()->withArgs(
+            fn (string $message, array $context): bool => $message === 'Site identity profile URL is not https — not rendered'
+                && $context === [
+                    'service' => SiteIdentityService::class,
+                    'method' => 'socialLinks',
+                    'step' => 'reject_url',
+                    'network' => 'linkedin',
+                ],
+        );
+    }
+
+    public function test_an_uppercase_https_scheme_is_still_https(): void
+    {
+        $links = $this->service->socialLinks($this->identity(['github_url' => 'HTTPS://github.com/Sefalhik']));
+
+        $this->assertSame('HTTPS://github.com/Sefalhik', $links[0]['url']);
+    }
+
+    public function test_a_padded_https_url_is_accepted_once_trimmed(): void
+    {
+        // The scheme check runs on the trimmed value: padding is not a reason
+        // to refuse a URL the footer already accepted.
+        $links = $this->service->socialLinks($this->identity(['github_url' => "\t https://github.com/Sefalhik \n"]));
+
+        $this->assertSame('https://github.com/Sefalhik', $links[0]['url']);
+    }
+
+    // ─── Hero links (LUMN-104) ───────────────────────────────────────────────
+
+    public function test_hero_offers_linkedin_then_mastodon(): void
+    {
+        $links = $this->service->heroLinks($this->identity([
+            'mastodon_url' => 'https://mastodon.social/@Sefalhik',
+            'linkedin_url' => 'https://www.linkedin.com/in/someone/',
+            'github_url' => 'https://github.com/Sefalhik',
+        ]));
+
+        // The whole value, not array_column(): array_column() reindexes, and
+        // would hide the gap GitHub leaves at index 0 once filtered out.
+        $this->assertSame([
+            ['key' => 'linkedin', 'label' => 'LinkedIn', 'url' => 'https://www.linkedin.com/in/someone/'],
+            ['key' => 'mastodon', 'label' => 'Mastodon', 'url' => 'https://mastodon.social/@Sefalhik'],
+        ], $links);
+    }
+
+    public function test_hero_never_offers_github(): void
+    {
+        $links = $this->service->heroLinks($this->identity([
+            'github_url' => 'https://github.com/Sefalhik',
+        ]));
+
+        $this->assertSame([], $links);
+    }
+
+    public function test_hero_skips_an_empty_linkedin(): void
+    {
+        $links = $this->service->heroLinks($this->identity([
+            'linkedin_url' => '  ',
+            'mastodon_url' => 'https://mastodon.social/@Sefalhik',
+        ]));
+
+        $this->assertSame(['mastodon'], array_column($links, 'key'));
+    }
+
+    public function test_hero_skips_an_empty_mastodon(): void
+    {
+        $links = $this->service->heroLinks($this->identity([
+            'linkedin_url' => 'https://www.linkedin.com/in/someone/',
+            'mastodon_url' => null,
+        ]));
+
+        $this->assertSame(['linkedin'], array_column($links, 'key'));
+    }
+
+    public function test_hero_is_empty_without_any_identity(): void
+    {
+        $this->assertSame([], $this->service->heroLinks(null));
+        $this->assertSame([], $this->service->heroLinks($this->identity()));
+    }
+
+    public function test_hero_urls_are_trimmed_like_the_footer(): void
+    {
+        $links = $this->service->heroLinks($this->identity([
+            'linkedin_url' => '  https://www.linkedin.com/in/someone/  ',
+        ]));
+
+        $this->assertSame('https://www.linkedin.com/in/someone/', $links[0]['url']);
     }
 
     // ─── Scalar fields ───────────────────────────────────────────────────────

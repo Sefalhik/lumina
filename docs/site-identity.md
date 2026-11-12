@@ -1,7 +1,7 @@
 # Site identity — conventions
 
-Who runs this site, and where to find them. Powers the footer today; will power the schema.org
-`sameAs` declaration next.
+Who runs this site, and where to find them. Powers the footer and the homepage hero's profile
+buttons today; will power the schema.org `sameAs` declaration next.
 
 ## Why a dedicated model
 
@@ -101,6 +101,18 @@ accepts `https://github.com/`, `https://github.com/orgs/laravel/projects/1` and
 `https://www.linkedin.com/feed/`. Any of them would end up in a `sameAs` statement declaring that
 this person *is* GitHub's home page — worse than declaring nothing, because it actively misinforms.
 
+### Rendering trusts the service, not the column
+
+Validation guards the admin form, not the table: a value written by other means — a migration, a
+console session, a restored dump — never meets it. Yet every profile URL lands in an `href` on every
+page. `SiteIdentityService::socialLinks()` therefore renders **only absolute `https` URLs with a
+host**: `javascript:`, `data:`, `http:`, a relative or protocol-relative path, a bare host are
+dropped, the neighbouring links still render, and a `warning` is logged with the network only —
+never the stored value (LUMN-104). The footer and the homepage hero both read through it.
+
+Escaping is not enough on its own: Blade's `{{ }}` stops a value from breaking out of the
+attribute, but `javascript:alert(1)` needs no escaping to run once clicked.
+
 ### Input is normalised before validation
 
 `prepareForValidation()` in `SiteIdentityRequest` trims whitespace and strips query strings and
@@ -110,7 +122,9 @@ kinder than rejecting someone over a suffix LinkedIn added on its own.
 
 ## rel="me" — reciprocal verification
 
-Footer links carry `rel="me noopener noreferrer"`.
+Footer links and the hero's profile buttons carry `rel="me noopener noreferrer"`, every network
+included: each profile is the site owner's, and the same link does not say two different things
+depending on where it sits on the page (decided on LUMN-104).
 
 Mastodon verifies identity by **mutual link**: if the profile points at the site and the site
 answers with `rel="me"`, Mastodon shows a green check on the profile. Same reciprocity logic as
@@ -160,6 +174,10 @@ Four steps:
 The footer needs no change: `SiteIdentityService::NETWORKS` drives display order and labels, and
 the Blade template just loops. Add the entry there and it appears.
 
+The homepage hero shows only the networks listed in `SiteIdentityService::HERO_NETWORKS` —
+LinkedIn and Mastodon, in place of the calls to action withdrawn until their pages are ready
+(LUMN-104). A new network reaches the hero only if it is added there too.
+
 Then add it to the admin view, and extend the E2E seeder (`E2eSiteIdentitySeeder`) — otherwise the
 axe-core scan will never see the new link. See `docs/testing-conventions.md`, Playwright sections.
 
@@ -170,11 +188,13 @@ axe-core scan will never see the new link. See `docs/testing-conventions.md`, Pl
 | Unit — service | `tests/Unit/Services/SiteIdentityServiceTest.php` |
 | Unit — rule | `tests/Unit/Rules/ProfileUrlTest.php` |
 | Feature | `tests/Feature/Admin/SiteIdentityTest.php` |
-| E2E | `tests/e2e/site-identity.spec.js` |
+| Feature — hero | `tests/Feature/Http/HomepageHeroProfilesTest.php` |
+| E2E | `tests/e2e/site-identity.spec.js` (footer, hero profiles, admin form) |
 | E2E — a11y | `tests/e2e/accessibility.spec.js` (footer + admin form, 3 themes) |
 
-The E2E file holds **both** the admin form and the footer, in **serial mode**, deliberately: the
-form specs mutate the single identity row, which feeds the footer of every page. Split across two
+The E2E file holds the admin form, the footer **and the hero's profile buttons**, in **serial
+mode**, deliberately: the form specs mutate the single identity row, which feeds the footer of every
+page and the homepage hero. Split across two
 files, Playwright would run them in parallel over each other's half-written state. They restore
 the row after *every* test via `/e2e/site-identity`, not just at the end.
 

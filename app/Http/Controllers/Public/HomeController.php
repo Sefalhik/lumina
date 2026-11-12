@@ -6,12 +6,17 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\HomepageContent;
+use App\Models\SiteIdentity;
 use App\Services\HomepageContentService;
+use App\Services\SiteIdentityService;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function __construct(private readonly HomepageContentService $homepage) {}
+    public function __construct(
+        private readonly HomepageContentService $homepage,
+        private readonly SiteIdentityService $identity,
+    ) {}
 
     public function index(): View
     {
@@ -34,6 +39,7 @@ class HomeController extends Controller
         return view('home', [
             'content' => $content,
             'prose' => $this->homepage->prose($bio),
+            'heroProfiles' => $this->identity->heroLinks(SiteIdentity::first()),
         ]);
     }
 }

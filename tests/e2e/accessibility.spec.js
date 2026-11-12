@@ -39,6 +39,27 @@ test.describe('Accessibility — home page', () => {
     }
 });
 
+test.describe('Accessibility — home page, mobile menu open', () => {
+    // The desktop scan never sees the mobile menu: it is display:none above the
+    // md breakpoint. Here it is open, so axe checks its links in every theme.
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    for (const theme of THEMES) {
+        test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
+            await page.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
+            await page.goto('/fr/');
+            await page.evaluate((t) => {
+                document.documentElement.setAttribute('data-theme', t);
+            }, theme);
+
+            await page.getByRole('button', { name: 'Menu' }).click();
+            await expect(page.locator('#mobile-menu a').first()).toBeVisible();
+
+            expect(formatViolations(await axeCheck(page))).toEqual([]);
+        });
+    }
+});
+
 test.describe('Accessibility — CV page', () => {
     // E2eExperienceSeeder guarantees a seeded position, so the scan sees the
     // real timeline markup — period, "still there" badge, headings — rather than

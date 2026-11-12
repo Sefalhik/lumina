@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http;
 
 use App\Models\HomepageContent;
+use App\Models\SiteIdentity;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -32,11 +33,17 @@ class HomepageProseTest extends TestCase
     {
         $this->withBio("ACCROCHE unique.\n\nSUITE de la biographie.");
 
+        // The buttons are the profile links while the calls to action are
+        // withdrawn (LUMN-104): they need an identity to render at all.
+        $identity = SiteIdentity::firstOrNew([]);
+        $identity->fill(['linkedin_url' => 'https://www.linkedin.com/in/someone/']);
+        $identity->save();
+
         $html = $this->get('/fr/')->assertOk()->getContent();
         $this->assertIsString($html);
 
         $lead = strpos($html, 'ACCROCHE unique.');
-        $cta = strpos($html, __('home.cta_projects'));
+        $cta = strpos($html, 'id="hero-profiles"');
         $body = strpos($html, 'SUITE de la biographie.');
 
         $this->assertNotFalse($lead);

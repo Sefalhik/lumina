@@ -83,6 +83,55 @@ test.describe('Footer — site identity', () => {
     });
 });
 
+// ─── Homepage hero ───────────────────────────────────────────────────────────
+
+// The hero offers the LinkedIn and Mastodon profiles while its calls to action
+// are withdrawn (LUMN-104). It reads the identity row too, which is why these
+// tests live in this serial file and not in homepage.spec.js: there, they would
+// run while the admin specs below rewrite the row.
+test.describe('Homepage hero — profile links', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
+        await page.goto('/fr/');
+    });
+
+    const hero = (page) => page.locator('#hero-profiles');
+
+    test('both profiles are visible without scrolling', async ({ page }) => {
+        const viewport = page.viewportSize();
+        expect(viewport).not.toBeNull();
+
+        for (const name of [/LinkedIn/, /Mastodon/]) {
+            // Scoped to the hero: the footer carries the same two links, far
+            // below the fold, and a page-wide locator could match either.
+            const link = hero(page).getByRole('link', { name });
+
+            await expect(link).toBeVisible();
+
+            const box = await link.boundingBox();
+            expect(box).not.toBeNull();
+
+            // toBeVisible() is true for an element 3000px down the page. What
+            // matters is where its bottom edge sits relative to the fold.
+            expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+        }
+
+        expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    });
+
+    test('the hero links what the admin saved, and nothing else', async ({ page }) => {
+        await expect(hero(page).getByRole('link')).toHaveCount(2);
+        await expect(hero(page).getByRole('link', { name: /Mastodon/ })).toHaveAttribute(
+            'href',
+            'https://mastodon.social/@example',
+        );
+        await expect(hero(page).getByRole('link', { name: /LinkedIn/ })).toHaveAttribute(
+            'href',
+            'https://www.linkedin.com/in/example/',
+        );
+    });
+});
+
 // ─── Admin form ──────────────────────────────────────────────────────────────
 
 test.describe('Admin — site identity form', () => {
@@ -181,7 +230,7 @@ test.describe('Admin — site identity form', () => {
         ).toHaveAttribute('href', 'https://piaille.fr/@quelquun');
     });
 
-    test('clearing a field removes it from the footer', async ({ page }) => {
+    test('clearing a field removes it from the footer and the hero', async ({ page }) => {
         await page.locator('#mastodon_url').fill('');
 
         await page.getByRole('button', { name: /enregistrer/i }).click();
@@ -193,5 +242,7 @@ test.describe('Admin — site identity form', () => {
         await expect(
             page.locator('footer').getByRole('link', { name: /Mastodon/i }),
         ).toHaveCount(0);
+        await expect(page.locator('#hero-profiles').getByRole('link', { name: /Mastodon/i })).toHaveCount(0);
+        await expect(page.locator('#hero-profiles').getByRole('link', { name: /LinkedIn/i })).toHaveCount(1);
     });
 });
