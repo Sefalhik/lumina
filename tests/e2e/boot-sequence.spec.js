@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/test.js';
 
 test.describe('Boot sequence', () => {
     // Each test gets a fresh browser context (fresh sessionStorage) by default.

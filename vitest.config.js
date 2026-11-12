@@ -20,7 +20,15 @@ export default defineConfig({
             // scripts/mutate-lines.js is what says whether the other tests can be trusted: it has
             // to be held to what it asks of them.
             // scripts/e2e-preflight.js is not measured yet — 88% of lines, 70% of branches.
-            include: ['resources/js/utils/**/*.js', 'scripts/audit-advisories.js', 'scripts/mutate-lines.js'],
+            //
+            // tests/e2e/helpers/workers.js maps each Playwright worker to its server and database
+            // (LUMN-111): a wrong line sends a test to another worker's data. Held to 100% too.
+            include: [
+                'resources/js/utils/**/*.js',
+                'scripts/audit-advisories.js',
+                'scripts/mutate-lines.js',
+                'tests/e2e/helpers/workers.js',
+            ],
             thresholds: {
                 statements: 80,
                 branches: 80,
@@ -33,6 +41,12 @@ export default defineConfig({
                     lines: 100,
                 },
                 'scripts/mutate-lines.js': {
+                    statements: 100,
+                    branches: 100,
+                    functions: 100,
+                    lines: 100,
+                },
+                'tests/e2e/helpers/workers.js': {
                     statements: 100,
                     branches: 100,
                     functions: 100,

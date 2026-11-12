@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Deployment;
 
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Route;
 use Tests\Concerns\RebootsInEnvironment;
 use Tests\TestCase;
@@ -108,5 +109,44 @@ class E2eRouteGuardTest extends TestCase
                 "Route [{$uri}] is environment-conditional but does not sit under the e2e/ prefix.",
             );
         }
+    }
+
+    /**
+     * Routes that skip CSRF verification, as "METHOD uri".
+     *
+     * @return list<string>
+     */
+    private function routesWithoutForgeryProtection(): array
+    {
+        return collect(app('router')->getRoutes()->getRoutes())
+            ->filter(fn (Route $route): bool => in_array(PreventRequestForgery::class, $route->excludedMiddleware(), true))
+            ->flatMap(fn (Route $route): array => array_map(
+                fn (string $method): string => "{$method} {$route->uri()}",
+                array_values(array_diff($route->methods(), ['HEAD'])),
+            ))
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The two restore routes are exempt from CSRF so that Playwright's request fixture can call
+     * them (LUMN-111). PHPUnit cannot watch that from a request: Laravel skips CSRF verification
+     * under unit tests. It is watched here, on the route table: the exemption must not spread —
+     * least of all to GET /e2e/admin-auth's neighbours, nor to a route of the site itself.
+     */
+    public function test_only_the_two_restore_routes_skip_forgery_protection(): void
+    {
+        $this->assertSame(
+            ['POST e2e/homepage-content', 'POST e2e/site-identity'],
+            $this->routesWithoutForgeryProtection(),
+        );
+    }
+
+    public function test_no_route_skips_forgery_protection_in_production(): void
+    {
+        $this->rebootIn('production');
+
+        $this->assertSame([], $this->routesWithoutForgeryProtection());
     }
 }

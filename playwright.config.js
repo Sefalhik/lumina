@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-import { e2eEnv } from './tests/e2e/helpers/e2e-env.js';
+import { E2E_WORKERS, portFor, serverEnv, slots, urlFor } from './tests/e2e/helpers/workers.js';
 
 export default defineConfig({
     testDir: './tests/e2e',
@@ -8,25 +8,31 @@ export default defineConfig({
     retries: process.env.CI ? 2 : 0,
     reporter: 'html',
 
+    // One worker per server, never more: a worker without a server of its own would have no
+    // environment to talk to (LUMN-111, tests/e2e/helpers/workers.js).
+    workers: E2E_WORKERS,
+
     globalSetup: './tests/e2e/global-setup.js',
 
-    // Dedicated E2E server on port 8001 pointing at cardascia_it_e2e database.
-    // Prerequisite (once): createdb -h 127.0.0.1 -p 5433 -U sefalhik cardascia_it_e2e
-    webServer: {
-        command: 'php artisan serve --port=8001 --no-interaction',
-        url: 'http://localhost:8001/up',
-        env: e2eEnv,
+    // One server per worker slot, each on its own port and its own database.
+    // Readiness is read on a static file, not /up: Playwright starts these servers before
+    // globalSetup has created their databases, and /up reads the database.
+    webServer: slots().map((slot) => ({
+        command: `php artisan serve --port=${portFor(slot)} --no-interaction`,
+        url: `${urlFor(slot)}/favicons/favicon-sprawl.svg`,
+        env: serverEnv(slot),
         reuseExistingServer: !process.env.CI,
         timeout: 30_000,
-    },
+    })),
 
+    // No baseURL here: tests/e2e/helpers/test.js gives each test its slot's, and auth.setup.js
+    // names the server of each slot it prepares.
     use: {
-        baseURL: 'http://localhost:8001',
         trace: 'on-first-retry',
     },
 
     projects: [
-        // Authenticates once and saves session state to tests/e2e/.auth/admin.json
+        // Creates the admin sessions, on every slot's server — tests/e2e/auth.setup.js
         {
             name: 'setup',
             testMatch: /auth\.setup\.js/,

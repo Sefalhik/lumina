@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { ADMIN_IDENTITY_AUTH_FILE } from './helpers/auth.js';
+import { test, expect } from './helpers/test.js';
+import { ADMIN_IDENTITY_SESSION } from './helpers/auth.js';
 
 /**
  * Site identity, end to end: the admin form that writes it and the footer that
@@ -86,7 +86,7 @@ test.describe('Footer — site identity', () => {
 // ─── Admin form ──────────────────────────────────────────────────────────────
 
 test.describe('Admin — site identity form', () => {
-    test.use({ storageState: ADMIN_IDENTITY_AUTH_FILE });
+    test.use({ adminSession: ADMIN_IDENTITY_SESSION });
 
     let original;
 
@@ -98,7 +98,7 @@ test.describe('Admin — site identity form', () => {
         // Restore after EVERY test, not just at the end: this row drives the
         // footer of the whole site, so it must not stay modified any longer
         // than the test that changed it.
-        await request.post('/e2e/site-identity', { data: original });
+        expect((await request.post('/e2e/site-identity', { data: original })).ok()).toBe(true);
     });
 
     test.beforeEach(async ({ page }) => {

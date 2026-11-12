@@ -106,6 +106,38 @@ Four rules come with the tool:
   `<file>.before-mutation` sits beside it meanwhile. If the process is killed outright, that copy
   is the original: the tool refuses to start again until it has been dealt with.
 
+**On the end-to-end infrastructure, targeted mutations first.** A line of a Playwright fixture,
+setup or configuration is only noticed by a browser run: about ten seconds a deletion on a subset of
+specs, and a subset cannot see what the specs outside it would — remove the seeder only the CV's
+accessibility scan needs, and a subset that never opens the CV stays green. The practice, adopted on
+LUMN-111 (2026-11-12):
+
+- the **mechanical pass on the fixtures every test goes through** (`tests/e2e/helpers/test.js`,
+  `auth.setup.js`): cheap enough, and that is where LUMN-111's first defect lived — 12 lines out of
+  12 noticed, once the fixture was fixed;
+- **targeted mutations, chosen from what the file must refuse**, for the rest — the setup, the
+  configuration, the restore routes — each run on a subset that can actually see it;
+- **every survivor of a subset gets a verdict naming the spec that covers it**, rather than a full
+  run per survivor. A survivor no spec covers is a test to write, like anywhere else.
+
+The doctrine does not change: both passes, and every survivor judged. What changes is where the
+cheaper one is spent.
+
+**Never run a mutation of code that destroys data.** A mutation removes a line, and on a file that
+drops, migrates or deletes, the line removed may be the one that chose the target. On 2026-11-12
+the mechanical pass ran `tests/e2e/global-setup.js` for real, through Playwright: deleting
+`env: { ...process.env, ...env }` let `php artisan migrate:fresh --force` read `.env`, and the
+**developer's database was wiped** — while the suite stayed green, on the template the previous run
+had left. No backup existed.
+
+- Before any pass, list what the file **executes**: a database, the file system, the network, a
+  remote server. If any of it reaches outside the test sandbox, the file is mutated **only under a
+  replaced executor** — `vi.mock('child_process')` for `global-setup.js`, in
+  `scripts/__tests__/e2e-global-setup.test.js`, which is the only place that file may be mutated.
+- The destructive code itself carries an allowlist of what it may touch, checked on every call
+  (`artisanEnv()` in `global-setup.js`): a guard a single deleted line cannot route around silently.
+- In doubt, ask before running.
+
 ### What 100% does not see
 
 The bar for logic is 100%. The threshold enforced today is lower — see
@@ -230,61 +262,140 @@ Runs automatically on `git commit`:
 2. `npm run test:unit:coverage` — JS unit tests + coverage threshold
 3. `composer test:coverage` — PHP unit + feature tests + coverage threshold
 
-## Playwright — dedicated E2E database
-E2E tests run against a **dedicated PostgreSQL database** (`cardascia_it_e2e`) and a **dedicated server** (`php artisan serve --port=8001`) — never the dev database or dev server.
+## Playwright — one environment per worker
+Every Playwright worker talks to **a server and a database of its own** (LUMN-111) — never the dev
+database or dev server, and never another worker's.
 
-Prerequisite (one-time):
+| Slot | Server | Database |
+|------|--------|----------|
+| 0 | `http://localhost:8001` | `cardascia_it_e2e_0` |
+| 1 | `http://localhost:8002` | `cardascia_it_e2e_1` |
+| … | one per worker | one per worker |
+
+`tests/e2e/helpers/workers.js` is the single source of that mapping and of the number of workers
+(`E2E_WORKERS`). `playwright.config.js` sets `workers` to it and starts one `php artisan serve` per
+slot; `scripts/__tests__/e2e-workers.test.js` fails when the two drift apart.
+
+**Why.** Until 2026-11-12 every worker shared one server and one database. Two spec files writing
+the same row corrupted each other whenever their timing overlapped: the homepage form and the skills
+editor did, two runs in four, the day a few tests were added to one of them. The suite had already
+grown three workarounds for that same sharing — public homepage tests reading German because the
+admin writes French, the identity specs forced into one serial file, a comment admitting that
+"serialising is necessary and not sufficient". Ordering the two culprits one after the other would
+have been a fourth. Isolation removes the class of bug, not the instance.
+
+Rejected: one server, with a request header choosing the database. It puts in the application a
+mechanism by which a request picks its database — one more switch to keep out of production, next
+to the `/e2e/admin-auth` backdoor. The isolation chosen is configuration only.
+
+### How many workers — measured
+`E2E_WORKERS` is **4**, the same locally and in CI. Measured on 2026-11-12 on a 16-core developer
+machine, three full runs per value, 146 tests each time:
+
+| Workers | Runs | Mean | Failures |
+|---------|------|------|----------|
+| 2 | 78 s · 78 s · 80 s | 78.7 s | none |
+| **4** | 71 s · 70 s · 69 s | **70.0 s** | none |
+| 6 | 81 s · 75 s · 74 s | 76.7 s | none |
+| 8 | 83 s · 85 s · 85 s | 84.3 s | none |
+
+Beyond 4 the suite gets **slower**: every slot adds work that does not run in parallel — one more
+database copy, six more admin sessions — and more PHP servers compete for the machine.
+
+`auth.setup.js` then prepared the slots in parallel instead of one after the other (the sessions of
+one slot stay in series: its server answers one request at a time). Same machine, 4 workers, three
+runs: 62.8 s · 63.9 s · 63.3 s, **63.3 s** on average, the 24 sessions taking 5.6 s. The shared
+single database of before ran in about 58 s with 8 workers, and failed at random: the 5 seconds are
+the price of isolation. A GitHub runner has 4 cores, so CI gets one
+server per core. Re-measure before changing the number, and change it in `helpers/workers.js` only.
+
+### How a test reaches its slot
+**Every spec imports `test` and `expect` from `tests/e2e/helpers/test.js`**, never from
+`@playwright/test`. That `test` sets, from `testInfo.parallelIndex`:
+
+- `baseURL` — the slot's server, so `page.goto('/fr/')` and the `request` fixture reach it;
+- `storageState` — from the `adminSession` option, see [one admin session per spec file](#playwright--one-admin-session-per-spec-file).
+
+`parallelIndex`, not `workerIndex`: the first is the worker's slot, stable from 0 to workers − 1;
+the second grows every time a worker restarts after a failure. A spec that names a port
+(`localhost:8001`) or imports `@playwright/test` directly escapes its slot: the Vitest guard above
+fails on both (LUMN-109 turns the import rule into an ESLint rule).
+
+### The databases
+Prerequisite (one-time): the template database, and a role allowed to create databases.
 ```bash
 createdb -h 127.0.0.1 -p 5433 -U <user> cardascia_it_e2e
 ```
 
-The Playwright `webServer` starts the server automatically with env overrides from `tests/e2e/helpers/e2e-env.js`:
-- `DB_DATABASE=cardascia_it_e2e`
-- `APP_URL=http://localhost:8001`
-- `SESSION_DOMAIN=localhost`
-- `SESSION_SECURE_COOKIE=false` (HTTP — not HTTPS like the dev server)
+`globalSetup` (`tests/e2e/global-setup.js`) runs `migrate:fresh --force` on the **template**,
+`cardascia_it_e2e`, seeds it, then copies it into every slot's database with
+`CREATE DATABASE … TEMPLATE …` — a file copy on PostgreSQL's side, much cheaper than migrating and
+seeding each one. No server points at the template: PostgreSQL refuses to copy a database that has
+open connections.
 
-`globalSetup` (`tests/e2e/global-setup.js`) runs `migrate:fresh --force` before each test run — every run starts from a clean schema — then seeds `E2eSiteIdentitySeeder`.
+**Playwright starts the web servers before `globalSetup` runs** (its plugins come first —
+`createGlobalSetupTasks` in Playwright's runner). That is why the servers' readiness URL is a
+static file and not `/up`: `/up` reads the database, the slots' databases do not exist yet when the
+servers start, and Playwright only accepts a status from 200 to 403 as "ready".
 
-**Why that seeder matters**: with an empty `site_identities` table the footer renders no links, so the axe-core scan never sees them and their accessibility goes unverified while the suite stays green. Seeding a fictional identity makes the existing scan cover them on all three themes. Any future feature whose markup only appears when data exists needs the same treatment.
+Each server gets `DB_DATABASE` and `APP_URL` of its slot, plus `SESSION_DOMAIN=localhost` and
+`SESSION_SECURE_COOKIE=false` (HTTP — not HTTPS like the dev server).
+
+### Why the template is seeded
+**`E2eSiteIdentitySeeder`**: with an empty `site_identities` table the footer renders no links, so
+the axe-core scan never sees them and their accessibility goes unverified while the suite stays
+green. Seeding a fictional identity makes the existing scan cover them on all three themes. Any
+future feature whose markup only appears when data exists needs the same treatment.
 
 `HomepageContentSeeder` runs next, for exactly that reason — and the rule had already been broken once before it did. With an empty `homepage_contents` table the homepage falls back to a one-sentence placeholder: the About section never renders, and the skills grid shows its fallback branch. axe-core scanned three themes without ever seeing what the CMS produces. Seeding it surfaced **373 real contrast violations** in `SkillsEditor`'s line-number gutter, plus an E2E test that only passed because the editor was empty.
 
 The **real** seeder is used rather than an E2E twin: since LUMN-29 it reads a versioned, offline data file, so the browser suite exercises the content production will actually ship.
 
+### Isolation does not replace restoring
+Within a slot, spec files run one after another, and each inherits what the previous one left. A
+spec that changes site-wide data still restores it — see the e2e helper routes below. What
+isolation removes is the **concurrent** collision, and with it the need for any new workaround:
+do not add another spec-ordering trick, another locale chosen to dodge a writer, another file merged
+"so they run in series". `tests/e2e/worker-isolation.spec.js` proves, from the outside, that a
+worker's writes are invisible to every other slot.
+
 ## Playwright — authentication
-Admin tests use `storageState` to authenticate once and reuse the session — **never** call the auth helper in `beforeEach` (causes race conditions under `fullyParallel: true`).
+Admin tests reuse a session created once — **never** call the auth helper in `beforeEach` (causes race conditions under `fullyParallel: true`).
 
 ```js
-test.use({ storageState: ADMIN_AUTH_FILE }); // tests/e2e/.auth/admin.json — gitignored
+import { ADMIN_SESSION } from './helpers/auth.js';
+
+test.use({ adminSession: ADMIN_SESSION }); // never storageState: see below
 ```
 
-The session is created once by `tests/e2e/auth.setup.js` via `GET /e2e/admin-auth` (helper route in `routes/e2e.php`, loaded in `local` and `testing` only).
+The sessions are created once by `tests/e2e/auth.setup.js` via `GET /e2e/admin-auth` (helper route in `routes/e2e.php`, loaded in `local` and `testing` only), **on every slot's server**: a session exists only in the database that created it. They land in `tests/e2e/.auth/slot-<n>/<group>.json`, gitignored.
+
+**A spec never sets `storageState` itself.** `test.use({ storageState })` does not feed the slot-aware fixture of `helpers/test.js`, it *replaces* it — and sends the test to a session that exists in no slot's database. The first version of LUMN-111 did exactly that: every admin spec landed on the login page, while a diagnostic that opened the same files directly found all sixteen sessions valid. The Vitest guard refuses `storageState` in a spec.
 
 The e2e routes call `session()->save()` explicitly after setting session data. It was required under `SESSION_DRIVER=redis`, which writes in `StartSession::terminate()` — after the response is sent — so the browser could follow the redirect before the session existed. The `database` driver adopted on 2026-09-14 writes during the request, so the call is now belt and braces; it is kept because an explicit save before a redirect is never wrong and it keeps the helper independent of the driver in use.
 
-Form-submission tests must run in serial mode to prevent session flash interference between parallel workers:
+Form-submission tests must run in serial mode to prevent session flash interference between tests of the same file:
 ```js
 test.describe.configure({ mode: 'serial' });
 ```
 
 ## Playwright — one admin session per spec file
-`auth.setup.js` creates **one isolated server-side session per spec file that loads admin pages**, each from its own browser context (`tests/e2e/helpers/auth.js`):
+`auth.setup.js` creates **one isolated server-side session per spec file that loads admin pages**, per slot, each from its own browser context (`tests/e2e/helpers/auth.js`):
 
-| Auth file | Constant | Used by |
-|-----------|----------|---------|
-| `.auth/admin.json` | `ADMIN_AUTH_FILE` | `homepage.spec.js` (its admin describe) |
-| `.auth/admin-editor.json` | `ADMIN_EDITOR_AUTH_FILE` | `admin/skills-editor.spec.js` |
-| `.auth/admin-identity.json` | `ADMIN_IDENTITY_AUTH_FILE` | `site-identity.spec.js` |
-| `.auth/admin-a11y.json` | `ADMIN_A11Y_AUTH_FILE` | `accessibility.spec.js` |
-| `.auth/admin-experiences.json` | `ADMIN_EXPERIENCES_AUTH_FILE` | `admin/experiences.spec.js` |
-| `.auth/admin-csp.json` | `ADMIN_CSP_AUTH_FILE` | `content-security-policy.spec.js` |
+| Session group | Constant | Used by |
+|---------------|----------|---------|
+| `admin` | `ADMIN_SESSION` | `homepage.spec.js` (its admin describe) |
+| `admin-editor` | `ADMIN_EDITOR_SESSION` | `admin/skills-editor.spec.js` |
+| `admin-identity` | `ADMIN_IDENTITY_SESSION` | `site-identity.spec.js` |
+| `admin-a11y` | `ADMIN_A11Y_SESSION` | `accessibility.spec.js` |
+| `admin-experiences` | `ADMIN_EXPERIENCES_SESSION` | `admin/experiences.spec.js` |
+| `admin-csp` | `ADMIN_CSP_SESSION` | `content-security-policy.spec.js` |
 
-**Why one per file**: `fullyParallel: true` runs spec files concurrently. Two browser contexts created from the same `storageState` send the same `laravel_session` cookie → the same server-side session store. A flash message set by one spec's submission is consumed by the next page load in *any* spec sharing that session, regardless of browser-context isolation.
+**Why one per file**: two browser contexts created from the same session file send the same session cookie → the same server-side session store. A flash message set by one spec's submission is consumed by the next page load in *any* spec sharing that session, regardless of browser-context isolation. Per-slot databases do not remove this: two spec files of the same slot still run one after another on one database, and a session left with a pending flash is inherited.
 
 **The trap**: this is not limited to specs that submit forms. **Any page load consumes pending flashes**, so a read-only spec steals them too — that is why the axe-core scans need their own session, and why adding three scans on the shared session was enough to break `homepage-form.spec.js`.
 
-**When adding a spec that loads admin pages**, give it its own auth file: add a constant in `helpers/auth.js`, add it to `SESSIONS` in `auth.setup.js`, and `test.use()` it. Reusing an existing one produces failures in a *different* spec, which is a miserable thing to debug.
+**When adding a spec that loads admin pages**, give it its own group: add a constant in `helpers/auth.js` and to `ADMIN_SESSIONS`, then `test.use({ adminSession })` it. Reusing an existing one produces failures in a *different* spec, which is a miserable thing to debug.
 
 ## Playwright — e2e helper routes (`routes/e2e.php`)
 Loaded in `local` and `testing` **only** — an allowlist in `bootstrap/app.php`.
@@ -308,7 +419,9 @@ Naming an environment after its role rather than its exposure is how the backdoo
 | `GET /e2e/site-identity` | Returns the current site identity as JSON (for test snapshot) |
 | `POST /e2e/site-identity` | Restores the site identity from JSON body (for test teardown) |
 
-**Specs that mutate site-wide data must restore it after *every* test, not just at the end.** The identity row feeds the footer of every page, so leaving it modified corrupts any spec that renders a public page. `site-identity.spec.js` keeps the admin form and the footer in **one serial file** for the same reason — split across two files, Playwright runs them in parallel and they read each other's half-written state.
+**The two `POST` routes are exempt from CSRF**, route by route (`withoutMiddleware(PreventRequestForgery::class)`). Playwright's `request` fixture holds no CSRF token: until 2026-11-12 both answered **419**, and every restore the suite ran was refused — silently, since no spec looked at the response. PHPUnit could not have caught it: Laravel skips CSRF verification under unit tests. **Every write to an `/e2e/` route is asserted** — `expect((await request.post(…)).ok()).toBe(true)` — and the Vitest guard counts them.
+
+**Specs that mutate site-wide data must restore it after *every* test, not just at the end.** The identity row feeds the footer of every page, so leaving it modified corrupts the next spec file of the same slot that renders a public page.
 
 Note: `two_factor_confirmed_at` is not in `User::$fillable` — assign it directly on the model instance to bypass the guard.
 

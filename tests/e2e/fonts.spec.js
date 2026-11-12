@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/test.js';
 
 /**
  * Each theme renders its own fonts, served by the site (LUMN-102). Checked on what the browser did,
