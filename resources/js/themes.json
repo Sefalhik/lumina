@@ -1,5 +1,5 @@
 [
-    { "id": "sprawl", "icon": "⬡" },
-    { "id": "steampunk", "icon": "⚙" },
-    { "id": "neon-noir", "icon": "◈" }
+    { "id": "sprawl", "icon": "⬡", "favicon": "/favicons/favicon-sprawl.svg" },
+    { "id": "steampunk", "icon": "⚙", "favicon": "/favicons/favicon-steampunk.svg" },
+    { "id": "neon-noir", "icon": "◈", "favicon": "/favicons/favicon-neon-noir.svg" }
 ]

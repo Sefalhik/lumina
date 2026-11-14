@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="sprawl">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ config('themes.default') }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
         <link rel="alternate" hreflang="{{ $seoHreflang }}" href="{{ $seoAlternateUrl }}">
     @endforeach
 
-    <link rel="icon" id="favicon" type="image/svg+xml" href="/favicons/favicon-sprawl.svg">
+    <link rel="icon" id="favicon" type="image/svg+xml" href="{{ config('themes.default_favicon') }}">
 
     @include('layouts.partials.restore-preferences')
 

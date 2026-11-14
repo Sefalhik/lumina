@@ -1,3 +1,5 @@
+import { storeQuietly } from './storage.js';
+
 /** @typedef {{ code: string, name: string, flag: string }} Locale */
 
 /** @type {Locale[]} */
@@ -60,7 +62,12 @@ export function filterLocales(locales, query) {
 /**
  * Persist the chosen locale to localStorage so other tabs can react via the
  * `storage` event and navigate to the equivalent URL in the new locale.
+ *
+ * A browser that refuses storage still changes language — the link does that — and the click must
+ * not throw at the page on the way (LUMN-124): the other tabs simply do not follow.
+ *
+ * @returns {boolean} whether the other tabs will hear of it
  */
 export function writeLocaleToStorage(code) {
-    localStorage.setItem('locale', code);
+    return storeQuietly(() => window.localStorage, 'locale', code);
 }

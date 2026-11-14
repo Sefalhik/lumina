@@ -10,10 +10,11 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'html'],
-            // Scope: pure utility modules only.
-            // app.js is an entry point (Vue island mounting), not unit-testable.
-            // Vue components are covered by Playwright E2E — component unit tests
-            // are a separate category requiring Vue Test Utils.
+            // Scope: pure utility modules only — where the logic lives, and where it is held to its
+            // threshold. app.js is an entry point (Vue island mounting), not unit-testable.
+            // Vue components are glue: resources/js/components/__tests__/ checks their wiring with
+            // Vue Test Utils, one case per wire, and Playwright what a visitor sees. Neither is
+            // measured here — a component with logic worth a threshold has logic to move to utils/.
             //
             // Two tooling scripts are in scope, and held to 100%. scripts/audit-advisories.js is a
             // watch, and a line of it nobody exercises is a way for it to go quiet.

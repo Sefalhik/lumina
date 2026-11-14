@@ -1,38 +1,34 @@
 <script setup>
+/**
+ * The theme switcher. Glue only (LUMN-124): choosing, persisting and following other tabs are
+ * utils/theme.js. The theme shown is read on <html>, where the anti-FOUC script put it — never from
+ * storage, which may refuse to be read.
+ */
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { applyTheme, isValidTheme, THEMES } from '../utils/theme.js';
+import { chooseTheme, currentTheme, THEMES, watchTheme } from '../utils/theme.js';
 
 const { t } = useI18n();
 
 const themeIds = THEMES;
 
-const current = ref('sprawl');
+const current = ref(currentTheme(document.documentElement));
+let stopWatching = null;
 
 function apply(id) {
-    applyTheme(id);
-    localStorage.setItem('theme', id);
-    current.value = id;
-}
-
-function onStorageChange(event) {
-    if (event.key === 'theme' && event.newValue && isValidTheme(event.newValue)) {
-        applyTheme(event.newValue);
-        current.value = event.newValue;
-    }
+    current.value = chooseTheme(id, { storage: () => window.localStorage });
 }
 
 onMounted(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved && isValidTheme(saved)) {
-        current.value = saved;
-    }
-    window.addEventListener('storage', onStorageChange);
+    stopWatching = watchTheme({
+        view: window,
+        onChange: (id) => {
+            current.value = id;
+        },
+    });
 });
 
-onUnmounted(() => {
-    window.removeEventListener('storage', onStorageChange);
-});
+onUnmounted(() => stopWatching?.());
 </script>
 
 <template>

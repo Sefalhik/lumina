@@ -174,18 +174,6 @@ describe('recording a choice', () => {
         expect(storage.setItem).not.toHaveBeenCalled();
     });
 
-    it('still applies the choice to the page when storage refuses to write', () => {
-        const html = root();
-        const storage = {
-            setItem: () => {
-                throw new DOMException('quota', 'QuotaExceededError');
-            },
-        };
-
-        expect(chooseMotion('off', { root: html, storage: () => storage })).toBe('off');
-        expect(html.value('data-motion')).toBe('off');
-    });
-
     it('still applies the choice to the page when storage cannot even be reached', () => {
         const html = root();
         const storage = () => {
@@ -247,6 +235,8 @@ function stage({ prefersReduced = false, matchMedia = true, choice = null, local
 }
 
 describe('following the state under a page', () => {
+    // How other tabs are heard — which key, which storage area, a cleared storage — is
+    // storage.test.js. These prove watchMotion wires it, and what a change means for motion.
     it('reports nothing until something changes', () => {
         const { onChange } = stage();
 
@@ -296,36 +286,6 @@ describe('following the state under a page', () => {
 
         expect(html.has('data-motion')).toBe(false);
         expect(onChange).toHaveBeenCalledWith('on');
-    });
-
-    it('ignores a change of another key', () => {
-        const { html, onChange, storage } = stage({ choice: 'off' });
-
-        storage({ key: 'theme', newValue: 'steampunk' });
-
-        expect(html.value('data-motion')).toBe('off');
-        expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it('ignores a cleared sessionStorage: it never held the choice', () => {
-        const { html, onChange, storage } = stage({ choice: 'off' });
-
-        storage({ key: null, newValue: null, storageArea: { name: 'session' } });
-
-        expect(html.value('data-motion')).toBe('off');
-        expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it('ignores storage news when the page cannot reach its own localStorage', () => {
-        const { html, onChange, storage } = stage({
-            choice: 'off',
-            localStorage: new DOMException('blocked', 'SecurityError'),
-        });
-
-        storage({ key: 'motion', newValue: 'on', storageArea: { name: 'local' } });
-
-        expect(html.value('data-motion')).toBe('off');
-        expect(onChange).not.toHaveBeenCalled();
     });
 
     it('still follows other tabs in a browser without matchMedia, the preference taken as reduced', () => {

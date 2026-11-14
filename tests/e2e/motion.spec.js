@@ -240,6 +240,22 @@ test.describe('the choice', () => {
         expect(await loops(page)).toEqual([]);
     });
 
+    test('cleared in another tab: the preference decides again here', async ({ page, context }) => {
+        // localStorage.clear() names no key: the unit tests assume the browser says so, this checks
+        // that Chromium does (LUMN-124).
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await open(page, '/fr/', { motion: 'on' });
+        await expect(toggle(page)).toHaveAttribute('aria-pressed', 'true');
+        const other = await context.newPage();
+        await other.goto('/fr/login');
+
+        await other.evaluate(() => localStorage.clear());
+
+        await expect(page.locator('html')).not.toHaveAttribute('data-motion', /.*/);
+        await expect(toggle(page)).toHaveAttribute('aria-pressed', 'false');
+        await expect.poll(() => loops(page)).toEqual([]);
+    });
+
     test('made in one tab, is followed by the others', async ({ page, context }) => {
         await open(page, '/fr/');
         const other = await context.newPage();
@@ -419,37 +435,4 @@ test.describe('a stored value that is no choice', () => {
         expect(await sortedLoops(page)).toEqual(all);
         await expect(toggle(page)).toHaveAttribute('aria-pressed', 'true');
     });
-});
-
-test('a storage that cannot be read: the page shows in its default theme, and the switch works', async ({ page }) => {
-    // Blocked site data makes reading storage throw. The anti-FOUC script must not take the page down
-    // with it, nor leave the switch unable to stop the animations.
-    await page.addInitScript(() => {
-        // The script's own failure would change nothing visible — the defaults are what it falls
-        // back on. What it must not do is throw at the page: that is what its try/catch prevents.
-        // Each refusal carries the line that read storage, so that an uncaught one is traced to
-        // the inline script and not to a module: ThemeSwitcher.vue and BootSequence.vue throw here
-        // too, unguarded — LUMN-124.
-        Storage.prototype.getItem = function refuse() {
-            const error = new DOMException('blocked', 'SecurityError');
-            error.readBy = new Error().stack.split('\n')[2] ?? '';
-            throw error;
-        };
-        window.inlineErrors = [];
-        window.addEventListener('error', (event) => {
-            const reader = event.error?.readBy ?? '';
-            if (!/\.(vue|js)\b/.test(reader)) window.inlineErrors.push(reader);
-        });
-    });
-    await page.goto('/fr/');
-
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'sprawl');
-    await expect(page.locator('html')).not.toHaveAttribute('data-motion', /.*/);
-    await expect(toggle(page)).toHaveAttribute('aria-pressed', 'true');
-
-    await toggle(page).click();
-
-    await expect(toggle(page)).toHaveAttribute('aria-pressed', 'false');
-    await expect.poll(() => loops(page)).toEqual([]);
-    expect(await page.evaluate(() => window.inlineErrors)).toEqual([]);
 });

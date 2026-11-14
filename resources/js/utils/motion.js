@@ -18,6 +18,8 @@
  * choice, here as in the stylesheet: the preference decides.
  */
 
+import { storeQuietly, watchStoredKey } from './storage.js';
+
 export const MOTION_STORAGE_KEY = 'motion';
 export const MOTION_ATTRIBUTE = 'data-motion';
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
@@ -113,21 +115,15 @@ export function chooseMotion(choice, { root, storage }) {
         throw new RangeError(`A motion choice is 'on' or 'off', not ${String(choice)}.`);
     }
     root.setAttribute(MOTION_ATTRIBUTE, valid);
-    try {
-        storage().setItem(MOTION_STORAGE_KEY, valid);
-    } catch {
-        // Forgotten after this page, followed on it.
-    }
+    storeQuietly(storage, MOTION_STORAGE_KEY, valid);
     return valid;
 }
 
 /**
  * Follows what can change the state under a page once it is shown: the system's preference, and a
- * choice made — or cleared — in another tab. MotionToggle.vue only displays what it reports.
- *
- * A `storage` event names the key that changed, or none when the other tab cleared its storage —
- * `localStorage.clear()` takes the choice with it, and the preference decides again. Events of
- * another storage area (sessionStorage, shared with a frame) are not about the choice.
+ * choice made — or cleared — in another tab (utils/storage.js says how other tabs are heard: a
+ * cleared storage takes the choice with it, and the preference decides again). MotionToggle.vue
+ * only displays what it reports.
  *
  * @param {{ view: { addEventListener: Function, removeEventListener: Function, matchMedia?: Function, localStorage?: object }, root: { getAttribute: Function, setAttribute: Function, removeAttribute: Function }, onChange: (motion: 'on' | 'off') => void }} where
  * @returns {() => void} how to stop following
@@ -139,27 +135,18 @@ export function watchMotion({ view, root, onChange }) {
         onChange(documentMotion(root, media));
     }
 
-    function fromLocalStorage(event) {
-        try {
-            return event.storageArea === view.localStorage;
-        } catch {
-            // A storage the page cannot reach sends it no news.
-            return false;
-        }
-    }
-
-    function onStorage(event) {
-        if (event.key !== MOTION_STORAGE_KEY && event.key !== null) return;
-        if (!fromLocalStorage(event)) return;
-        applyMotionChoice(event.newValue, root);
-        report();
-    }
-
+    const stopFollowingTabs = watchStoredKey({
+        view,
+        key: MOTION_STORAGE_KEY,
+        onValue: (value) => {
+            applyMotionChoice(value, root);
+            report();
+        },
+    });
     media?.addEventListener('change', report);
-    view.addEventListener('storage', onStorage);
 
     return () => {
         media?.removeEventListener('change', report);
-        view.removeEventListener('storage', onStorage);
+        stopFollowingTabs();
     };
 }

@@ -3,45 +3,72 @@ import { mount, flushPromises } from '@vue/test-utils';
 import BootSequence from '../BootSequence.vue';
 import { createI18n } from '../../utils/i18n.js';
 
+/**
+ * The overlay's wiring (LUMN-124). What the sequence shows, when it plays, when it leaves and what
+ * it does when storage is refused are proven on the controller, utils/__tests__/boot-sequence.test.js.
+ * These prove the component hands it the real browser, and shows what it reports: one case per wire.
+ */
+
 const mountWithI18n = (options = {}) => mount(BootSequence, { global: { plugins: [createI18n()] }, ...options });
 
-// Mock the utils module — isolates the component from real fetch and geo logic
+// The origin lookup answers at once: no network in a unit test.
 vi.mock('../../utils/boot', async (importOriginal) => {
     const actual = await importOriginal();
-    return {
-        ...actual,
-        fetchGeoData: vi.fn().mockResolvedValue({
-            ip: '1.2.3.4',
-            country_code: 'FR',
-            city: 'Paris',
-            region_code: 'IDF',
-            org: 'AS12322 Free SAS',
-        }),
-    };
+    return { ...actual, fetchGeoData: vi.fn().mockResolvedValue(null) };
 });
 
 describe('BootSequence', () => {
     beforeEach(() => {
         sessionStorage.clear();
+        document.documentElement.removeAttribute('data-motion');
+        document.body.classList.remove('booting');
         vi.useFakeTimers();
     });
 
     afterEach(() => {
         vi.useRealTimers();
         sessionStorage.clear();
+        document.documentElement.removeAttribute('data-motion');
     });
 
-    // ── Visibility ────────────────────────────────────────────────────────────
-
-    it('shows the overlay on first visit', async () => {
+    it('shows the overlay on a first visit, and holds the page while it plays', async () => {
         const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         expect(wrapper.find('.boot-overlay').exists()).toBe(true);
+        expect(document.body.classList.contains('booting')).toBe(true);
         wrapper.unmount();
     });
 
-    it('does not show the overlay when the session key is already set', async () => {
+    it('shows the lines as they arrive', async () => {
+        const wrapper = mountWithI18n({ attachTo: document.body });
+        await flushPromises();
+
+        await vi.advanceTimersByTimeAsync(300);
+
+        expect(wrapper.findAll('.boot-line').map((line) => line.text())).toEqual([
+            'ONO-SENDAI CYBERSPACE 7  —  DECK v4.1.REV-C',
+            'BAMA GRID / CONURB SECTOR 7  —  NODE INIT',
+        ]);
+        expect(wrapper.find('.boot-line--header').exists()).toBe(true);
+        wrapper.unmount();
+    });
+
+    it("hands the controller the browser's own clock, screen and random source", async () => {
+        vi.setSystemTime(new Date('2026-11-14T10:00:00Z'));
+        const wrapper = mountWithI18n({ attachTo: document.body });
+        await flushPromises();
+
+        await vi.advanceTimersByTimeAsync(3800);
+        const texts = wrapper.findAll('.boot-line').map((line) => line.text());
+
+        expect(texts).toContain(`[SYS ] Display           : ${screen.width}×${screen.height}`);
+        expect(texts.find((line) => line.startsWith('[SYS ] Date'))).toContain('2026');
+        expect(texts.find((line) => line.startsWith('[BIOS] Deck serial'))).toMatch(/: ONO7-[0-9A-F]{8}$/);
+        wrapper.unmount();
+    });
+
+    it('reads the mark in this session: a sequence seen does not show again', async () => {
         sessionStorage.setItem('boot_sequence_played', '1');
         const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
@@ -50,87 +77,47 @@ describe('BootSequence', () => {
         wrapper.unmount();
     });
 
-    // ── Dismiss — click ───────────────────────────────────────────────────────
-
-    it('sets the session key immediately on click', async () => {
+    it('does not show when animations are stopped (LUMN-11)', async () => {
+        document.documentElement.setAttribute('data-motion', 'off');
         const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
-
-        await wrapper.find('.boot-overlay').trigger('click');
-        expect(sessionStorage.getItem('boot_sequence_played')).toBe('1');
-
-        wrapper.unmount();
-    });
-
-    it('hides the overlay after the fade-out transition on click', async () => {
-        const wrapper = mountWithI18n({ attachTo: document.body });
-        await flushPromises();
-
-        await wrapper.find('.boot-overlay').trigger('click');
-        await vi.advanceTimersByTimeAsync(700);
 
         expect(wrapper.find('.boot-overlay').exists()).toBe(false);
         wrapper.unmount();
     });
 
-    it('does not dismiss twice if clicked repeatedly', async () => {
+    it('leaves on a click, keeps its mark, and gives the page back after the fade', async () => {
         const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         await wrapper.find('.boot-overlay').trigger('click');
-        await wrapper.find('.boot-overlay').trigger('click'); // second click — overlay still fading
+        expect(sessionStorage.getItem('boot_sequence_played')).toBe('1');
         await vi.advanceTimersByTimeAsync(700);
 
-        // Should only be one sessionStorage write, not two
-        expect(sessionStorage.getItem('boot_sequence_played')).toBe('1');
+        expect(wrapper.find('.boot-overlay').exists()).toBe(false);
+        expect(document.body.classList.contains('booting')).toBe(false);
         wrapper.unmount();
     });
 
-    // ── Dismiss — keyboard ────────────────────────────────────────────────────
-
-    it('sets the session key on any keydown event', async () => {
+    it('leaves on a key pressed anywhere on the page', async () => {
         const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-        expect(sessionStorage.getItem('boot_sequence_played')).toBe('1');
-
-        wrapper.unmount();
-    });
-
-    it('hides the overlay after the fade-out transition on keydown', async () => {
-        const wrapper = mountWithI18n({ attachTo: document.body });
-        await flushPromises();
-
-        document.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
         await vi.advanceTimersByTimeAsync(700);
 
         expect(wrapper.find('.boot-overlay').exists()).toBe(false);
         wrapper.unmount();
     });
 
-    // ── Fetch fallback ────────────────────────────────────────────────────────
-
-    it('still shows the overlay when fetchGeoData returns null', async () => {
-        const { fetchGeoData } = await import('../../utils/boot');
-        fetchGeoData.mockResolvedValueOnce(null);
-
+    it('gives the page back when it goes away, and hears no key after', async () => {
         const wrapper = mountWithI18n({ attachTo: document.body });
         await flushPromises();
 
-        expect(wrapper.find('.boot-overlay').exists()).toBe(true);
         wrapper.unmount();
-    });
-
-    // ── Cleanup ───────────────────────────────────────────────────────────────
-
-    it('removes the keydown listener on unmount', async () => {
-        const wrapper = mountWithI18n({ attachTo: document.body });
-        await flushPromises();
-        wrapper.unmount();
-
-        // Keydown after unmount must not throw and must not write to sessionStorage
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+
+        expect(document.body.classList.contains('booting')).toBe(false);
         expect(sessionStorage.getItem('boot_sequence_played')).toBeNull();
     });
 });

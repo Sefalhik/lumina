@@ -60,6 +60,29 @@ test.describe('ThemeSwitcher — cross-tab sync', () => {
         await expect(page2.locator('html')).toHaveAttribute('data-theme', 'neon-noir');
     });
 
+    test('a storage cleared in another tab brings this one back to the default theme', async ({ context }) => {
+        // localStorage.clear() names no key: the unit tests assume the browser says so, this checks
+        // that Chromium does (LUMN-124).
+        await context.addInitScript(() => {
+            sessionStorage.setItem('boot_sequence_played', '1');
+        });
+        const page1 = await context.newPage();
+        const page2 = await context.newPage();
+        await page1.goto('/fr/');
+        await page1.evaluate(() => localStorage.setItem('theme', 'steampunk'));
+        await page2.goto('/fr/');
+        await expect(page2.locator('html')).toHaveAttribute('data-theme', 'steampunk');
+
+        await page1.evaluate(() => localStorage.clear());
+
+        await expect(page2.locator('html')).toHaveAttribute('data-theme', 'sprawl');
+        // The switcher's list is closed, out of the accessibility tree: its label is read as written.
+        await expect(page2.locator('#theme-switcher [role="listbox"]')).toHaveAttribute(
+            'aria-label',
+            'Thème actuel : sprawl',
+        );
+    });
+
     test('favicon updates in the other tab when theme changes', async ({ context }) => {
         await context.addInitScript(() => sessionStorage.setItem('boot_sequence_played', '1'));
 
