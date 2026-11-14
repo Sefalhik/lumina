@@ -85,26 +85,6 @@ Starts FrankenPHP (HTTPS on `https://dev.cardascia-it.org`) and Vite HMR in para
 > Requires a `/etc/hosts` entry: `127.0.0.1 dev.cardascia-it.org`
 > and mkcert certificates in `storage/certs/` (`cert.pem` + `key.pem`).
 
-## Server-side geo API
-
-The boot sequence overlay fetches visitor location through a **Laravel proxy** (`GET /api/geo`)
-to avoid browser CORS and rate-limit issues with the upstream provider (ip-api.com).
-The controller delegates to `GeoService`, which:
-
-- Returns data directly from a **success cache** (24 h TTL).
-- Short-circuits with a **negative cache** (60 s TTL) after any failure, to avoid hammering a rate-limited API.
-- Substitutes `GEO_DEV_FALLBACK_IP` in local dev, where the request IP is always `127.0.0.1`.
-
-Relevant `.env` keys:
-
-| Variable | Default | Description |
-|---|---|---|
-| `GEO_API_BASE_URL` | `http://ip-api.com/json` | Upstream provider base URL |
-| `GEO_FETCH_TIMEOUT` | `3` | HTTP timeout (seconds) |
-| `GEO_CACHE_TTL` | `86400` | Success cache TTL (seconds) |
-| `GEO_FAILURE_CACHE_TTL` | `60` | Negative cache TTL (seconds) |
-| `GEO_DEV_FALLBACK_IP` | _(empty)_ | Public IP substituted for private addresses in dev |
-
 ## Authentication
 
 All auth routes (`/login`, `/logout`, `/two-factor/*`) are under the `/{lang}/` prefix and fully localised.

@@ -94,7 +94,7 @@ test.describe('Content security policy — public pages', () => {
         }
 
         test(`no violation while the boot sequence plays — theme: ${theme}`, async ({ page }) => {
-            // The boot overlay calls /api/geo and animates: it is skipped everywhere else.
+            // The boot overlay animates and writes its own lines: it is skipped everywhere else.
             await collectViolations(page, theme, { skipBoot: false });
 
             expect(await violationsOn(page, '/fr')).toEqual([]);

@@ -45,7 +45,6 @@ the development server runs, and where the fonts come from.
 | `resources/js/i18n/` | vue-i18n locale files — one JSON per locale (24 EU languages) |
 | `resources/css/app.css` | Tailwind + DaisyUI entry point (`@import`/`@plugin`); utilities come from there |
 | `resources/css/scss/` | Hand-written SCSS — themes and the `_effects.scss` glow/glitch layer |
-| `config/geo.php` | Geo API proxy configuration (env-driven) |
 | `config/themes.php` | The themes — default, favicons — read from `resources/js/themes.json`: one list for the layouts, the anti-FOUC script and the islands |
 | `config/i18n.php` | Supported locales, **indexable locales**, default locale, native names, cache path, `cms_models` list |
 | `config/seo.php` | `public_routes` allowlist — route names allowed to carry canonical/`hreflang` — and `indexable`, read from `SITE_INDEXABLE` |
@@ -55,7 +54,7 @@ the development server runs, and where the fonts come from.
 | `docs/` | Technical documentation |
 | `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
 | `renovate.json5` | Renovate configuration — see `docs/dependency-updates.md` |
-| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update, the deployment scripts `release.sh` → `deploy.sh`, `rollback.sh` and their SSH gate `deploy-gate.sh`, the probe of the key `check-deploy-key.sh`, `watch-switch.sh`, the theme contrast arithmetic `palette-contrast.js`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
+| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update, the deployment scripts `release.sh` → `deploy.sh`, `rollback.sh` and their SSH gate `deploy-gate.sh`, the probe of the key `check-deploy-key.sh`, `watch-switch.sh`, the theme contrast arithmetic `palette-contrast.js`, the RIPEstat check of the boot sequence's origins `verify-boot-origins.js`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
 

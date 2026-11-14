@@ -76,20 +76,19 @@ is the outside view, so it runs from a developer's machine or a CI runner. See
 | 15 | `http://` redirects permanently (301 or 308) to `https://` | blocking | a temporary redirect is not cached; plain HTTP must never serve |
 | 16 | certificate: under 3 days blocks, under 14 warns | mixed | a renewal that stopped working |
 | 17 | `/.well-known/acme-challenge/…` answers 404, **never 401** | blocking | the Basic auth trap of 2026-09-14 |
-| 18 | `/api/geo` returns a location, not `{"error": true}` | warning | the one **outbound** call of the deployment: egress rules, DNS, the upstream's rate limit |
-| 19 | homepage response time over the budget | warning | caches not warm |
+| 18 | homepage response time over the budget | warning | caches not warm |
 
 Security headers and `noindex` on preprod are not probed yet: LUMN-37 adds them, and their probes
 with them.
 
-### Six probes that are easy to get wrong
+### Five probes that are easy to get wrong
 
-**Probe 10 cannot rely on a 404.** Laravel ships a page for 404 and renders it even with
+**Probe 11 cannot rely on a 404.** Laravel ships a page for 404 and renders it even with
 `APP_DEBUG=true` — measured on 2026-09-19: a 404-only probe passed on a machine in debug mode. A 405
 has no dedicated page, so debug mode prints the whole stack trace. The probe sends `PATCH /fr`, which
 the router refuses before any controller runs: still read-only.
 
-**Probe 16 is sent without the Basic credentials**, while every other probe sends them. It exists to
+**Probe 17 is sent without the Basic credentials**, while every other probe sends them. It exists to
 prove the challenge path is exempted from Basic auth; with the credentials it would pass even with the
 exemption gone. A test asserts both halves.
 
@@ -188,9 +187,9 @@ read first — what is checked, how it runs, and what a probe must implement.
 
 | Path | Role |
 |---|---|
-| `app/Services/Smoke/SmokeCatalogue.php` | the 19 probes, **in the order they run** — the release first |
+| `app/Services/Smoke/SmokeCatalogue.php` | the 18 probes, **in the order they run** — the release first |
 | `app/Services/Smoke/SmokeTestService.php` | walks the catalogue; 38 lines |
-| `app/Services/Smoke/SmokeProbe.php` | the contract: `id()`, `label()`, `check()` — implemented 19 times |
+| `app/Services/Smoke/SmokeProbe.php` | the contract: `id()`, `label()`, `check()` — implemented 18 times |
 | `app/Services/Smoke/Probes/` | one class per probe, each carrying the failure it exists for |
 | `app/Services/Smoke/Site/DeployedSite.php` | the environment under test: HTTP client, credentials, warm-up, the public paths derived from `config/seo.php`, and the responses several probes share — fetched once |
 | `app/Services/Smoke/Site/SmokeTarget.php` | the target; refuses credentials in the URL |
@@ -256,8 +255,8 @@ answer it, and the second is the one that decides:
 2. **Can it be configured correctly on a development machine and wrongly on the server?** Every
    probe here exists for a yes: a driver, a credential, a path, an egress rule, a document root. A
    no means the CI suite already covers it.
-3. **Would its failure be silent?** `/api/geo` answers 200 either way; `/up` used to answer 200 with
-   the database down. A capability that fails loudly on the homepage is already probed by probe 3.
+3. **Would its failure be silent?** The geolocation endpoint answered 200 whether its lookup had
+   worked or not, until LUMN-122 removed it; `/up` used to answer 200 with the database down. A capability that fails loudly on the homepage is already probed by probe 3.
 
 Two yeses and a maybe: write the probe. What the answers should be, for what is coming:
 

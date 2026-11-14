@@ -7,7 +7,6 @@ namespace Tests\Feature\Http;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Testing\TestResponse;
@@ -124,12 +123,13 @@ class SecurityHeadersTest extends TestCase
 
     public function test_an_api_route_carries_them(): void
     {
-        Http::preventStrayRequests();
-        Http::fake(['*' => Http::response(['status' => 'success', 'city' => 'Lyon'])]);
+        // routes/api.php declares no endpoint since LUMN-122. One is declared here the way
+        // bootstrap/app.php registers that file: under /api, in the api middleware group.
+        Route::middleware('api')->prefix('api')->get('/headers-probe', fn () => response()->json(['ok' => true]));
 
-        $response = $this->get('https://localhost/api/geo');
+        $response = $this->get('https://localhost/api/headers-probe');
 
-        $this->assertLessThan(500, $response->getStatusCode());
+        $this->assertSame(200, $response->getStatusCode());
         $this->assertSecurityHeaders($response);
     }
 

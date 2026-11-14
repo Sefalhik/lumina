@@ -48,11 +48,11 @@ export function deckSerial(random) {
 /**
  * Every line of the sequence, with the moment it appears.
  *
- * @param {object | null} geo  what the origin lookup answered, or null
+ * @param {object} origin  the origin drawn (utils/boot-origin.js)
  * @param {BootEnvironment} environment
  * @returns {{ text: string, type: string, delay: number, group?: string }[]}
  */
-export function buildSequence(geo, environment) {
+export function buildSequence(origin, environment) {
     const { now, timeZone } = environment;
     const date = now.toLocaleDateString('en-US', {
         weekday: 'short',
@@ -70,8 +70,9 @@ export function buildSequence(geo, environment) {
     const res = `${environment.screen.width}×${environment.screen.height}`;
     const serial = deckSerial(environment.random);
 
-    const { location, maskedIp, carrier } = toGibsonLocation(geo);
-    const originNode = location.split(' / ')[1] ?? location;
+    const { location, maskedIp, carrier } = toGibsonLocation(origin);
+    // Every zone is a region, then a node (utils/boot-origin.js holds every origin to one).
+    const originNode = location.split(' / ')[1];
 
     return [
         // ── Header ───────────────────────────────────────────────────────────
@@ -98,7 +99,7 @@ export function buildSequence(geo, environment) {
         { text: `[SYS ] Display           : ${res}`, type: 'info', delay: 3800 },
         { text: '', type: 'blank', delay: 3920 },
 
-        // ── NET — real geo data mapped to Gibson universe ─────────────────────
+        // ── NET — a fictitious origin, mapped to Gibson's world (LUMN-122) ───
         { text: '[NET ] Probing origin node...', type: 'normal', delay: 4200 },
         { text: `[NET ] Source IP  : ${maskedIp}`, type: 'info', delay: 4500 },
         { text: `[NET ] Origin     : ${location}`, type: 'info', delay: 4800 },
@@ -169,7 +170,7 @@ export function appendLine(lines, line) {
  * @property {() => { getItem: (key: string) => string | null, setItem: (key: string, value: string) => void }} storage
  *   the session's storage; reaching it, reading it or writing it may throw
  * @property {() => 'on' | 'off'} motion                  whether animations run (utils/motion.js)
- * @property {() => Promise<object | null>} loadGeo       the origin lookup
+ * @property {() => object} origin                       draws where the visitor is said to come from
  * @property {() => BootEnvironment} environment
  * @property {{ setTimeout: Function, clearTimeout: Function }} view
  * @property {{ addEventListener: Function, removeEventListener: Function }} doc  where keys are pressed
@@ -184,9 +185,9 @@ export function appendLine(lines, line) {
  * through it on every page (Laurent's decision, 2026-11-14).
  *
  * @param {BootSequenceDependencies} dependencies
- * @returns {{ start: () => Promise<boolean>, dismiss: () => void, stop: () => void }}
+ * @returns {{ start: () => boolean, dismiss: () => void, stop: () => void }}
  */
-export function createBootSequence({ storage, motion, loadGeo, environment, view, doc, onShow, onLines, onHide }) {
+export function createBootSequence({ storage, motion, origin, environment, view, doc, onShow, onLines, onHide }) {
     /** idle, then playing, then fading, then done — or straight from idle to done. */
     let state = 'idle';
     const timers = [];
@@ -218,7 +219,7 @@ export function createBootSequence({ storage, motion, loadGeo, environment, view
         }, FADE_MS);
     }
 
-    async function start() {
+    function start() {
         if (state !== 'idle') return false;
         if (seen() || motion() === 'off') {
             state = 'done';
@@ -229,16 +230,7 @@ export function createBootSequence({ storage, motion, loadGeo, environment, view
         onShow();
         doc.addEventListener('keydown', dismiss);
 
-        let geo = null;
-        try {
-            geo = await loadGeo();
-        } catch {
-            // The origin is decoration too: its fallback says so.
-        }
-        // Dismissed, or stopped, while the lookup was answering.
-        if (state !== 'playing') return true;
-
-        const sequence = buildSequence(geo, environment());
+        const sequence = buildSequence(origin(), environment());
         let lines = [];
         sequence.forEach((line, index) => {
             later(() => {

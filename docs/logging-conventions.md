@@ -11,10 +11,10 @@ Log messages must be **static strings**. All variable data goes in the context a
 
 ```php
 // ✅
-Log::error('Geo API fetch threw an exception', ['ip' => $ip, 'exception' => $e]);
+Log::error('Two-factor secret unreadable — code refused', ['user_id' => $user->getKey(), 'exception' => $e]);
 
 // ❌
-Log::error("Geo API fetch failed for IP {$ip}: " . $e->getMessage());
+Log::error("Two-factor secret of user {$user->id} unreadable: " . $e->getMessage());
 ```
 
 Reasons: static messages are groupable in log aggregators (Loki, Graylog…);
@@ -29,16 +29,16 @@ without reading surrounding lines.
 
 | Key | Type | Description | Example |
 |---|---|---|---|
-| `service` | `string` | Fully-qualified class name — use `self::class` | `App\Services\GeoService` |
-| `method` | `string` | Method name — use `__FUNCTION__` | `locate` |
-| `step` | `string` | Human label for the execution stage | `'cache_lookup'`, `'api_fetch'` |
+| `service` | `string` | Fully-qualified class name — use `self::class` | `App\Services\Auth\TwoFactorService` |
+| `method` | `string` | Method name — use `__FUNCTION__` | `verify` |
+| `step` | `string` | Human label for the execution stage | `'timestep_in_future'`, `'code_replayed'` |
 
 ```php
-Log::info('Geo lookup served from cache', [
+Log::warning('Two-factor code refused — already used', [
     'service' => self::class,
-    'method'  => __FUNCTION__,
-    'step'    => 'cache_lookup',
-    'ip'      => $ip,
+    'method'  => $method,
+    'step'    => 'code_replayed',
+    'user_id' => $user->getKey(),
 ]);
 ```
 
@@ -55,16 +55,16 @@ Never reduce it to a string.
 
 ```php
 // ✅ Full exception — stack trace included
-Log::error('Geo API fetch threw an exception', [
+Log::error('Two-factor secret unreadable — code refused', [
     'service'   => self::class,
-    'method'    => __FUNCTION__,
-    'step'      => 'api_fetch',
-    'ip'        => $ip,
+    'method'    => $method,
+    'step'      => 'secret_unreadable',
+    'user_id'   => $user->getKey(),
     'exception' => $e,          // Throwable — Monolog handles serialization
 ]);
 
 // ❌ Only the message — trace lost forever
-Log::error('Geo API fetch threw an exception', [
+Log::error('Two-factor secret unreadable — code refused', [
     'exception' => $e->getMessage(),
 ]);
 ```
@@ -141,105 +141,27 @@ When in doubt: **log IDs, not values**.
 
 ## 7. Channel strategy (current)
 
-The project uses a single `stack` channel (default). A dedicated `geo` channel or
+The project uses a single `stack` channel (default). A dedicated channel (`auth`, say) or
 Loki integration may be added later without changing call sites.
 
 ```php
 // Services always use the default facade — channel routing is infrastructure concern
-Log::info(…);          // not Log::channel('geo')->info(…)
+Log::info(…);          // not Log::channel('auth')->info(…)
 ```
 
 This will be revisited when a log aggregator (Loki/Grafana) is set up.
 
 ---
 
-## 8. Quick reference — full service example
+## 8. Quick reference — read the real thing
 
-Taken from `GeoService` — the canonical logging reference for this project.
+No example is copied here: a copy drifts from the code it was taken from, and keeps being followed
+after the code is gone. The canonical reference was `GeoService` until LUMN-122 removed it — and
+removed with it the code this section reproduced. Read these instead; each is tested, and each
+shows a different part of the rules.
 
-```php
-public function locate(?string $ip): ?array
-{
-    // resolveIp() substitutes GEO_DEV_FALLBACK_IP for private/loopback addresses.
-    // Returns null when no usable public IP can be determined.
-    $resolved = $this->resolveIp($ip);
-    if ($resolved === null) {
-        return null;
-    }
-
-    $cacheKey         = "geo_data:{$resolved}";
-    $negativeCacheKey = "geo_data_failed:{$resolved}";
-    $ctx = ['service' => self::class, 'method' => __FUNCTION__, 'ip' => $resolved];
-
-    // --- tier 1: success cache (24 h by default) ---
-    /** @var array<string, mixed>|null $cached */
-    $cached = Cache::get($cacheKey);
-    if ($cached !== null) {
-        Log::debug('Geo lookup served from cache', $ctx + ['step' => 'cache_hit']);
-        return $cached;
-    }
-
-    // --- tier 2: negative cache (60 s) — avoids hammering a rate-limited API ---
-    if (Cache::has($negativeCacheKey)) {
-        Log::debug('Geo lookup skipped — negative cache active', $ctx + ['step' => 'negative_cache_hit']);
-        return null;
-    }
-
-    Log::info('Geo lookup cache miss — fetching from API', $ctx + ['step' => 'cache_miss']);
-
-    $data = $this->fetchFromApi($resolved, $ctx);
-
-    if ($data !== null) {
-        Cache::put($cacheKey, $data, config('geo.cache_ttl'));
-        Log::info('Geo lookup succeeded and cached', $ctx + [
-            'step'    => 'cache_store',
-            'country' => $data['countryCode'] ?? 'unknown',  // ip-api.com field name
-        ]);
-    } else {
-        Cache::put($negativeCacheKey, true, config('geo.failure_cache_ttl'));
-        Log::warning('Geo lookup failed — negative cache set', $ctx + [
-            'step' => 'negative_cache_store',
-            'ttl'  => config('geo.failure_cache_ttl'),
-        ]);
-    }
-
-    return $data;
-}
-
-private function fetchFromApi(string $ip, array $ctx): ?array
-{
-    try {
-        $response = Http::timeout(config('geo.fetch_timeout'))
-            ->get(config('geo.api_base_url') . "/{$ip}");
-
-        if (!$response->successful()) {
-            Log::warning('Geo API returned a non-2xx response', $ctx + [
-                'step'   => 'api_fetch',
-                'status' => $response->status(),
-            ]);
-            return null;
-        }
-
-        /** @var array<string, mixed>|null $data */
-        $data = $response->json();
-
-        // ip-api.com signals failure with status: 'fail' (not an HTTP error code)
-        if (!is_array($data) || ($data['status'] ?? null) === 'fail') {
-            Log::warning('Geo API returned an error payload', $ctx + [
-                'step'  => 'api_parse',
-                'error' => is_array($data) ? ($data['message'] ?? 'unknown') : 'invalid_json',
-            ]);
-            return null;
-        }
-
-        return $data;
-
-    } catch (\Throwable $e) {
-        Log::error('Geo API fetch threw an exception', $ctx + [
-            'step'      => 'api_fetch',
-            'exception' => $e,   // full Throwable — Monolog serializes class/message/trace
-        ]);
-        return null;
-    }
-}
-```
+| Service | What it shows |
+|---|---|
+| `App\Services\Auth\TwoFactorService` | The whole set on one service: static messages, the three mandatory keys, `user_id`, the full `Throwable` under `exception` (`logUnreadableSecret()`), and the levels — `info` for a state change (`confirm()`), `warning` for an expected refusal (a replayed code), `error` for a state that should not exist (a last step in the future) |
+| `App\Services\Auth\AuthThrottleService` | A security event, and the step from `warning` (throttled) to `alert` (locked out) |
+| `App\Services\AnthropicTranslator` | A third party's failure, and how much of its answer to keep: the status, its message, a bounded excerpt — never the whole body |

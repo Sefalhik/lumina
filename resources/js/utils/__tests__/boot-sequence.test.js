@@ -1,15 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { STORAGE_KEY, toGibsonLocation } from '../boot.js';
+import { STORAGE_KEY } from '../boot.js';
 import { appendLine, buildSequence, createBootSequence, deckSerial, FADE_MS, LINGER_MS } from '../boot-sequence.js';
 
-// The real toGibsonLocation, watched: one test needs a location it never produces today.
-vi.mock('../boot.js', async (importOriginal) => {
-    const actual = await importOriginal();
-    return { ...actual, toGibsonLocation: vi.fn(actual.toGibsonLocation) };
-});
-
 const FREE_PARIS = {
-    status: 'success',
     query: '82.64.1.2',
     city: 'Paris',
     countryCode: 'FR',
@@ -109,7 +102,7 @@ describe('the sequence', () => {
     });
 
     it("tells the date and time in the visitor's time zone", () => {
-        const lines = buildSequence(null, environment({ timeZone: 'America/Los_Angeles' }));
+        const lines = buildSequence(FREE_PARIS, environment({ timeZone: 'America/Los_Angeles' }));
 
         expect(text(lines, '[SYS ] Date')).toContain('Sat, Nov 14, 2026');
         expect(text(lines, '[SYS ] Time')).toContain('15:30:05  /  TZ: America/Los_Angeles');
@@ -117,7 +110,7 @@ describe('the sequence', () => {
 
     it('names the platform and the browser from the user agent', () => {
         const lines = buildSequence(
-            null,
+            FREE_PARIS,
             environment({
                 userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0',
             }),
@@ -128,29 +121,14 @@ describe('the sequence', () => {
     });
 
     it('says ?? for cores the browser does not tell, and keeps a count of zero', () => {
-        expect(text(buildSequence(null, environment({ hardwareConcurrency: undefined })), '[SYS ] CPU')).toMatch(
+        expect(text(buildSequence(FREE_PARIS, environment({ hardwareConcurrency: undefined })), '[SYS ] CPU')).toMatch(
             /: \?\?$/,
         );
-        expect(text(buildSequence(null, environment({ hardwareConcurrency: 0 })), '[SYS ] CPU')).toMatch(/: 0$/);
+        expect(text(buildSequence(FREE_PARIS, environment({ hardwareConcurrency: 0 })), '[SYS ] CPU')).toMatch(/: 0$/);
     });
 
     it.each([undefined, 0])('classifies a memory the browser does not tell (%s)', (deviceMemory) => {
-        expect(text(buildSequence(null, environment({ deviceMemory })), '[SYS ] RAM')).toMatch(/: CLASSIFIED$/);
-    });
-
-    it('falls back on a masked origin when the lookup answered nothing', () => {
-        const lines = buildSequence(null, environment());
-
-        expect(text(lines, '[NET ] Source IP')).toBe('[NET ] Source IP  : ███.███.███.███');
-        expect(text(lines, '[NET ] Origin')).toBe('[NET ] Origin     : UNCHARTED GRID / ORIGIN MASKED');
-        expect(text(lines, '[NET ] Carrier')).toBe('[NET ] Carrier    : UNKNOWN UPLINK');
-        expect(text(lines, '[NET ] Path')).toContain(': ORIGIN MASKED→CHIBA_RELAY');
-    });
-
-    it('routes from the whole location when it has no node part', () => {
-        toGibsonLocation.mockReturnValueOnce({ location: 'NOWHERE', maskedIp: '1.2.███.███', carrier: 'NONE' });
-
-        expect(text(buildSequence(null, environment()), '[NET ] Path')).toContain(': NOWHERE→CHIBA_RELAY');
+        expect(text(buildSequence(FREE_PARIS, environment({ deviceMemory })), '[SYS ] RAM')).toMatch(/: CLASSIFIED$/);
     });
 });
 
@@ -218,25 +196,8 @@ function events() {
     };
 }
 
-/** A lookup that answers when the test says so. */
-function deferred() {
-    let answer;
-    const loadGeo = vi.fn(
-        () =>
-            new Promise((resolve) => {
-                answer = resolve;
-            }),
-    );
-    return { loadGeo, answer: (value) => answer(value) };
-}
-
 /** Everything the controller is handed, as stand-ins a test can drive. */
-function stage({
-    stored = null,
-    motion = () => 'on',
-    loadGeo = vi.fn(async () => FREE_PARIS),
-    storage = undefined,
-} = {}) {
+function stage({ stored = null, motion = () => 'on', origin = vi.fn(() => FREE_PARIS), storage = undefined } = {}) {
     const values = new Map(stored === null ? [] : [[STORAGE_KEY, stored]]);
     const store = {
         getItem: vi.fn((key) => (values.has(key) ? values.get(key) : null)),
@@ -250,7 +211,7 @@ function stage({
     const sequence = createBootSequence({
         storage: storage ?? (() => store),
         motion,
-        loadGeo,
+        origin,
         environment: makeEnvironment,
         view: { setTimeout: (callback, delay) => setTimeout(callback, delay), clearTimeout: (id) => clearTimeout(id) },
         doc,
@@ -258,7 +219,7 @@ function stage({
         onLines,
         onHide,
     });
-    return { sequence, store, values, doc, onShow, onLines, onHide, makeEnvironment, loadGeo };
+    return { sequence, store, values, doc, onShow, onLines, onHide, makeEnvironment, origin };
 }
 
 /** When the last line appears. */
@@ -318,42 +279,13 @@ describe('a first visit', () => {
         expect(atTwenty).not.toBe(atZero);
     });
 
-    it('reads the browser once the origin has answered, not before', async () => {
-        const { loadGeo, answer } = deferred();
-        const { sequence, makeEnvironment } = stage({ loadGeo });
+    it('draws its origin and reads the browser when it starts, once', async () => {
+        const { sequence, origin, makeEnvironment } = stage();
 
-        const started = sequence.start();
-        await vi.advanceTimersByTimeAsync(0);
-        expect(makeEnvironment).not.toHaveBeenCalled();
+        await sequence.start();
 
-        answer(FREE_PARIS);
-        await started;
+        expect(origin).toHaveBeenCalledTimes(1);
         expect(makeEnvironment).toHaveBeenCalledTimes(1);
-    });
-
-    it('plays with the masked origin when the lookup fails outright', async () => {
-        const { sequence, onLines } = stage({ loadGeo: vi.fn(async () => Promise.reject(new Error('offline'))) });
-
-        expect(await sequence.start()).toBe(true);
-        await vi.advanceTimersByTimeAsync(LAST);
-
-        expect(onLines.mock.lastCall[0].map((line) => line.text)).toContain(
-            '[NET ] Origin     : UNCHARTED GRID / ORIGIN MASKED',
-        );
-    });
-
-    it('plays with the masked origin when the lookup throws before it even answers', async () => {
-        const loadGeo = vi.fn(() => {
-            throw new TypeError('route is not defined');
-        });
-        const { sequence, onLines } = stage({ loadGeo });
-
-        expect(await sequence.start()).toBe(true);
-        await vi.advanceTimersByTimeAsync(LAST);
-
-        expect(onLines.mock.lastCall[0].map((line) => line.text)).toContain(
-            '[NET ] Origin     : UNCHARTED GRID / ORIGIN MASKED',
-        );
     });
 
     it('plays once: a second start does nothing', async () => {
@@ -369,12 +301,12 @@ describe('a first visit', () => {
 
 describe('a sequence that does not play', () => {
     it('stays away once seen in this session', async () => {
-        const { sequence, onShow, doc, loadGeo } = stage({ stored: '1' });
+        const { sequence, onShow, doc, origin } = stage({ stored: '1' });
 
         expect(await sequence.start()).toBe(false);
 
         expect(onShow).not.toHaveBeenCalled();
-        expect(loadGeo).not.toHaveBeenCalled();
+        expect(origin).not.toHaveBeenCalled();
         expect(doc.count()).toBe(0);
     });
 
@@ -385,12 +317,12 @@ describe('a sequence that does not play', () => {
     });
 
     it('stays away when animations are stopped (LUMN-11)', async () => {
-        const { sequence, onShow, loadGeo } = stage({ motion: () => 'off' });
+        const { sequence, onShow, origin } = stage({ motion: () => 'off' });
 
         expect(await sequence.start()).toBe(false);
 
         expect(onShow).not.toHaveBeenCalled();
-        expect(loadGeo).not.toHaveBeenCalled();
+        expect(origin).not.toHaveBeenCalled();
     });
 
     it('stays away when the storage cannot be read: it would otherwise play on every page', async () => {
@@ -504,22 +436,6 @@ describe('dismissing it', () => {
 
         expect(onHide).toHaveBeenCalledTimes(1);
     });
-
-    it('while the origin is still answering: no line ever shows', async () => {
-        const { loadGeo, answer } = deferred();
-        const { sequence, onLines, onHide, makeEnvironment } = stage({ loadGeo });
-        const started = sequence.start();
-
-        sequence.dismiss();
-        answer(FREE_PARIS);
-        // It was shown: start() says so, though no line came.
-        expect(await started).toBe(true);
-        await vi.advanceTimersByTimeAsync(LAST + LINGER_MS + FADE_MS);
-
-        expect(onLines).not.toHaveBeenCalled();
-        expect(makeEnvironment).not.toHaveBeenCalled();
-        expect(onHide).toHaveBeenCalledTimes(1);
-    });
 });
 
 describe('stopping it — the island goes away', () => {
@@ -546,20 +462,6 @@ describe('stopping it — the island goes away', () => {
         sequence.stop();
         await vi.advanceTimersByTimeAsync(FADE_MS);
 
-        expect(onHide).toHaveBeenCalledTimes(1);
-    });
-
-    it('while the origin is still answering: nothing is scheduled afterwards', async () => {
-        const { loadGeo, answer } = deferred();
-        const { sequence, onLines, onHide } = stage({ loadGeo });
-        const started = sequence.start();
-
-        sequence.stop();
-        answer(FREE_PARIS);
-        expect(await started).toBe(true);
-        await vi.advanceTimersByTimeAsync(LAST + LINGER_MS + FADE_MS);
-
-        expect(onLines).not.toHaveBeenCalled();
         expect(onHide).toHaveBeenCalledTimes(1);
     });
 

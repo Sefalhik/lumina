@@ -44,7 +44,7 @@ class DeploySmokeTest extends TestCase
         $this->fakeDeployedSite();
 
         $this->artisan('deploy:smoke', ['--url' => self::SITE, '--expect-release' => self::SITE_RELEASE])
-            ->expectsOutputToContain('PASSED — 19 passed, 0 blocking, 0 warnings, 0 skipped')
+            ->expectsOutputToContain('PASSED — '.count(SmokeCatalogue::PROBES).' passed, 0 blocking, 0 warnings, 0 skipped')
             ->assertSuccessful();
     }
 

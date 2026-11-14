@@ -69,7 +69,7 @@ feature that gives three answers, not one:
 | `HomepageContentSeeder` | **yes**, one `info` per branch | It decides whether production ships with its content or quietly keeps what was there. A deployment's console output is usually discarded; these two lines are what answer the question afterwards |
 | `CmsExportSeed` | **yes**, on both refusals and on success | Every one writes or refuses to write a file a deployment will execute |
 | `HomepageContentService` | **no**, on purpose | A pure function: no I/O, no failure mode, and it runs on every homepage render. The conventions' decision tree yields nothing to log — splitting a string is neither a failure nor a business event — and one line per render would be noise at request rate |
-| `HomeController` | **no** | A successful public page render is not an event, and `GeoController` does the same |
+| `HomeController` | **no** | A successful public page render is not an event |
 
 Both seeder branches are asserted by `HomepageContentSeederTest` against the three mandatory
 context keys, not merely against "something was logged".
