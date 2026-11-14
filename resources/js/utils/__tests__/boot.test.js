@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getBrowserName, getOSName, maskIp, toGibsonLocation, fetchGeoData } from '../boot';
+import { describe, it, expect } from 'vitest';
+import { EAST, getBrowserName, getOSName, maskIp, MIDWEST, toGibsonLocation, WEST } from '../boot';
 
 // ─── getBrowserName ───────────────────────────────────────────────────────────
 
@@ -44,177 +44,77 @@ describe('getOSName', () => {
 // ─── maskIp ───────────────────────────────────────────────────────────────────
 
 describe('maskIp', () => {
-    it('masks the last two octets of an IPv4 address', () => {
+    // Every address it is given is an IPv4 drawn from utils/boot-origin.js, whose tests hold them
+    // to that form (LUMN-122): the placeholders and the IPv6 branch it had are gone with the lookup.
+    it('masks the last two octets of an IPv4 address, and keeps the first two', () => {
         expect(maskIp('82.64.12.34')).toBe('82.64.███.███');
-    });
-
-    it('keeps the first two octets unchanged', () => {
-        expect(maskIp('192.168.1.100')).toBe('192.168.███.███');
-    });
-
-    it('masks the host portion of an IPv6 address', () => {
-        expect(maskIp('2a01:e0a:1ac:abcd::1')).toBe('2a01:e0a:████:████:████:████');
-    });
-
-    it('returns a placeholder for null', () => {
-        expect(maskIp(null)).toBe('███.███.███.███');
-    });
-
-    it('returns a placeholder for undefined', () => {
-        expect(maskIp(undefined)).toBe('███.███.███.███');
-    });
-
-    it('returns a placeholder for an empty string', () => {
-        expect(maskIp('')).toBe('███.███.███.███');
+        expect(maskIp('1.128.0.255')).toBe('1.128.███.███');
     });
 });
 
 // ─── toGibsonLocation ─────────────────────────────────────────────────────────
 
+/** An origin as utils/boot-origin.js draws it. */
+const origin = (overrides) => ({
+    query: '78.192.1.2',
+    city: 'Paris',
+    countryCode: 'FR',
+    region: 'IDF',
+    as: 'AS12322 Free',
+    ...overrides,
+});
+
 describe('toGibsonLocation', () => {
-    it('returns the fallback for null data', () => {
-        const result = toGibsonLocation(null);
-        expect(result.location).toBe('UNCHARTED GRID / ORIGIN MASKED');
-        expect(result.maskedIp).toBe('███.███.███.███');
-        expect(result.carrier).toBe('UNKNOWN UPLINK');
+    it('names a country by its zone, the city aside', () => {
+        expect(toGibsonLocation(origin({ city: 'Lyon' })).location).toBe('EUROPEAN SPRAWL / PARIS CONURB');
+        expect(toGibsonLocation(origin({ countryCode: 'JP', city: 'Tokyo' })).location).toBe(
+            'PACIFIC RIM / CHIBA CITY',
+        );
+        expect(toGibsonLocation(origin({ countryCode: 'TR', city: 'Ankara' })).location).toBe(
+            'ISTANBUL RELAY / BOSPHORUS NODE',
+        );
     });
 
-    it('returns the fallback when the API signals an error', () => {
-        expect(toGibsonLocation({ error: true }).location).toBe('UNCHARTED GRID / ORIGIN MASKED');
+    it.each([
+        ['NY', 'New York', 'BAMA SPRAWL / NEW YORK CONURB'],
+        ['GA', 'Atlanta', 'BAMA SPRAWL / ATLANTA CONURB'],
+        ['CA', 'Los Angeles', 'PACIFIC SPRAWL / LOS ANGELES GRID'],
+        ['AZ', 'Phoenix', 'PACIFIC SPRAWL / PHOENIX GRID'],
+        ['IL', 'Chicago', 'MIDLANDS GRID / CHICAGO NODE'],
+        ['NE', 'Omaha', 'MIDLANDS GRID / OMAHA NODE'],
+        ['AK', 'Anchorage', 'AMERICAN SPRAWL / ANCHORAGE SECTOR'],
+    ])('places the United States by state: %s', (region, city, location) => {
+        expect(toGibsonLocation(origin({ countryCode: 'US', region, city })).location).toBe(location);
     });
 
-    // ip-api.com field names: query, countryCode, region, as
-    it('maps France to EUROPEAN SPRAWL / PARIS CONURB', () => {
-        const { location } = toGibsonLocation({
-            query: '1.2.3.4',
-            countryCode: 'FR',
-            city: 'Paris',
-            as: 'AS12322 Free SAS',
-        });
-        expect(location).toBe('EUROPEAN SPRAWL / PARIS CONURB');
+    it('shows the carrier behind its AS number, upper-cased', () => {
+        expect(toGibsonLocation(origin({ as: 'AS3215 Orange' })).carrier).toBe('ORANGE');
+        expect(toGibsonLocation(origin({ as: 'AS701 Verizon Business' })).carrier).toBe('VERIZON BUSINESS');
     });
 
-    it('maps Japan to PACIFIC RIM / CHIBA CITY (Neuromancer reference)', () => {
-        const { location } = toGibsonLocation({ query: '1.2.3.4', countryCode: 'JP', city: 'Tokyo', as: '' });
-        expect(location).toBe('PACIFIC RIM / CHIBA CITY');
-    });
-
-    it('maps Turkey to ISTANBUL RELAY / BOSPHORUS NODE (Neuromancer reference)', () => {
-        const { location } = toGibsonLocation({ query: '1.2.3.4', countryCode: 'TR', city: 'Istanbul', as: '' });
-        expect(location).toBe('ISTANBUL RELAY / BOSPHORUS NODE');
-    });
-
-    it('maps US East Coast states to BAMA SPRAWL', () => {
-        const { location } = toGibsonLocation({
-            query: '1.2.3.4',
-            countryCode: 'US',
-            region: 'NY',
-            city: 'New York',
-            as: '',
-        });
-        expect(location).toBe('BAMA SPRAWL / NEW YORK CONURB');
-    });
-
-    it('maps US West Coast states to PACIFIC SPRAWL', () => {
-        const { location } = toGibsonLocation({
-            query: '1.2.3.4',
-            countryCode: 'US',
-            region: 'CA',
-            city: 'Los Angeles',
-            as: '',
-        });
-        expect(location).toBe('PACIFIC SPRAWL / LOS ANGELES GRID');
-    });
-
-    it('maps US Midwest states to MIDLANDS GRID', () => {
-        const { location } = toGibsonLocation({
-            query: '1.2.3.4',
-            countryCode: 'US',
-            region: 'IL',
-            city: 'Chicago',
-            as: '',
-        });
-        expect(location).toBe('MIDLANDS GRID / CHICAGO NODE');
-    });
-
-    it('maps unmapped US states to AMERICAN SPRAWL', () => {
-        const { location } = toGibsonLocation({
-            query: '1.2.3.4',
-            countryCode: 'US',
-            region: 'AK',
-            city: 'Anchorage',
-            as: '',
-        });
-        expect(location).toBe('AMERICAN SPRAWL / ANCHORAGE SECTOR');
-    });
-
-    it('falls back to UNCHARTED GRID for unknown country codes', () => {
-        const { location } = toGibsonLocation({ query: '1.2.3.4', countryCode: 'ZZ', city: 'Nowhere', as: '' });
-        expect(location).toBe('UNCHARTED GRID / NOWHERE NODE');
-    });
-
-    it('strips the ASN prefix from the carrier name', () => {
-        const { carrier } = toGibsonLocation({
-            query: '1.2.3.4',
-            countryCode: 'FR',
-            city: 'Paris',
-            as: 'AS12322 Free SAS',
-        });
-        expect(carrier).toBe('FREE SAS');
-    });
-
-    it('truncates carrier names longer than 28 characters', () => {
-        const { carrier } = toGibsonLocation({
-            query: '1.2.3.4',
-            countryCode: 'FR',
-            city: 'Paris',
-            as: 'AS9999 A Very Long ISP Name That Goes On Forever',
-        });
-        expect(carrier.length).toBeLessThanOrEqual(28);
-    });
-
-    it('uses UNKNOWN CARRIER when org is missing', () => {
-        const { carrier } = toGibsonLocation({ query: '1.2.3.4', countryCode: 'FR', city: 'Paris' });
-        expect(carrier).toBe('UNKNOWN CARRIER');
-    });
-
-    it('masks the IP address', () => {
-        const { maskedIp } = toGibsonLocation({ query: '82.64.12.34', countryCode: 'FR', city: 'Paris', as: '' });
-        expect(maskedIp).toBe('82.64.███.███');
+    it('masks the address', () => {
+        expect(toGibsonLocation(origin({ query: '86.128.7.9' })).maskedIp).toBe('86.128.███.███');
     });
 });
 
-// ─── fetchGeoData ─────────────────────────────────────────────────────────────
-
-describe('fetchGeoData', () => {
-    beforeEach(() => {
-        vi.stubGlobal('fetch', vi.fn());
-        // Ziggy's route() helper is injected by Blade at runtime — stub it for unit tests
-        vi.stubGlobal('route', vi.fn().mockReturnValue('/api/geo'));
-        sessionStorage.clear(); // prevent geo cache from leaking between tests
+describe('the states of the Sprawl', () => {
+    // Data, like the table of origins: taking a state out of a list sends its origins to another
+    // branch, still a place, and no rule can tell. The sizes are pinned, so that a change to a list
+    // is a decision rather than an accident.
+    it('lists twenty states in the east, five in the west, ten in the midwest', () => {
+        expect(EAST).toHaveLength(20);
+        expect(WEST).toHaveLength(5);
+        expect(MIDWEST).toHaveLength(10);
     });
 
-    afterEach(() => {
-        vi.unstubAllGlobals();
-        sessionStorage.clear();
+    it('lists each state once, in one list only', () => {
+        const all = [...EAST, ...WEST, ...MIDWEST];
+
+        expect(new Set(all).size).toBe(all.length);
+        expect(all.every((state) => /^[A-Z]{2}$/.test(state))).toBe(true);
     });
 
-    it('returns parsed JSON on a successful fetch', async () => {
-        const payload = { ip: '1.2.3.4', country_code: 'FR', city: 'Paris' };
-        fetch.mockResolvedValue({ json: () => Promise.resolve(payload) });
-
-        const result = await fetchGeoData();
-        expect(result).toEqual(payload);
-        expect(fetch).toHaveBeenCalledWith('/api/geo', expect.objectContaining({ signal: expect.any(AbortSignal) }));
-    });
-
-    it('returns null on a network error', async () => {
-        fetch.mockRejectedValue(new Error('Network failure'));
-        expect(await fetchGeoData()).toBeNull();
-    });
-
-    it('returns null when the request is aborted', async () => {
-        fetch.mockRejectedValue(new DOMException('Aborted', 'AbortError'));
-        expect(await fetchGeoData()).toBeNull();
+    it('cannot be changed at run time', () => {
+        expect([EAST, WEST, MIDWEST].every(Object.isFrozen)).toBe(true);
     });
 });

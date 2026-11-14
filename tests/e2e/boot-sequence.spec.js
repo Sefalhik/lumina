@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { test, expect } from './helpers/test.js';
 
 test.describe('Boot sequence', () => {
@@ -39,46 +40,53 @@ test.describe('Boot sequence', () => {
         await expect(page.locator('.boot-overlay')).not.toBeVisible();
     });
 
-    test('[NET] Origin line contains a Gibson zone name', async ({ page }) => {
-        // Mock geo API for determinism — avoids flakiness from rate-limiting or CI network restrictions.
-        // page.route() must be registered before goto().
-        await page.route('**/api/geo**', route =>
-            route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
-                    status: 'success',
-                    query: '1.2.3.4',
-                    city: 'Paris',
-                    countryCode: 'FR',
-                    region: 'IDF',
-                    as: 'AS3215 Orange SA',
-                }),
-            })
-        );
-
+    test('[NET] the origin is a fiction, drawn in the browser: no request goes out for it', async ({ page }) => {
+        // LUMN-122: the sequence used to send the visitor's address to a third party, through the
+        // server. The origin is now drawn from a table, the moment the sequence starts: every
+        // request from the first is counted, so that one made at that moment cannot slip by.
+        const requests = [];
+        page.on('request', (request) => requests.push({ url: request.url(), type: request.resourceType() }));
         await page.goto('/');
 
-        // Wait for the NET section (~4.8s after sequence start)
-        const originLine = page.locator('.boot-line', { hasText: '[NET ] Origin' });
-        await expect(originLine).toBeVisible({ timeout: 10000 });
+        const origin = page.locator('.boot-line', { hasText: '[NET ] Origin' });
+        await expect(origin).toBeVisible({ timeout: 10000 });
+        // A place of Gibson's world: a zone, then a node.
+        await expect(origin).toHaveText(/: \S.* \/ \S.*$/);
 
-        // FR maps to 'EUROPEAN SPRAWL / PARIS CONURB' — verify the "ZONE / NODE" format
-        const text = await originLine.textContent();
-        expect(text).toMatch(/\w+ .+ \/ .+ (CONURB|NODE|SPRAWL|GRID|RELAY|FREEPORT|SECTOR)/);
+        // No data asked of anyone — the page loads its document, scripts, styles, fonts and images.
+        expect(requests.filter(({ type }) => type === 'fetch' || type === 'xhr')).toEqual([]);
+        // And nothing leaves for another host: the site itself, and Vite's server when it runs.
+        const hosts = new Set([new URL(page.url()).host]);
+        if (existsSync('public/hot')) hosts.add(new URL(readFileSync('public/hot', 'utf8').trim()).host);
+        expect(requests.filter(({ url }) => !hosts.has(new URL(url).host))).toEqual([]);
     });
 
-    test('[NET] Origin line shows fallback when geo fetch fails', async ({ page }) => {
-        // Simulate a geo API failure — toGibsonLocation(null) returns the hardcoded fallback.
-        await page.route('**/api/geo**', route => route.abort());
-
+    test('[NET] the address shown is never the visitor\'s', async ({ page }) => {
+        // Every test reaches the site from 127.0.0.1: an address of the table never starts that way.
         await page.goto('/');
 
-        const originLine = page.locator('.boot-line', { hasText: '[NET ] Origin' });
-        await expect(originLine).toBeVisible({ timeout: 10000 });
+        const source = page.locator('.boot-line', { hasText: '[NET ] Source IP' });
+        await expect(source).toBeVisible({ timeout: 10000 });
+        await expect(source).toHaveText(/: \d{1,3}\.\d{1,3}\.███\.███$/);
+        await expect(source).not.toContainText(': 127.');
+    });
 
-        const text = await originLine.textContent();
-        expect(text).toContain('UNCHARTED GRID / ORIGIN MASKED');
+    test('[NET] two visits do not come from the same place every time', async ({ browser, baseURL }) => {
+        // A drawn origin, not a fixed one: over a few fresh visits — fresh contexts, so the
+        // sequence plays each time — at least two differ. The line comes 4.5 s in.
+        test.setTimeout(60000);
+        const seen = new Set();
+        for (let visit = 0; visit < 6 && seen.size < 2; visit++) {
+            const context = await browser.newContext({ baseURL });
+            const page = await context.newPage();
+            await page.goto('/');
+            const source = page.locator('.boot-line', { hasText: '[NET ] Source IP' });
+            await expect(source).toBeVisible({ timeout: 10000 });
+            seen.add(await source.textContent());
+            await context.close();
+        }
+
+        expect(seen.size).toBeGreaterThan(1);
     });
 
     test('skip hint is visible', async ({ page }) => {

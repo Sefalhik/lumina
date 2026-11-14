@@ -12,7 +12,6 @@ use App\Services\Smoke\Probes\CompiledAssetsProbe;
 use App\Services\Smoke\Probes\E2eBackdoorProbe;
 use App\Services\Smoke\Probes\ErrorPagesProbe;
 use App\Services\Smoke\Probes\ExposureProbe;
-use App\Services\Smoke\Probes\GeoProbe;
 use App\Services\Smoke\Probes\HealthProbe;
 use App\Services\Smoke\Probes\HttpsRedirectProbe;
 use App\Services\Smoke\Probes\LocaleRedirectProbe;
@@ -54,7 +53,6 @@ final class SmokeCatalogue
         HttpsRedirectProbe::class,
         CertificateProbe::class,
         AcmeChallengeProbe::class,
-        GeoProbe::class,
         ResponseTimeProbe::class,
     ];
 }

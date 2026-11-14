@@ -219,12 +219,6 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 VITE_APP_NAME="${APP_NAME}"
 
-# Geo API (server-side proxy for the boot sequence)
-GEO_API_BASE_URL=http://ip-api.com/json
-GEO_FETCH_TIMEOUT=3
-GEO_CACHE_TTL=86400
-GEO_FAILURE_CACHE_TTL=60
-
 # Admin account — used by AdminSeeder (php artisan db:seed)
 ADMIN_EMAIL=<the admin address>
 ADMIN_NAME="Laurent Bernard-Cardascia"
@@ -248,9 +242,9 @@ chmod 600 .env
 | `DB_PORT` | `5433` | `5432` — the local cluster runs on a non-default port, alwaysdata does not |
 | `DB_USERNAME` | the account user | a user dedicated to this environment alone |
 
-And four blocks are **absent on purpose**: `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` (no
-translation command runs on a server), `GEO_DEV_FALLBACK_IP` (there are no loopback
-visitors), `OCTANE_*` and `PHP_INI_SCAN_DIR` (both describe the local FrankenPHP setup).
+And three blocks are **absent on purpose**: `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` (no
+translation command runs on a server), `OCTANE_*` and `PHP_INI_SCAN_DIR` (both describe the local
+FrankenPHP setup).
 
 ---
 

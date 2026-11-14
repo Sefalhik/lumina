@@ -97,7 +97,6 @@ trait FakesDeployedSite
             "GET {$site}/build/assets/app-1.css" => fn () => Http::response('body{}', 200, ['Content-Type' => 'text/css']),
             "GET {$site}/build/assets/app-2.js" => fn () => Http::response('export{}', 200, ['Content-Type' => 'application/javascript']),
             "GET {$site}/telescope" => fn () => Http::response('Not Found', 404),
-            "GET {$site}/api/geo" => fn () => Http::response(['country_code' => 'FR', 'city' => 'Toulouse']),
             "GET {$site}/fr/lumina-smoke-missing-page" => fn () => Http::response('Not Found', 404),
             "PATCH {$site}/fr" => fn () => Http::response('Method Not Allowed', 405),
             "GET {$site}/fr/admin" => fn () => Http::response('', 302, ['Location' => "{$site}/fr/login"]),

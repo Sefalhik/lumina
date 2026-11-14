@@ -6,7 +6,7 @@
  */
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { fetchGeoData } from '../utils/boot';
+import { drawOrigin } from '../utils/boot-origin.js';
 import { createBootSequence } from '../utils/boot-sequence.js';
 import { pageMotion } from '../utils/motion.js';
 
@@ -26,7 +26,7 @@ async function scrollBottom() {
 const sequence = createBootSequence({
     storage: () => window.sessionStorage,
     motion: () => pageMotion(window),
-    loadGeo: fetchGeoData,
+    origin: () => drawOrigin(Math.random),
     environment: () => ({
         now: new Date(),
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,

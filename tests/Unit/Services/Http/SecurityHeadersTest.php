@@ -370,7 +370,7 @@ class SecurityHeadersTest extends TestCase
     {
         // Left in a release by mistake, or written by a test: outside a developer's machine the file
         // decides nothing — not even to fail.
-        foreach (["https://dev.cardascia-it.org:5173", '', 'not a url'] as $hotFile) {
+        foreach (['https://dev.cardascia-it.org:5173', '', 'not a url'] as $hotFile) {
             $policy = SecurityHeaders::fromConfiguration(true, self::configuration(), false, $hotFile)
                 ->for(false, self::NONCE)['Content-Security-Policy-Report-Only'];
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 import BootSequence from '../BootSequence.vue';
+import { ORIGINS } from '../../utils/boot-origin.js';
 import { createI18n } from '../../utils/i18n.js';
 
 /**
@@ -10,12 +11,6 @@ import { createI18n } from '../../utils/i18n.js';
  */
 
 const mountWithI18n = (options = {}) => mount(BootSequence, { global: { plugins: [createI18n()] }, ...options });
-
-// The origin lookup answers at once: no network in a unit test.
-vi.mock('../../utils/boot', async (importOriginal) => {
-    const actual = await importOriginal();
-    return { ...actual, fetchGeoData: vi.fn().mockResolvedValue(null) };
-});
 
 describe('BootSequence', () => {
     beforeEach(() => {
@@ -65,6 +60,13 @@ describe('BootSequence', () => {
         expect(texts).toContain(`[SYS ] Display           : ${screen.width}×${screen.height}`);
         expect(texts.find((line) => line.startsWith('[SYS ] Date'))).toContain('2026');
         expect(texts.find((line) => line.startsWith('[BIOS] Deck serial'))).toMatch(/: ONO7-[0-9A-F]{8}$/);
+
+        // And the origin is drawn from the table (LUMN-122): its line comes at 4.5 s.
+        await vi.advanceTimersByTimeAsync(700);
+        const source = wrapper.findAll('.boot-line').find((line) => line.text().startsWith('[NET ] Source IP'));
+        const shown = source.text().match(/: (\d{1,3}\.\d{1,3})\.███\.███$/)[1];
+        const table = new Set(ORIGINS.map((origin) => origin.block.split('.').slice(0, 2).join('.')));
+        expect(table.has(shown), shown).toBe(true);
         wrapper.unmount();
     });
 

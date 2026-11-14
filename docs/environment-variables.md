@@ -82,10 +82,6 @@ environments — a value that never varies has no business being decided per env
 
 | Variable | Default | What it does |
 |---|---|---|
-| `GEO_API_BASE_URL` | `http://ip-api.com/json` | Base URL of the geolocation API the boot overlay reads through `/api/geo` |
-| `GEO_FETCH_TIMEOUT` | `3` | Seconds before that outbound call gives up. It sits in front of a page render, so it stays short |
-| `GEO_CACHE_TTL` | `86400` | How long a successful lookup is kept |
-| `GEO_FAILURE_CACHE_TTL` | `60` | How long a failure is kept — a negative cache, so an API outage costs one call a minute rather than one per visitor. It is also why a smoke run can report the geo probe red for a minute after the API recovers |
 | `ANTHROPIC_MODEL` | `claude-haiku-4-5-20251001` | Model used by `i18n:translate` and `cms:translate`. Only ever read on a developer's machine, like the key beside it |
 
 ## Left at Laravel's default, on purpose
@@ -113,7 +109,6 @@ Two of them are worth a sentence anyway:
 | Variable | Why |
 |---|---|
 | `ANTHROPIC_API_KEY` | Since LUMN-29 the translated content ships **with the deployment**, in `database/data/homepage-content.php`. Neither `i18n:translate` nor `cms:translate` runs on a server. A key that is never used can only be leaked |
-| `GEO_DEV_FALLBACK_IP` | Substitutes a public IP for a loopback address. There are no loopback visitors in production |
 | `OCTANE_SERVER`, `OCTANE_HTTPS` | Octane is the development server. alwaysdata serves through Apache |
 | `PHP_INI_SCAN_DIR` | Points at a local FrankenPHP build |
 | `SMOKE_BASIC_USER`, `SMOKE_BASIC_PASSWORD`, `SMOKE_TIMEOUT` | `deploy:smoke` looks at a deployment **from the outside**, so it runs on a developer's machine or a CI runner — never on the server it probes. Putting the Basic credentials in the server's `.env` would store the password to the door inside the room it guards, for a command that host never runs. Same reasoning as `ANTHROPIC_API_KEY` above. In CI they are GitHub environment secrets |
