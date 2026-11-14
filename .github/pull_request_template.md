@@ -30,7 +30,7 @@
 - [ ] **Chaque garde-fou prouvé par mutation** : le saboter fait tomber un test, et le bon
 - [ ] **Composants créés documentés** dans `CLAUDE.md` — vérifié par `grep`, pas de mémoire
 - [ ] **Locales régénérées** si une clé de traduction a changé, et le cache avec
-- [ ] **`npm run check:full` : 7/7**
+- [ ] **`npm run check:full` : 8/8**
 - [ ] **Décisions écartées consignées** dans le code ou le ticket, avec leur motif
 
 ## Ce que je n'ai pas fait

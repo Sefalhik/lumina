@@ -77,6 +77,9 @@ jobs:
           cp .env.example .env
           php artisan key:generate --force
 
+      - name: Run Pint — formatting
+        run: ./vendor/bin/pint --test
+
       - name: Run PHPStan — app (level 8)
         run: ./vendor/bin/phpstan analyse
 

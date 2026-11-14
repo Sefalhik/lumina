@@ -1,6 +1,7 @@
 includes:
     - vendor/larastan/larastan/extension.neon
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - vendor/tomasvotruba/cognitive-complexity/config/extension.neon
 
 parameters:
     level: 8
@@ -12,3 +13,26 @@ parameters:
         - phpstan-stubs.php
     parallel:
         maximumNumberOfProcesses: 1
+
+    # Cognitive complexity (LUMN-62): how hard a method, and a class, are to follow — nesting and
+    # breaks in the flow count, comments and blank lines do not. Measured on app/ on 2026-11-14:
+    # 14 for the most complex method and 37 for the most complex class, I18nTranslate aside. Each
+    # threshold sits just above: a ratchet, not a figure from an article. The measure and the
+    # reasoning are in docs/quality-tooling.md.
+    cognitive_complexity:
+        function: 15
+        class: 40
+
+    ignoreErrors:
+        # The one exception, dated and named (Laurent, 2026-11-14): I18nTranslate measures 29 for
+        # translatePhpFiles() and 62 for the class. LUMN-110 rewrites this command next, and must
+        # remove these two entries — one of its acceptance criteria. Each matches once, and only
+        # here: a second excess anywhere fails the analysis.
+        -
+            identifier: complexity.functionLike
+            path: app/Console/Commands/I18nTranslate.php
+            count: 1
+        -
+            identifier: complexity.classLike
+            path: app/Console/Commands/I18nTranslate.php
+            count: 1

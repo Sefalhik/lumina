@@ -53,7 +53,7 @@ php artisan test                # Full PHPUnit suite (no coverage)
 composer test:coverage          # Unit + Feature suites + PCOV coverage report + 80% minimum threshold
 npm run test:unit:run           # Vitest unit suite (no coverage)
 npm run test:e2e                # Playwright end-to-end suite
-npm run check:full              # ESLint + Stylelint + PHPStan + PHPUnit + Vitest + Playwright (~40s)
+npm run check:full              # ESLint + Stylelint + Pint + PHPStan + PHPUnit + Vitest + Playwright (~45s)
 npm run lint:js                 # ESLint (lint:js:fix to fix) — resources/js/**/*.{js,vue}
 npm run lint:scss               # Stylelint (lint:fix to fix) — SCSS
 npm run format                  # Prettier — SCSS, Vue, JS
@@ -171,8 +171,10 @@ Key rules:
 See `docs/quality-tooling.md` before changing the audit script, a linter config, PHPStan or the CI workflow.
 
 Key rules:
-- `npm run check:full` runs the 7 checks, and is the verdict before a pull request
+- `npm run check:full` runs the 8 checks, and is the verdict before a pull request
 - PHPStan: level 8 on `app/`, level 5 on `tests/`; **deprecated code is an error**; **never** `@phpstan-ignore` without a written justification
+- Size and complexity thresholds are **ratchets, measured before being set**: code over one is
+  split, never the threshold raised — [Size and complexity](docs/quality-tooling.md#size-and-complexity)
 
 ## Branch protection and merge policy
 See `docs/git-workflow.md` before changing the ruleset, re-keying a pull request, or diagnosing a blocked merge.

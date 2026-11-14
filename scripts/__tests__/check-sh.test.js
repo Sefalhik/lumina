@@ -31,3 +31,34 @@ describe('scripts/check.sh — Playwright step', () => {
         expect(invocations).toHaveLength(1);
     });
 });
+
+// Pint (LUMN-62): installed and run by nobody until then. Its three entry points are read, not run:
+// each one is what a dropped line would silently undo.
+const ciYml = readFileSync(fileURLToPath(new URL('../../.github/workflows/ci.yml', import.meta.url)), 'utf8');
+const lintStaged = JSON.parse(
+    readFileSync(fileURLToPath(new URL('../../.lintstagedrc.json', import.meta.url)), 'utf8'),
+);
+
+describe('Pint, the formatting of PHP', () => {
+    it('is a step of the audit, which checks and never fixes', () => {
+        const lines = checkSh.split('\n').filter((line) => /^\s*step\s+"Pint"/.test(line));
+
+        expect(lines).toHaveLength(1);
+        expect(lines[0]).toMatch(/\.\/vendor\/bin\/pint --test\s*$/);
+    });
+
+    it('runs in the audit before PHPStan', () => {
+        expect(checkSh.indexOf('step "Pint"')).toBeLessThan(checkSh.indexOf('step "PHPStan (app)"'));
+    });
+
+    it('is a step of the CI, which checks and never fixes, before PHPStan', () => {
+        const pint = ciYml.indexOf('run: ./vendor/bin/pint --test');
+
+        expect(pint).toBeGreaterThan(-1);
+        expect(pint).toBeLessThan(ciYml.indexOf('run: ./vendor/bin/phpstan analyse\n'));
+    });
+
+    it('formats the staged PHP files in the hook, as Prettier does the JavaScript', () => {
+        expect(lintStaged['**/*.php']).toEqual(['vendor/bin/pint']);
+    });
+});

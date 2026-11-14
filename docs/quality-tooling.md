@@ -2,18 +2,19 @@
 
 ## Local quality audit
 
-`npm run check:full` (or `bash scripts/check.sh`) runs all 7 checks in sequence with a colored summary:
+`npm run check:full` (or `bash scripts/check.sh`) runs all 8 checks in sequence with a colored summary:
 
 ```
   ESLint                    ✔  2s
   Stylelint                 ✔  1s
+  Pint                      ✔  1s
   PHPStan (app)             ✔  6s
   PHPStan (tests)           ✔  5s
   PHPUnit                   ✔  6s
   Vitest                    ✔  3s
   Playwright E2E            ✔  21s
 
-  All 7 checks passed  in 44s
+  All 8 checks passed  in 45s
 ```
 
 Exits 0 on success, 1 on any failure (shows the relevant output for the failing step).
@@ -65,6 +66,7 @@ the tooling that decides whether the audit can be trusted was the one JS nobody 
 Custom rules on top:
 - `vue/component-api-style: ['error', ['script-setup']]` — enforces `<script setup>`, rejects Options API
 - `no-var: error`, `prefer-const: error`
+- `complexity`, `max-lines`, `max-lines-per-function` — see [Size and complexity](#size-and-complexity)
 
 ### Accessibility static analysis (`eslint-plugin-vuejs-accessibility`)
 Checks Vue templates at lint time for ARIA and semantic HTML issues — complements the runtime axe-core scan in `tests/e2e/accessibility.spec.js`.
@@ -78,10 +80,79 @@ These checks fire at commit time (lint-staged) and in CI — a missing `aria-lab
 
 ### Globals
 Browser globals (`window`, `document`, `sessionStorage`, `fetch`…) are declared via the `globals` package (`globals.browser`).
+They apply to `resources/js/` only; `scripts/` gets Node's (`globals.node`). Until LUMN-62 the tooling
+had both: the base config of `eslint-plugin-vuejs-accessibility` sets the browser's globals on
+**every** file, so `window` passed unnoticed in Node scripts. Its configs are now scoped to `.vue`
+files, and `eslint-config.test.js` checks each side knows its own globals and not the other's.
 `route` is declared as a custom global — it's the Ziggy helper injected by the `@routes` Blade directive.
 
 ### Pre-commit integration
 `lint-staged` runs `eslint` (check only, no `--fix`) after `prettier --write` on staged `.js` and `.vue` files. The commit is blocked if ESLint reports errors.
+
+## Formatting PHP — Pint
+
+`laravel/pint`, Laravel's preset, no `pint.json`. It was installed and run by **nobody** until
+LUMN-62: no audit, no CI step, no hook — the formatting of PHP was checked by no one, and three
+files had drifted by 2026-09-20.
+
+| Where | What it does |
+|---|---|
+| `npm run check:full` | `./vendor/bin/pint --test`: a file out of format fails the step |
+| CI, `php` job | the same command, before PHPStan |
+| `lint-staged` | `vendor/bin/pint` on the staged `.php` files: it **formats** them and the commit carries the result, as `prettier --write` does for JavaScript. A hook that refuses what it could fix only costs a second commit |
+
+## Size and complexity
+
+A class of 654 lines went through every check without a word, in September 2026: nothing measured
+the size or the complexity of the code. LUMN-62 added the measures — and **measured before choosing
+any threshold**. A threshold taken from an article turns the repository red on the first day, and
+the first reaction is to switch the rule off. Each threshold below sits at, or just above, the
+largest value the code had on 2026-11-14: a ratchet, like the 400-line ceiling of `CLAUDE.md`.
+
+### PHP — cognitive complexity, inside PHPStan
+
+`tomasvotruba/cognitive-complexity`, a PHPStan extension: no extra check in the chain, and the
+same failure output. Cognitive complexity measures how hard code is to *follow* — nesting, breaks
+in the flow — and ignores comments and blank lines.
+
+| Measure, `app/` | Largest on 2026-11-14 | Threshold |
+|---|---|---|
+| One method | 14 (`SecurityHeaders::validated()`) | **15** |
+| One class (sum of its methods) | 37 (`CmsTranslate`) | **40** |
+
+**PHPMD was measured too, and set aside.** It counts length in lines, comments included:
+`TranslationCache` came out at 385 lines, next to the real outlier, because it is documented. In a
+repository that documents its code at length, a length threshold would push to delete
+explanations.
+
+**One exception, dated and named.** `I18nTranslate` measures 29 for `translatePhpFiles()` and 62
+for the class — far above everything else. LUMN-110 rewrites that command next, and must remove the
+two `ignoreErrors` entries of `phpstan.neon`: one of its acceptance criteria. Each entry matches
+once, and only in that file: a second excess anywhere fails the analysis.
+
+**`tests/` is not held to it yet.** Three test methods measure 17 to 21, and
+`DocumentationIndexTest` 85 as a class: it carries a real Markdown link resolver. That is logic
+living in a test, a debt of its own, not a threshold to set at 85.
+
+### JavaScript — ESLint
+
+| Rule | Scope | Largest on 2026-11-14 | Threshold |
+|---|---|---|---|
+| `complexity` | code **and tests** | 20 — `npmAdvisories()`, `update-frankenphp.test.js` | **20** |
+| `max-lines` (no blank lines, no comments) | code | 244 — `scripts/audit-advisories.js` | **250** |
+| `max-lines-per-function` (same) | code | 104 — `createDeadChannel()`, a controller written as one closure | **105** |
+
+Not in the tests: a test file grows with the cases of what it tests, and a `describe()` is a long
+function by nature. Complexity applies to them all the same — logic in a test is a smell.
+
+`resources/js/utils/boot-origin.js` escapes `max-lines`: it is data, one verified address block per
+line (LUMN-122), and its own test pins its size at 334 lines, so that it changes on purpose, with a
+new RIPEstat check.
+
+`scripts/__tests__/eslint-config.test.js` holds the whole configuration where it is decided: the
+project's configuration lints code built to break each rule, or to sit exactly on each limit and
+then one past it — the presets included, each through one rule it brings, the globals of each side,
+and what is never linted.
 
 ## Static analysis (PHPStan)
 
@@ -141,7 +212,7 @@ from the Actions tab, or with `gh workflow run ci.yml --ref <branch>`.
 
 | Job | Steps |
 |-----|-------|
-| `PHP — PHPStan + PHPUnit` | setup-php 8.5 (pcov) → composer install → key:generate → PHPStan app (level 8) → PHPStan tests (level 5) → `composer test:coverage` (80% threshold enforced) |
+| `PHP — PHPStan + PHPUnit` | setup-php 8.5 (pcov) → composer install → key:generate → Pint → PHPStan app (level 8, cognitive complexity included) → PHPStan tests (level 5) → `composer test:coverage` (80% threshold enforced) |
 | `JS — ESLint + Stylelint + Vitest` | Node from `.nvmrc` → npm ci → ESLint → Stylelint → Vitest |
 | `E2E — Playwright` | setup-php 8.5 + Node from `.nvmrc` → composer + npm install → `npm run build` → Playwright Chromium → key:generate → `npm run test:e2e` |
 | `Security — Dependency review` | pull requests only → fails when the PR introduces a package with a known vulnerability, severity high or worse |
