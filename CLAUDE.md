@@ -135,6 +135,9 @@ Every view is axe-scanned in three themes (`tests/e2e/accessibility.spec.js`). N
 need high opacity: small muted text at `/60`–`/70`, never `text-secondary`. A purely decorative
 element takes **both** `aria-hidden="true"` and `data-a11y-role="decorative"` — the first alone does
 not stop axe. Thresholds and the reasoning: [Accessibility](docs/accessibility.md).
+Every visitor can stop the animations (WCAG 2.2.2, level A): **a looping effect ships with its stopped
+state** in `when-motion-stopped` —
+[Motion — every visitor can stop it](docs/accessibility.md#motion--every-visitor-can-stop-it).
 
 ## SEO conventions
 **Every new public route goes into `config/seo.php` → `public_routes`**, an allowlist. Indexing is

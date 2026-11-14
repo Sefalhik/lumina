@@ -1,15 +1,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { applyTheme, isValidTheme } from '../utils/theme.js';
+import { applyTheme, isValidTheme, THEMES } from '../utils/theme.js';
 
 const { t } = useI18n();
 
-const themeIds = [
-    { id: 'sprawl', icon: '⬡' },
-    { id: 'steampunk', icon: '⚙' },
-    { id: 'neon-noir', icon: '◈' },
-];
+const themeIds = THEMES;
 
 const current = ref('sprawl');
 

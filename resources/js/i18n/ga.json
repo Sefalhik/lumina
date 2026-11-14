@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Beochana",
+        "on": "ar siúl",
+        "off": "múchta"
+    },
     "boot": {
         "skip": "[ CLICEÁIL NÓ BRÚIGH CNAIPE CHUN A SCIPEÁIL ]"
     },

@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animācijas",
+        "on": "ieslēgtas",
+        "off": "izslēgtas"
+    },
     "boot": {
         "skip": "[ NOKLIKŠĶINIET VAI NOSPIEDIET JEBKURU TAUSTIŅU, LAI IZLAISTU ]"
     },

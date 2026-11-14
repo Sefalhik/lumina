@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animazzjonijiet",
+        "on": "mixgħula",
+        "off": "mitfija"
+    },
     "boot": {
         "skip": "[ IKKLIKKJA JEW AGĦFAS BUTTUNA BIEX TILEF ]"
     },

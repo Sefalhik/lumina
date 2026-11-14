@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animaatiot",
+        "on": "päällä",
+        "off": "pois"
+    },
     "boot": {
         "skip": "[ NAPSAUTA TAI PAINA NÄPPÄINTÄ OHITTAAKSESI ]"
     },

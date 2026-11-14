@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animacijos",
+        "on": "įjungtos",
+        "off": "išjungtos"
+    },
     "boot": {
         "skip": "[ SPUSTELĖKITE ARBA PASPAUSKITE BET KURĮ KLAVIŠĄ, NORĖDAMI PRALEISTI ]"
     },

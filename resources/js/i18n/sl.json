@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animacije",
+        "on": "vklopljene",
+        "off": "izklopljene"
+    },
     "boot": {
         "skip": "[ KLIKNITE ALI PRITISNITE GUMB ZA PRESKOK ]"
     },

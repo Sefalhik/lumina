@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animations",
+        "on": "on",
+        "off": "off"
+    },
     "boot": {
         "skip": "[ CLICK OR PRESS ANY KEY TO SKIP ]"
     },

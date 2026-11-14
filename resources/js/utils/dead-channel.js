@@ -150,16 +150,17 @@ export function paintFrame(pixels, pool, floor, ceiling) {
  * What the snow should be doing.
  *
  * - `off`: another theme — nothing drawn, nothing running;
- * - `still`: reduced motion asked — one frame, then nothing moves;
+ * - `still`: animations stopped, by the switch or the preference (utils/motion.js) — one frame, then
+ *   nothing moves;
  * - `paused`: the tab is hidden — nothing runs that nobody sees;
  * - `animate`: twelve frames a second.
  *
- * @param {{ theme: string | null, hidden: boolean, reducedMotion: boolean }} state
+ * @param {{ theme: string | null, hidden: boolean, motionStopped: boolean }} state
  * @returns {'off' | 'still' | 'paused' | 'animate'}
  */
-export function snowMode({ theme, hidden, reducedMotion }) {
+export function snowMode({ theme, hidden, motionStopped }) {
     if (theme !== 'sprawl') return 'off';
-    if (reducedMotion) return 'still';
+    if (motionStopped) return 'still';
     if (hidden) return 'paused';
     return 'animate';
 }

@@ -4,6 +4,7 @@ import { createI18n } from './utils/i18n.js';
 import BootSequence from './components/BootSequence.vue';
 import DeadChannel from './components/DeadChannel.vue';
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
+import MotionToggle from './components/MotionToggle.vue';
 import ThemeSwitcher from './components/ThemeSwitcher.vue';
 import SkillsEditor from './components/admin/SkillsEditor.vue';
 
@@ -11,6 +12,7 @@ const islands = {
     'boot-sequence': BootSequence,
     'dead-channel': DeadChannel,
     'language-switcher': LanguageSwitcher,
+    'motion-toggle': MotionToggle,
     'theme-switcher': ThemeSwitcher,
 };
 

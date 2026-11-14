@@ -19,6 +19,7 @@ export const ADMIN_IDENTITY_SESSION = 'admin-identity';
 export const ADMIN_EXPERIENCES_SESSION = 'admin-experiences';
 export const ADMIN_CSP_SESSION = 'admin-csp';
 export const ADMIN_SNOW_SESSION = 'admin-snow';
+export const ADMIN_MOTION_SESSION = 'admin-motion';
 
 /** Every group, for auth.setup.js. */
 export const ADMIN_SESSIONS = [
@@ -29,4 +30,5 @@ export const ADMIN_SESSIONS = [
     ADMIN_EXPERIENCES_SESSION, // CV experiences CRUD
     ADMIN_CSP_SESSION, // content security policy scan — submits nothing, still consumes flashes
     ADMIN_SNOW_SESSION, // the dead channel's snow on the admin pages — loads them, consumes flashes
+    ADMIN_MOTION_SESSION, // the motion switch on the admin pages — loads them, consumes flashes
 ];

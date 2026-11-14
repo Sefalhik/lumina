@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animații",
+        "on": "pornite",
+        "off": "oprite"
+    },
     "boot": {
         "skip": "[ FACEȚI CLIC SAU APĂSAȚI O TASTĂ PENTRU A OMITE ]"
     },

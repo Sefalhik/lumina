@@ -26,6 +26,7 @@ function stage({
     theme = 'sprawl',
     hidden = false,
     reducedMotion = false,
+    motionChoice = null,
     matchMedia = true,
     context = true,
     width = 300,
@@ -51,23 +52,27 @@ function stage({
         ...(matchMedia ? { matchMedia: vi.fn(() => motion) } : {}),
     };
 
-    let currentTheme = theme;
+    const attributes = { 'data-theme': theme, 'data-motion': motionChoice };
     const docEvents = events();
-    const doc = { hidden, documentElement: { getAttribute: vi.fn(() => currentTheme) }, ...docEvents };
+    const doc = {
+        hidden,
+        documentElement: { getAttribute: vi.fn((name) => attributes[name] ?? null) },
+        ...docEvents,
+    };
 
-    let themeCallback = null;
+    let rootCallback = null;
     const unobserve = vi.fn(() => {
-        themeCallback = null;
+        rootCallback = null;
     });
-    const observeTheme = vi.fn((callback) => {
-        themeCallback = callback;
+    const observeRoot = vi.fn((callback) => {
+        rootCallback = callback;
         return unobserve;
     });
 
     const readColour = vi.fn((token) => COLOURS[token]);
     const onError = vi.fn();
 
-    const snow = createDeadChannel({ canvas, view, doc, readColour, observeTheme, random: Math.random, onError });
+    const snow = createDeadChannel({ canvas, view, doc, readColour, observeRoot, random: Math.random, onError });
 
     return {
         snow,
@@ -81,8 +86,13 @@ function stage({
         fakeContext,
         drawn,
         setTheme(next) {
-            currentTheme = next;
-            themeCallback?.();
+            attributes['data-theme'] = next;
+            rootCallback?.();
+        },
+        /** What the switch does: a choice carried on <html>, or none. */
+        setMotionChoice(next) {
+            attributes['data-motion'] = next;
+            rootCallback?.();
         },
         listeners: () => viewEvents.count() + docEvents.count() + motionEvents.count(),
     };
@@ -421,5 +431,64 @@ describe('a browser or a theme it cannot use', () => {
         expect(s.listeners()).toBe(0);
         // Nothing starts again after the failure.
         expect(s.snow.frames()).toBe(frames);
+    });
+});
+
+describe('the motion switch (LUMN-11)', () => {
+    it('stops the snow at one frame when the visitor turned animations off', () => {
+        const { snow } = stage({ motionChoice: 'off' });
+
+        snow.start();
+        vi.advanceTimersByTime(SECOND);
+
+        expect(snow.frames()).toBe(1);
+    });
+
+    it('lets the snow run when the visitor turned animations back on despite the preference', () => {
+        const { snow } = stage({ reducedMotion: true, motionChoice: 'on' });
+
+        snow.start();
+        vi.advanceTimersByTime(SECOND);
+
+        expect(snow.frames()).toBeGreaterThanOrEqual(FRAMES_PER_SECOND);
+    });
+
+    it('lets a choice turn the snow on even when the preference cannot be known', () => {
+        const { snow } = stage({ matchMedia: false, motionChoice: 'on' });
+
+        snow.start();
+        vi.advanceTimersByTime(SECOND);
+
+        expect(snow.frames()).toBeGreaterThanOrEqual(FRAMES_PER_SECOND);
+    });
+
+    it('follows the switch while it runs, both ways', () => {
+        const { snow, setMotionChoice } = stage();
+
+        snow.start();
+        vi.advanceTimersByTime(SECOND);
+        const running = snow.frames();
+        setMotionChoice('off');
+        vi.advanceTimersByTime(SECOND);
+
+        // One still frame drawn when it stops, then nothing.
+        expect(snow.frames()).toBe(running + 1);
+
+        setMotionChoice('on');
+        vi.advanceTimersByTime(SECOND);
+
+        expect(snow.frames()).toBeGreaterThanOrEqual(running + 1 + FRAMES_PER_SECOND);
+    });
+
+    it('treats a value that is no choice as none, and follows the preference', () => {
+        const stillStage = stage({ reducedMotion: true, motionChoice: 'paused' });
+        stillStage.snow.start();
+        vi.advanceTimersByTime(SECOND);
+        expect(stillStage.snow.frames()).toBe(1);
+
+        const runningStage = stage({ reducedMotion: false, motionChoice: 'paused' });
+        runningStage.snow.start();
+        vi.advanceTimersByTime(SECOND);
+        expect(runningStage.snow.frames()).toBeGreaterThanOrEqual(FRAMES_PER_SECOND);
     });
 });

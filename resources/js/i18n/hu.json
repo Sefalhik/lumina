@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animációk",
+        "on": "be",
+        "off": "ki"
+    },
     "boot": {
         "skip": "[ KATTINTSON VAGY NYOMJON MEG EGY BILLENTYŰT A KIHAGYÁSHOZ ]"
     },

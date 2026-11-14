@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animationen",
+        "on": "an",
+        "off": "aus"
+    },
     "boot": {
         "skip": "[ KLICKEN ODER TASTE DRÜCKEN ZUM ÜBERSPRINGEN ]"
     },
