@@ -1,9 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mount, flushPromises } from '@vue/test-utils';
+import { enableAutoUnmount, mount, flushPromises } from '@vue/test-utils';
 import ThemeSwitcher from '../ThemeSwitcher.vue';
 import { createI18n } from '../../utils/i18n.js';
 
 const mountWithI18n = (options = {}) => mount(ThemeSwitcher, { global: { plugins: [createI18n()] }, ...options });
+
+// Every switcher mounted by a test listens to the window: left mounted, it would answer the next
+// test's events.
+enableAutoUnmount(afterEach);
 
 describe('ThemeSwitcher', () => {
     let favicon;
@@ -49,17 +53,32 @@ describe('ThemeSwitcher', () => {
         }
     });
 
-    it('restores valid theme from localStorage on mount', async () => {
-        localStorage.setItem('theme', 'neon-noir');
+    it('shows the theme <html> carries — the anti-FOUC script restored it — not what storage says', async () => {
+        document.documentElement.setAttribute('data-theme', 'neon-noir');
+        localStorage.setItem('theme', 'steampunk');
         const wrapper = mountWithI18n();
         await flushPromises();
         expect(wrapper.vm.current).toBe('neon-noir');
     });
 
-    it('ignores unknown theme stored in localStorage', async () => {
-        localStorage.setItem('theme', 'invalid-theme');
+    it('shows the default when <html> carries a theme the site does not know', async () => {
+        document.documentElement.setAttribute('data-theme', 'invalid-theme');
         const wrapper = mountWithI18n();
         await flushPromises();
         expect(wrapper.vm.current).toBe('sprawl');
+    });
+
+    it('follows a theme chosen in another tab, until it goes away', async () => {
+        const wrapper = mountWithI18n();
+        const fromAnotherTab = (newValue) =>
+            window.dispatchEvent(new StorageEvent('storage', { key: 'theme', newValue, storageArea: localStorage }));
+
+        fromAnotherTab('steampunk');
+        await flushPromises();
+        expect(wrapper.vm.current).toBe('steampunk');
+
+        wrapper.unmount();
+        fromAnotherTab('neon-noir');
+        expect(document.documentElement.getAttribute('data-theme')).toBe('steampunk');
     });
 });

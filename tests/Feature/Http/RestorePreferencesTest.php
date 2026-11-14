@@ -35,13 +35,13 @@ class RestorePreferencesTest extends TestCase
         ];
     }
 
-    /** @return list<string> */
+    /** @return list<array{id: string, favicon: string}> */
     private function themesOfTheIslands(): array
     {
-        /** @var list<array{id: string}> $themes */
+        /** @var list<array{id: string, favicon: string}> $themes */
         $themes = json_decode((string) file_get_contents(resource_path('js/themes.json')), true, flags: JSON_THROW_ON_ERROR);
 
-        return array_column($themes, 'id');
+        return $themes;
     }
 
     private function page(string $path, bool $asAdmin): string
@@ -61,8 +61,21 @@ class RestorePreferencesTest extends TestCase
 
     public function test_the_configuration_reads_the_list_the_islands_import(): void
     {
-        $this->assertSame(['sprawl', 'steampunk', 'neon-noir'], $this->themesOfTheIslands());
-        $this->assertSame($this->themesOfTheIslands(), config('themes.ids'));
+        $themes = $this->themesOfTheIslands();
+
+        $this->assertSame(['sprawl', 'steampunk', 'neon-noir'], array_column($themes, 'id'));
+        $this->assertSame('sprawl', config('themes.default'));
+        $this->assertSame($themes[0]['favicon'], config('themes.default_favicon'));
+        $this->assertSame(array_column($themes, 'favicon', 'id'), config('themes.favicons'));
+    }
+
+    #[DataProvider('layouts')]
+    public function test_the_layout_is_served_in_the_default_theme(string $path, bool $asAdmin): void
+    {
+        $this->assertStringContainsString(
+            'data-theme="'.$this->themesOfTheIslands()[0]['id'].'"',
+            $this->page($path, $asAdmin),
+        );
     }
 
     #[DataProvider('layouts')]
@@ -75,10 +88,31 @@ class RestorePreferencesTest extends TestCase
     }
 
     #[DataProvider('layouts')]
-    public function test_the_layout_accepts_exactly_the_themes_of_the_islands(string $path, bool $asAdmin): void
+    public function test_the_layout_accepts_exactly_the_themes_of_the_islands_with_their_favicons(string $path, bool $asAdmin): void
+    {
+        $favicons = array_column($this->themesOfTheIslands(), 'favicon', 'id');
+
+        $this->assertStringContainsString(
+            'const favicons = '.json_encode($favicons).';',
+            $this->page($path, $asAdmin),
+        );
+    }
+
+    /**
+     * The layouts that name a favicon; the login page names none.
+     *
+     * @return array<string, array{string, bool}>
+     */
+    public static function layoutsWithAFavicon(): array
+    {
+        return array_intersect_key(self::layouts(), ['public' => true, 'administration' => true]);
+    }
+
+    #[DataProvider('layoutsWithAFavicon')]
+    public function test_the_layout_shows_the_favicon_of_the_default_theme(string $path, bool $asAdmin): void
     {
         $this->assertStringContainsString(
-            json_encode($this->themesOfTheIslands()).'.includes(theme)',
+            'id="favicon" type="image/svg+xml" href="'.$this->themesOfTheIslands()[0]['favicon'].'"',
             $this->page($path, $asAdmin),
         );
     }
