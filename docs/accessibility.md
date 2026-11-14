@@ -31,6 +31,49 @@ background at 4.5:1 or more, `/60` and `/70` opacities included.
 than skipped. Steampunk and Neon Noir are not covered yet: some of their pairs already fail (see the
 table above), and they get the same test with their own theme tickets.
 
+## Motion — every visitor can stop it
+
+The site is animated on purpose — the snow, the neon pulse, the glitch, the flicker, the blinking
+cursor, the rain, the boot sequence — and **WCAG 2.2.2 "Pause, Stop, Hide" is level A**: whatever
+moves or blinks on its own for more than five seconds, next to other content, must be stoppable,
+**decoration included** (LUMN-11). Honouring `prefers-reduced-motion` is not enough: none of the
+techniques the W3C lists as sufficient for 2.2.2 relies on it, and it only serves visitors who know
+where their system hides the setting. Hence a switch, on every page.
+
+**The rule**, written once, in `resources/js/utils/motion.js`:
+
+- a choice made with the switch wins, **both ways** — a visitor whose system asks for reduced motion
+  can turn animations back on;
+- without a choice, the system's preference decides.
+
+Only `on` and `off` are choices; any other value is none, everywhere.
+
+**Where it lives** — three places that must say the same thing, which is why only one of them
+carries the rule as code:
+
+| Place | What it does |
+|---|---|
+| `layouts/partials/restore-preferences.blade.php` | before the first paint, copies the stored choice (`localStorage.motion`) onto `<html data-motion>`, as it does the theme. It validates nothing: that would write the rule a third time. One copy, included by the three layouts |
+| `when-motion-stopped` in `resources/css/scss/_effects.scss` | the stopped state of every looping effect, declared once and applied on `[data-motion='off']`, or under the reduced-motion query when `data-motion` is not `on`. The stylesheet therefore follows the preference **without JavaScript**, and when it **changes during the visit** |
+| `utils/motion.js` | the rule, for what only a script can stop — the snow, the boot sequence — and for the switch, `MotionToggle.vue` |
+
+**Frozen, not removed.** A stopped effect keeps its look: the neon glow at the pulse's brightest
+moment (`$neon-glow-peak` — also the state in which its contrast is lowest, so the scans of
+`accessibility.spec.js` with animations stopped check the worst case), the cursor shown, the rain
+still, the snow on one frame. Brief hover and focus transitions stay: they are asked for, and they
+do not loop.
+
+**The switch** (`MotionToggle.vue`): a `<button>` with `aria-pressed`, named "Animations" in the 24
+languages — a name that never changes with the state, which `aria-pressed` carries. It sits in the
+header **before the language switcher**, so the keyboard reaches it without crossing 24 languages,
+and on the login page too. It follows a choice made — or cleared — in another tab, and a preference
+that changes while no choice was made (`watchMotion()`); it only displays what that reports. A
+browser that refuses to store the choice, or even to read it, still stops the page.
+
+**Adding a looping effect**: give it its stopped state inside `when-motion-stopped`, in the same
+change. `tests/e2e/motion.spec.js` lists every looping animation the browser runs, by name and
+without a list of its own: an effect without a stopped state fails it on its first run.
+
 ## Motion — the dead channel's snow
 
 Sprawl's sky is an animated grain (LUMN-103): a canvas behind the page, `DeadChannel.vue`, driven by
@@ -40,7 +83,7 @@ the pure functions of `resources/js/utils/dead-channel.js`. Four guarantees, eac
 |---|---|---|
 | No pixel lighter than `base-300` | the palette's promises are checked on `base-300`, so they hold on every grain | Vitest, and on the canvas itself in `tests/e2e/dead-channel.spec.js` |
 | The mean luminance of every frame is the same | grain, never a flash of the whole screen (WCAG 2.3.1): a frame is a fixed pool of values, only shuffled | Vitest |
-| Nothing moves under `prefers-reduced-motion` | one frame is drawn, then the canvas stays still | E2E, with the preference emulated |
+| Nothing moves once animations are stopped — by the switch or the preference | one frame is drawn, then the canvas stays still | Vitest on the controller; E2E with the switch and with the preference emulated |
 | Nothing runs that nobody sees | the timer stops in a hidden tab and in the other themes | E2E, on the frame counter `data-frames` |
 | A colour it cannot read stops it | a canvas ignores a colour it cannot parse — an empty token, an unknown syntax — and keeps painting in black, silently; `colourChannels()` detects the refusal, and the snow stops and says so once | Vitest, and E2E with a broken token |
 
@@ -75,7 +118,7 @@ starts when its selector begins to match, so it plays once per approach, and nev
 |---|---|---|
 | Once per hover or focus, never in a loop | a burst on approach is atmosphere; a repeating one pulls the eye away from what is read | E2E, counting the browser's `animationstart` and `animationiteration` events |
 | The focus ring is drawn through the burst | the effect must never hide where the keyboard is (LUMN-27) | E2E: the burst is paused, sampled every 25 ms, and the ring compared with the one after it |
-| Under `prefers-reduced-motion`, a change of colour | the two channels, still, for as long as the hover or focus lasts | E2E, with the preference emulated |
+| Animations stopped, a change of colour | the two channels, still, for as long as the hover or focus lasts | E2E, with the preference emulated |
 | That change of colour keeps the contrast | it lasts as long as the state, so it is text like any other; every other scan sees the page at rest | axe on a hovered link, a hovered button and a focused footer link, a verdict required |
 
 **An effect on a focused element touches nothing that draws the ring**: no `outline`, no `clip-path`,
@@ -88,9 +131,6 @@ the intrusion replaces in Sprawl. Its pause had never worked: an `animation-play
 before the `animation` shorthand is reset by it, and the labels glitched all the time. **Write
 `paused` inside the shorthand.**
 
-**Not yet honoured by the rest of the site**: under a reduced-motion preference, Sprawl's name still
-glitches (`.glitch`, `.glitch-jitter`), its subtitle pulses and its screen flickers (`crt-flicker`).
-These came before LUMN-103 and belong to LUMN-11, which makes the whole site honour the preference.
 
 ## Decorative elements — axe-core exemption
 

@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animationer",
+        "on": "til",
+        "off": "fra"
+    },
     "boot": {
         "skip": "[ KLIK ELLER TRYK PÅ EN TAST FOR AT SPRINGE OVER ]"
     },

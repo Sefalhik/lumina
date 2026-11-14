@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animatsioonid",
+        "on": "sees",
+        "off": "väljas"
+    },
     "boot": {
         "skip": "[ KLIKI VÕI VAJUTA NUPPU VAHELE JÄTMISEKS ]"
     },

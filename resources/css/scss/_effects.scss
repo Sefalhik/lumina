@@ -1,6 +1,41 @@
 // ============================================================
+// MOTION — stopped by the visitor, or by the preference (LUMN-11)
+// Every looping effect of this file has a stopped state, declared
+// once through this mixin, for the rule of utils/motion.js:
+// - the visitor turned animations off: data-motion='off' on <html>,
+//   set by the switch, restored before the first paint by
+//   layouts/partials/restore-preferences.blade.php;
+// - the system asks for reduced motion and the visitor made no
+//   choice — which a page without JavaScript still knows, and which
+//   the stylesheet follows by itself if it changes during the visit.
+// Only 'on' and 'off' are choices: any other value is none.
+// A stopped effect is frozen, not removed: the glow without its
+// pulse, the cursor shown. Brief hover and focus transitions stay.
+// ============================================================
+
+@mixin when-motion-stopped($root: '') {
+    :root#{$root}[data-motion='off'] {
+        @content;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :root#{$root}:not([data-motion='on']) {
+            @content;
+        }
+    }
+}
+
+// ============================================================
 // NEON PULSE — breathing glow
 // ============================================================
+
+// The pulse's brightest moment: what a stopped glow keeps, and the
+// state its contrast is checked in.
+$neon-glow-peak:
+    0 0 8px color-mix(in oklch, var(--color-primary) 100%, transparent),
+    0 0 20px color-mix(in oklch, var(--color-primary) 80%, transparent),
+    0 0 45px color-mix(in oklch, var(--color-primary) 50%, transparent),
+    0 0 80px color-mix(in oklch, var(--color-primary) 25%, transparent);
 
 .neon-pulse {
     animation: neon-pulse 3s ease-in-out infinite;
@@ -13,11 +48,7 @@
 @keyframes neon-pulse {
     0%,
     100% {
-        text-shadow:
-            0 0 8px color-mix(in oklch, var(--color-primary) 100%, transparent),
-            0 0 20px color-mix(in oklch, var(--color-primary) 80%, transparent),
-            0 0 45px color-mix(in oklch, var(--color-primary) 50%, transparent),
-            0 0 80px color-mix(in oklch, var(--color-primary) 25%, transparent);
+        text-shadow: $neon-glow-peak;
     }
 
     50% {
@@ -26,6 +57,14 @@
             0 0 10px color-mix(in oklch, var(--color-primary) 40%, transparent),
             0 0 22px color-mix(in oklch, var(--color-primary) 20%, transparent),
             0 0 40px color-mix(in oklch, var(--color-primary) 8%, transparent);
+    }
+}
+
+@include when-motion-stopped {
+    .neon-pulse,
+    .neon-pulse-slow {
+        animation: none;
+        text-shadow: $neon-glow-peak;
     }
 }
 
@@ -161,6 +200,15 @@
     }
 }
 
+// Stopped: the two channels stay hidden, the name in its place.
+@include when-motion-stopped {
+    .glitch::before,
+    .glitch::after,
+    .glitch-jitter {
+        animation: none;
+    }
+}
+
 // Subtle glitch on the whole body (horizontal jitter)
 :is([data-theme='sprawl'], [data-theme='neon-noir']) .glitch-jitter {
     animation: glitch-jitter 9s step-end infinite;
@@ -257,6 +305,13 @@
     );
 }
 
+// Stopped: the rain stays, still.
+@include when-motion-stopped {
+    .rain-overlay {
+        animation: none;
+    }
+}
+
 @keyframes rain-fall {
     from {
         transform: translateY(-12%) translateX(-6%);
@@ -273,6 +328,12 @@
 
 [data-theme='sprawl'] body {
     animation: crt-flicker 8s step-end infinite;
+}
+
+@include when-motion-stopped {
+    body {
+        animation: none;
+    }
 }
 
 @keyframes crt-flicker {
@@ -302,6 +363,17 @@
     content: '█';
 }
 
+// Stopped: the cursor shown, without blinking — the boot sequence's
+// too, whose blink lives in BootSequence.vue. The sequence does not
+// start once animations are stopped, but it may be playing when they
+// stop: from another tab, or a preference changed meanwhile.
+@include when-motion-stopped {
+    .cursor-blink::after,
+    .boot-cursor {
+        animation: none;
+    }
+}
+
 @keyframes cursor {
     0%,
     100% {
@@ -328,6 +400,12 @@ body.booting {
 .gear-spin {
     animation: gear-rotate 8s linear infinite;
     display: inline-block;
+}
+
+@include when-motion-stopped {
+    .gear-spin {
+        animation: none;
+    }
 }
 
 @keyframes gear-rotate {
@@ -413,13 +491,11 @@ body.booting {
     }
 }
 
-// The rest of the site does not honour this yet — tracked as debt, out of
-// scope here. A new effect should not add to the pile.
-@media (prefers-reduced-motion: reduce) {
+@include when-motion-stopped {
     .glitch-hover::before,
     .glitch-hover::after {
-        animation: none !important;
-        content: none !important;
+        animation: none;
+        content: none;
     }
 }
 
@@ -473,10 +549,10 @@ $intrusion-cyan: oklch(80% 0.22 210deg);
     }
 }
 
-// Under reduced motion, the intrusion is a change of colour: its two
+// Animations stopped, the intrusion is a change of colour: its two
 // channels, still, for as long as the pointer or the focus stays.
-@media (prefers-reduced-motion: reduce) {
-    [data-theme='sprawl'] :is(a[href], button, .btn):is(:hover, :focus-visible) {
+@include when-motion-stopped("[data-theme='sprawl']") {
+    :is(a[href], button, .btn):is(:hover, :focus-visible) {
         animation: none;
         text-shadow:
             -1px 0 $intrusion-red,

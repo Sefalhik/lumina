@@ -3,13 +3,14 @@
  * The dead channel's snow behind Sprawl's pages (LUMN-103). Glue only: when it runs, what it
  * re-reads and how it fails are decided by utils/dead-channel-controller.js; the grain by
  * utils/dead-channel.js. This file hands the controller the browser — and the two things only a
- * browser can do: read a theme colour, and watch the theme attribute.
+ * browser can do: read a theme colour, and watch <html> for a change of theme or of motion choice.
  *
  * `data-frames` counts the frames drawn: the end-to-end tests read it to prove the snow stops.
  */
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 import { createDeadChannel } from '../utils/dead-channel-controller.js';
 import { colourChannels } from '../utils/dead-channel.js';
+import { MOTION_ATTRIBUTE } from '../utils/motion.js';
 
 const canvas = useTemplateRef('canvas');
 let snow = null;
@@ -20,9 +21,9 @@ function readColour(token) {
     return colourChannels(getComputedStyle(document.documentElement).getPropertyValue(token).trim(), probe);
 }
 
-function observeTheme(callback) {
+function observeRoot(callback) {
     const observer = new MutationObserver(callback);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', MOTION_ATTRIBUTE] });
     return () => observer.disconnect();
 }
 
@@ -32,7 +33,7 @@ onMounted(() => {
         view: window,
         doc: document,
         readColour,
-        observeTheme,
+        observeRoot,
         random: Math.random,
         onError: (error) => console.error('The dead channel snow stopped:', error),
     });

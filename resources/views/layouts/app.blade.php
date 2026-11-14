@@ -17,17 +17,7 @@
 
     <link rel="icon" id="favicon" type="image/svg+xml" href="/favicons/favicon-sprawl.svg">
 
-    {{-- Anti-FOUC: restore theme and matching favicon from localStorage before first paint --}}
-    <script nonce="{{ Vite::cspNonce() }}">
-        (function () {
-            const saved = localStorage.getItem('theme');
-            const valid = ['sprawl', 'steampunk', 'neon-noir'];
-            if (saved && valid.includes(saved)) {
-                document.documentElement.setAttribute('data-theme', saved);
-                document.getElementById('favicon').href = '/favicons/favicon-' + saved + '.svg';
-            }
-        })();
-    </script>
+    @include('layouts.partials.restore-preferences')
 
     @routes(nonce: Vite::cspNonce())
     {{-- Vite reads the CSP nonce from here for what it injects itself: styles in development,
@@ -65,6 +55,10 @@
         </nav>
 
         <div class="navbar-end gap-2">
+            {{-- Motion switch: every visitor can stop the animations (LUMN-11, WCAG 2.2.2). Before the
+                 languages, so the keyboard reaches it without crossing 24 of them. --}}
+            <div id="motion-toggle"></div>
+
             {{-- Language Switcher Vue island --}}
             <div id="language-switcher"></div>
 

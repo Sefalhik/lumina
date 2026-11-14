@@ -207,22 +207,55 @@ test('keyboard focus: the burst plays once, and the focus ring is drawn all thro
     expect(await recorded(button, 'animationiteration')).toEqual([]);
 });
 
-test.describe('under a reduced-motion preference', () => {
-    test.use({ reducedMotion: 'reduce' });
+// Animations stopped, two ways (LUMN-11): the system's preference, or the visitor's switch. Both
+// select the same stopped state in _effects.scss, through two different selectors.
+const STOPPED = [
+    ['under a reduced-motion preference', { reducedMotion: 'reduce' }, async () => {}],
+    [
+        'with animations stopped by the switch',
+        {},
+        (page) => page.addInitScript(() => localStorage.setItem('motion', 'off')),
+    ],
+];
 
-    test('the intrusion is a change of colour: nothing plays, nothing moves', async ({ page }) => {
-        await open(page, 'sprawl');
-        const link = navLink(page);
-        const resting = await link.evaluate((element) => getComputedStyle(element).textShadow);
+for (const [name, options, stop] of STOPPED) {
+    test.describe(name, () => {
+        test.use(options);
 
-        await link.hover();
-        await expect.poll(() => link.evaluate((element) => getComputedStyle(element).textShadow)).not.toBe(resting);
+        test('the intrusion is a change of colour: nothing plays, nothing moves', async ({ page }) => {
+            await stop(page);
+            await open(page, 'sprawl');
+            const link = navLink(page);
+            const resting = await link.evaluate((element) => getComputedStyle(element).textShadow);
 
-        await page.waitForTimeout(WAIT);
-        expect(await recorded(link, 'animationstart')).toEqual([]);
-        expect(await link.evaluate((element) => getComputedStyle(element).transform)).toBe('none');
+            await link.hover();
+            await expect
+                .poll(() => link.evaluate((element) => getComputedStyle(element).textShadow))
+                .not.toBe(resting);
+
+            await page.waitForTimeout(WAIT);
+            expect(await recorded(link, 'animationstart')).toEqual([]);
+            expect(await link.evaluate((element) => getComputedStyle(element).transform)).toBe('none');
+        });
+
+        test("Néon's footer labels do not glitch on hover", async ({ page }) => {
+            await stop(page);
+            await open(page, 'neon-noir');
+            const link = page.locator('footer nav a').first();
+
+            await link.hover();
+            await page.waitForTimeout(WAIT);
+
+            const playing = await link.evaluate((element) =>
+                element
+                    .getAnimations({ subtree: true })
+                    .filter((animation) => animation.playState === 'running')
+                    .map((animation) => animation.animationName),
+            );
+            expect(playing).toEqual([]);
+        });
     });
-});
+}
 
 for (const theme of ['steampunk', 'neon-noir']) {
     test(`${theme} has no intrusion`, async ({ page }) => {

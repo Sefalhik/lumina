@@ -1,4 +1,10 @@
-export const VALID_THEMES = ['sprawl', 'steampunk', 'neon-noir'];
+import THEMES from '../themes.json';
+
+/** The site's themes, in the order the switcher shows them. themes.json is the one list: the script
+ * that restores a theme before the first paint reads it too, through config/themes.php (LUMN-11). */
+export { THEMES };
+
+export const VALID_THEMES = THEMES.map((theme) => theme.id);
 
 export function isValidTheme(id) {
     return VALID_THEMES.includes(id);

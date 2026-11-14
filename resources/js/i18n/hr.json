@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animacije",
+        "on": "uključene",
+        "off": "isključene"
+    },
     "boot": {
         "skip": "[ KLIKNITE ILI PRITISNITE TIPKU ZA PRESKAKANJE ]"
     },

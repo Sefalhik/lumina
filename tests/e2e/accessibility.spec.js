@@ -162,6 +162,51 @@ test.describe('Accessibility — CV page', () => {
     }
 });
 
+// Animations stopped (LUMN-11): the switch in its other state, and every glow frozen at the pulse's
+// brightest moment — the state in which a glowing text's contrast is lowest. The scans above meet the
+// pulse wherever it happens to be.
+test.describe('Accessibility — animations stopped', () => {
+    const PAGES = [
+        ['home page', '/fr/'],
+        ['login page', '/fr/login'],
+    ];
+
+    for (const [name, path] of PAGES) {
+        for (const theme of THEMES) {
+            test(`WCAG 2.1 AA — ${name}, theme: ${theme}`, async ({ page }) => {
+                await page.addInitScript((chosen) => {
+                    sessionStorage.setItem('boot_sequence_played', '1');
+                    localStorage.setItem('theme', chosen);
+                    localStorage.setItem('motion', 'off');
+                }, theme);
+                await page.goto(path);
+                await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+                await expect(page.locator('[data-motion-toggle]')).toHaveAttribute('aria-pressed', 'false');
+
+                expect(formatViolations(await axeCheck(page))).toEqual([]);
+            });
+        }
+    }
+});
+
+test.describe('Accessibility — admin dashboard, animations stopped', () => {
+    test.use({ adminSession: ADMIN_A11Y_SESSION });
+
+    for (const theme of THEMES) {
+        test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {
+            await page.addInitScript((chosen) => {
+                localStorage.setItem('theme', chosen);
+                localStorage.setItem('motion', 'off');
+            }, theme);
+            await page.goto('/fr/admin');
+            await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+            await expect(page.locator('[data-motion-toggle]')).toHaveAttribute('aria-pressed', 'false');
+
+            expect(formatViolations(await axeCheck(page))).toEqual([]);
+        });
+    }
+});
+
 test.describe('Accessibility — login page', () => {
     for (const theme of THEMES) {
         test(`WCAG 2.1 AA — theme: ${theme}`, async ({ page }) => {

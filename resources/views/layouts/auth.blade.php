@@ -5,26 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', '// Secure Access') | cardascia-it</title>
 
-    {{-- Anti-FOUC: restore theme before first paint --}}
-    <script nonce="{{ Vite::cspNonce() }}">
-        (function () {
-            const saved = localStorage.getItem('theme');
-            const valid = ['sprawl', 'steampunk', 'neon-noir'];
-            if (saved && valid.includes(saved)) {
-                document.documentElement.setAttribute('data-theme', saved);
-            }
-        })();
-    </script>
+    @include('layouts.partials.restore-preferences')
 
     {{-- Vite reads the CSP nonce from here for what it injects itself: styles in development,
          preloaded chunks in a build (LUMN-37). --}}
     <meta property="csp-nonce" nonce="{{ Vite::cspNonce() }}">
-    @vite(['resources/css/app.css', 'resources/css/scss/main.scss'])
+    {{-- The script carries one island here, the motion switch (LUMN-11): the login page has its
+         rain and its flicker too, and every visitor must be able to stop them. --}}
+    @vite(['resources/css/app.css', 'resources/css/scss/main.scss', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-base-100 text-base-content font-mono flex items-center justify-center p-4">
 
     <div class="scanlines" aria-hidden="true"></div>
     <div class="rain-overlay" aria-hidden="true"></div>
+
+    <div class="fixed top-2 right-2 z-50">
+        <div id="motion-toggle"></div>
+    </div>
 
     <div class="w-full max-w-md">
         <div class="text-center mb-8">

@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animacje",
+        "on": "włączone",
+        "off": "wyłączone"
+    },
     "boot": {
         "skip": "[ KLIKNIJ LUB NACIŚNIJ DOWOLNY KLAWISZ, ABY POMINĄĆ ]"
     },

@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animace",
+        "on": "zapnuté",
+        "off": "vypnuté"
+    },
     "boot": {
         "skip": "[ KLIKNĚTE NEBO STISKNUTÍM KLÁVESY POKRAČUJTE ]"
     },

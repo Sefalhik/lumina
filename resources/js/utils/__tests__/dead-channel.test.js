@@ -233,15 +233,15 @@ describe('paintFrame()', () => {
 
 describe('snowMode()', () => {
     it.each([
-        [{ theme: 'sprawl', hidden: false, reducedMotion: false }, 'animate'],
-        [{ theme: 'sprawl', hidden: true, reducedMotion: false }, 'paused'],
-        [{ theme: 'sprawl', hidden: false, reducedMotion: true }, 'still'],
+        [{ theme: 'sprawl', hidden: false, motionStopped: false }, 'animate'],
+        [{ theme: 'sprawl', hidden: true, motionStopped: false }, 'paused'],
+        [{ theme: 'sprawl', hidden: false, motionStopped: true }, 'still'],
         // Reduced motion wins over a hidden tab: the one frame is drawn once the tab shows again.
-        [{ theme: 'sprawl', hidden: true, reducedMotion: true }, 'still'],
-        [{ theme: 'neon-noir', hidden: false, reducedMotion: false }, 'off'],
-        [{ theme: 'steampunk', hidden: false, reducedMotion: true }, 'off'],
-        [{ theme: null, hidden: false, reducedMotion: false }, 'off'],
-        [{ theme: 'Sprawl', hidden: false, reducedMotion: false }, 'off'],
+        [{ theme: 'sprawl', hidden: true, motionStopped: true }, 'still'],
+        [{ theme: 'neon-noir', hidden: false, motionStopped: false }, 'off'],
+        [{ theme: 'steampunk', hidden: false, motionStopped: true }, 'off'],
+        [{ theme: null, hidden: false, motionStopped: false }, 'off'],
+        [{ theme: 'Sprawl', hidden: false, motionStopped: false }, 'off'],
     ])('%o → %s', (state, mode) => {
         expect(snowMode(state)).toBe(mode);
     });

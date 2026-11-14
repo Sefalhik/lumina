@@ -6,17 +6,7 @@
     <title>@yield('title', __('admin.title_default')) | cardascia-it</title>
     <link rel="icon" id="favicon" type="image/svg+xml" href="/favicons/favicon-sprawl.svg">
 
-    {{-- Anti-FOUC: restore theme and matching favicon from localStorage before first paint --}}
-    <script nonce="{{ Vite::cspNonce() }}">
-        (function () {
-            const saved = localStorage.getItem('theme');
-            const valid = ['sprawl', 'steampunk', 'neon-noir'];
-            if (saved && valid.includes(saved)) {
-                document.documentElement.setAttribute('data-theme', saved);
-                document.getElementById('favicon').href = '/favicons/favicon-' + saved + '.svg';
-            }
-        })();
-    </script>
+    @include('layouts.partials.restore-preferences')
 
     @routes(nonce: Vite::cspNonce())
     {{-- Vite reads the CSP nonce from here for what it injects itself: styles in development,
@@ -43,6 +33,8 @@
         </div>
 
         <div class="navbar-end gap-4">
+            {{-- Motion switch (LUMN-11): before the languages, as on the public pages. --}}
+            <div id="motion-toggle"></div>
             <div id="language-switcher"></div>
             <div id="theme-switcher"></div>
             <span class="text-xs text-base-content/70 hidden md:block font-mono tracking-wider">

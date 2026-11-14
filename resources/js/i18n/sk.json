@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animácie",
+        "on": "zapnuté",
+        "off": "vypnuté"
+    },
     "boot": {
         "skip": "[ KLIKNITE ALEBO STLAČTE AKÚKOĽVEK KLÁVESU PRESKOČIŤ ]"
     },

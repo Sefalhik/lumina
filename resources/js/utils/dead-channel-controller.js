@@ -11,6 +11,7 @@
  * zero, a random source that is not one — stops the snow, is reported once, and goes no further.
  */
 import { canvasSize, FRAMES_PER_SECOND, grainPool, paintFrame, shuffle, snowMode } from './dead-channel.js';
+import { documentMotion, reducedMotionQuery } from './motion.js';
 
 /** Resize events arrive by the dozen while a window is dragged: the snow is rebuilt once, after them. */
 export const RESIZE_DEBOUNCE_MS = 200;
@@ -21,7 +22,8 @@ export const RESIZE_DEBOUNCE_MS = 200;
  * @property {{ innerWidth: number, innerHeight: number, setTimeout: Function, clearTimeout: Function, addEventListener: Function, removeEventListener: Function, matchMedia?: (query: string) => { matches: boolean, addEventListener: Function, removeEventListener: Function } }} view
  * @property {{ hidden: boolean, documentElement: { getAttribute: (name: string) => string | null }, addEventListener: Function, removeEventListener: Function }} doc
  * @property {(token: string) => [number, number, number]} readColour  a theme token as 0–255 channels
- * @property {(callback: () => void) => () => void} observeTheme  calls back on a theme change; returns how to stop watching
+ * @property {(callback: () => void) => () => void} observeRoot  calls back when <html> changes its theme or its motion
+ *   choice (`data-theme`, `data-motion`); returns how to stop watching
  * @property {() => number} random
  * @property {(error: Error) => void} onError
  */
@@ -30,7 +32,7 @@ export const RESIZE_DEBOUNCE_MS = 200;
  * @param {DeadChannelDependencies} dependencies
  * @returns {{ start: () => void, stop: () => void, frames: () => number }}
  */
-export function createDeadChannel({ canvas, view, doc, readColour, observeTheme, random, onError }) {
+export function createDeadChannel({ canvas, view, doc, readColour, observeRoot, random, onError }) {
     let context = null;
     let image = null;
     let pool = null;
@@ -40,7 +42,7 @@ export function createDeadChannel({ canvas, view, doc, readColour, observeTheme,
     let resizeTimer = null;
     let frames = 0;
     let motion = null;
-    let unobserveTheme = null;
+    let unobserveRoot = null;
     let running = false;
 
     function halt() {
@@ -84,8 +86,9 @@ export function createDeadChannel({ canvas, view, doc, readColour, observeTheme,
             const mode = snowMode({
                 theme: doc.documentElement.getAttribute('data-theme'),
                 hidden: doc.hidden,
-                // Without matchMedia, the preference cannot be known: the snow stays still, on the safe side.
-                reducedMotion: motion === null ? true : motion.matches,
+                // The switch, or the preference without one (LUMN-11) — and without matchMedia, the
+                // preference cannot be known: the snow stays still, on the safe side.
+                motionStopped: documentMotion(doc.documentElement, motion) === 'off',
             });
             if (mode === 'off' || mode === 'paused') return;
 
@@ -122,7 +125,7 @@ export function createDeadChannel({ canvas, view, doc, readColour, observeTheme,
         context = canvas.getContext('2d');
         if (context === null) return;
 
-        motion = typeof view.matchMedia === 'function' ? view.matchMedia('(prefers-reduced-motion: reduce)') : null;
+        motion = reducedMotionQuery(view);
         try {
             resize();
         } catch (error) {
@@ -131,7 +134,7 @@ export function createDeadChannel({ canvas, view, doc, readColour, observeTheme,
         }
 
         running = true;
-        unobserveTheme = observeTheme(update);
+        unobserveRoot = observeRoot(update);
         doc.addEventListener('visibilitychange', update);
         motion?.addEventListener('change', update);
         view.addEventListener('resize', onResize);
@@ -143,7 +146,7 @@ export function createDeadChannel({ canvas, view, doc, readColour, observeTheme,
         running = false;
         halt();
         view.clearTimeout(resizeTimer);
-        unobserveTheme();
+        unobserveRoot();
         doc.removeEventListener('visibilitychange', update);
         motion?.removeEventListener('change', update);
         view.removeEventListener('resize', onResize);

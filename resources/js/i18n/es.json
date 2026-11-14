@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animaciones",
+        "on": "activadas",
+        "off": "detenidas"
+    },
     "boot": {
         "skip": "[ HAGA CLIC O PRESIONE UNA TECLA PARA OMITIR ]"
     },

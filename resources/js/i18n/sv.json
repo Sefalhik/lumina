@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animationer",
+        "on": "på",
+        "off": "av"
+    },
     "boot": {
         "skip": "[ KLICKA ELLER TRYCK EN TANGENT FÖR ATT HOPPA ÖVER ]"
     },

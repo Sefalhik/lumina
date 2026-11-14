@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { STORAGE_KEY, fetchGeoData, toGibsonLocation, getBrowserName, getOSName } from '../utils/boot';
+import { pageMotion } from '../utils/motion.js';
 
 const { t } = useI18n();
 
@@ -127,7 +128,9 @@ function dismiss() {
 }
 
 onMounted(async () => {
-    if (sessionStorage.getItem(STORAGE_KEY)) return;
+    // Animations stopped, by the switch or the preference: the page shows at once, as for a
+    // visitor who has already seen the sequence (LUMN-11).
+    if (sessionStorage.getItem(STORAGE_KEY) || pageMotion(window) === 'off') return;
 
     document.body.classList.add('booting');
     visible.value = true;

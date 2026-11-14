@@ -32,6 +32,9 @@ A feature is tested where it works, where it refuses, and where nobody expected 
 - the **error** it handles, and the **exception nobody planned**;
 - the **boundary values**;
 - a **third party that does not answer**, or answers something else;
+- a **browser that refuses storage**, on reading as on writing — a private window, blocked site
+  data, a full quota. Reading `localStorage` alone can throw. On LUMN-11 this case found a boot
+  sequence that could lock the screen for good, and two islands throwing at the page (LUMN-124);
 - **improbable input**. Nobody knows what a direct request, a file or another program's output will
   contain: what the code cannot read must fail, not pass for empty.
 
@@ -391,6 +394,7 @@ test.describe.configure({ mode: 'serial' });
 | `admin-experiences` | `ADMIN_EXPERIENCES_SESSION` | `admin/experiences.spec.js` |
 | `admin-csp` | `ADMIN_CSP_SESSION` | `content-security-policy.spec.js` |
 | `admin-snow` | `ADMIN_SNOW_SESSION` | `dead-channel.spec.js` (its admin describe) |
+| `admin-motion` | `ADMIN_MOTION_SESSION` | `motion.spec.js` (its admin describe) |
 
 **Why one per file**: two browser contexts created from the same session file send the same session cookie → the same server-side session store. A flash message set by one spec's submission is consumed by the next page load in *any* spec sharing that session, regardless of browser-context isolation. Per-slot databases do not remove this: two spec files of the same slot still run one after another on one database, and a session left with a pending flash is inherited.
 

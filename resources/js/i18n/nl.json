@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animaties",
+        "on": "aan",
+        "off": "uit"
+    },
     "boot": {
         "skip": "[ KLIK OF DRUK OP EEN TOETS OM OVER TE SLAAN ]"
     },

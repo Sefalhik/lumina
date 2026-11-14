@@ -23,6 +23,11 @@
             }
         }
     },
+    "motion_toggle": {
+        "label": "Animações",
+        "on": "ativadas",
+        "off": "paradas"
+    },
     "boot": {
         "skip": "[ CLIQUE OU PRESSIONE UMA TECLA PARA PULAR ]"
     },

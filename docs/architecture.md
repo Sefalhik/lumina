@@ -46,6 +46,7 @@ the development server runs, and where the fonts come from.
 | `resources/css/app.css` | Tailwind + DaisyUI entry point (`@import`/`@plugin`); utilities come from there |
 | `resources/css/scss/` | Hand-written SCSS — themes and the `_effects.scss` glow/glitch layer |
 | `config/geo.php` | Geo API proxy configuration (env-driven) |
+| `config/themes.php` | The theme ids, read from `resources/js/themes.json` — one list for the anti-FOUC script and the islands |
 | `config/i18n.php` | Supported locales, **indexable locales**, default locale, native names, cache path, `cms_models` list |
 | `config/seo.php` | `public_routes` allowlist — route names allowed to carry canonical/`hreflang` — and `indexable`, read from `SITE_INDEXABLE` |
 | `config/security-headers.php` | HSTS duration and the content security policy (LUMN-37) |
