@@ -10,5 +10,8 @@
     "scripts/**/*.js": [
         "prettier --write",
         "eslint"
+    ],
+    "**/*.php": [
+        "vendor/bin/pint"
     ]
 }

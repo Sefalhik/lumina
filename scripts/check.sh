@@ -58,6 +58,8 @@ step "Stylelint"       npm run --silent lint:scss
 
 # ─── PHP static analysis ─────────────────────────────────────────────────────
 
+# Pint was installed and run by nobody until LUMN-62: the formatting of PHP was checked by no one.
+step "Pint"            ./vendor/bin/pint --test
 step "PHPStan (app)"   bash -c "PHP_INI_SCAN_DIR=/etc/php/8.5/cli/conf.d ./vendor/bin/phpstan analyse"
 step "PHPStan (tests)" bash -c "PHP_INI_SCAN_DIR=/etc/php/8.5/cli/conf.d ./vendor/bin/phpstan analyse -c phpstan-tests.neon"
 
