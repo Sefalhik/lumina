@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'title' => 'Αρχική σελίδα',
+    'title' => 'Αρχική',
     'cta_projects' => 'Δείτε τα έργα μου',
-    'cta_cv' => 'Το CV μου',
-    'about_heading' => 'Σχετικά με',
-    'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Αρχικοποίηση σε εξέλιξη',
-    'fallback_subtitle' => 'Το περιεχόμενο φορτώνεται',
+    'cta_cv' => 'Το βιογραφικό μου',
+    'about_heading' => 'Σχετικά',
+    'skills_heading' => 'Τεχνολογίες & εξειδίκευση',
+    'fallback_tagline' => 'Εκκίνηση σε εξέλιξη',
+    'fallback_subtitle' => 'Φόρτωση περιεχομένου σε εξέλιξη',
     'fallback_bio' => 'Το περιεχόμενο αυτής της σελίδας δεν έχει ακόμη αρχικοποιηθεί.',
     'fallback_skills' => [
         '0' => [

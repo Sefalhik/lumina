@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'home' => 'Għall-omm',
+    'home' => 'Id-Dar',
     'cv' => 'CV',
     'projects' => 'Proġetti',
     'blog' => 'Blog',
-    'main_label' => 'Navigazzjoni Prinċipali',
+    'main_label' => 'Navigazzjoni prinċipali',
     'menu' => 'Menu',
-    'admin_panel' => 'Pannell ta\' Amministrazzjoni',
-    'logout' => 'Logout',
+    'admin_panel' => 'Pannell tal-amministrazzjoni',
+    'logout' => 'Oħroġ',
 ];

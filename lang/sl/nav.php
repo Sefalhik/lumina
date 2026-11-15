@@ -7,6 +7,6 @@ return [
     'blog' => 'Blog',
     'main_label' => 'Glavna navigacija',
     'menu' => 'Meni',
-    'admin_panel' => 'Upravna plošča',
+    'admin_panel' => 'Skrbniška plošča',
     'logout' => 'Odjava',
 ];

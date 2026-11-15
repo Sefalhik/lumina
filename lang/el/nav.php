@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'home' => 'Αρχική σελίδα',
+    'home' => 'Αρχική',
     'cv' => 'CV',
     'projects' => 'Έργα',
     'blog' => 'Blog',

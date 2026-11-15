@@ -242,7 +242,7 @@ chmod 600 .env
 | `DB_PORT` | `5433` | `5432` — the local cluster runs on a non-default port, alwaysdata does not |
 | `DB_USERNAME` | the account user | a user dedicated to this environment alone |
 
-And three blocks are **absent on purpose**: `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` (no
+And three blocks are **absent on purpose**: `ANTHROPIC_API_KEY` (no
 translation command runs on a server), `OCTANE_*` and `PHP_INI_SCAN_DIR` (both describe the local
 FrankenPHP setup).
 

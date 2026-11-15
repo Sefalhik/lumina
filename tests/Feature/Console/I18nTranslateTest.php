@@ -6,7 +6,13 @@ namespace Tests\Feature\Console;
 
 use App\Console\Commands\I18nTranslate;
 use App\Services\Translation\LangFiles;
+use App\Services\Translation\TextFormat;
+use App\Services\Translation\TranslationContext;
+use App\Services\Translation\TranslationPrompt;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Concerns\AssertsLogs;
 use Tests\Concerns\FakesTranslationApi;
 use Tests\Concerns\UsesTemporaryDirectory;
@@ -44,7 +50,6 @@ class I18nTranslateTest extends TestCase
             'i18n.supported_locales' => ['fr', 'de', 'en'],
             'i18n.native_names' => ['fr' => 'Français', 'de' => 'Deutsch', 'en' => 'English'],
             'services.anthropic.api_key' => 'test-key',
-            'services.anthropic.model' => 'claude-haiku-4-5-20251001',
         ]);
 
         $this->fakeTranslations();
@@ -87,8 +92,26 @@ class I18nTranslateTest extends TestCase
         $this->artisan('i18n:translate', ['--dry-run' => true])
             ->expectsOutputToContain('lang/de/nav.php — 2 to translate, 0 to remove')
             ->expectsOutputToContain('resources/js/i18n/en.json — 1 to translate, 0 to remove')
-            ->expectsOutputToContain('6 keys in 4 files: 4 API requests to claude-haiku-4-5-20251001')
+            ->expectsOutputToContain('6 keys in 4 files: 4 API requests to claude-haiku-5-5')
             ->assertSuccessful();
+    }
+
+    public function test_the_run_is_priced_with_the_interface_model_and_never_the_prose_one(): void
+    {
+        // The interface model is free here and the prose one ruinous: a run priced with the wrong
+        // one cannot go unnoticed.
+        config([
+            'i18n.translation.interface.model' => 'interface-model',
+            'i18n.translation.interface.price' => [0, 0],
+            'i18n.translation.prose.model' => 'prose-model',
+            'i18n.translation.prose.price' => [1_000_000, 1_000_000],
+        ]);
+
+        $this->assertSame(0, Artisan::call('i18n:translate', ['--dry-run' => true]));
+        $this->assertMatchesRegularExpression(
+            '/API requests to interface-model, about \d+ input and \d+ output tokens, about \$0\.00\./',
+            Artisan::output(),
+        );
     }
 
     public function test_a_dry_run_needs_no_key_sends_nothing_and_writes_nothing(): void
@@ -150,6 +173,22 @@ class I18nTranslateTest extends TestCase
         $this->assertFileExists($this->registry());
     }
 
+    public function test_each_file_is_sent_with_the_interface_prompt_and_the_syntax_of_its_format(): void
+    {
+        $this->artisan('i18n:translate', ['--yes' => true, '--locale' => 'de'])->assertSuccessful();
+
+        $prompt = new TranslationPrompt(resource_path('prompts/translation'), config('i18n.translation_languages'), config('i18n.glossary'));
+        $systems = [];
+        foreach (Http::recorded() as [$request]) {
+            $systems[implode(',', array_keys($this->requestedStrings($request)))] = $request['system'];
+        }
+
+        $this->assertSame([
+            'home,cv' => $prompt->system(TranslationContext::Interface, TextFormat::Laravel, 'de'),
+            'boot.skip' => $prompt->system(TranslationContext::Interface, TextFormat::VueI18n, 'de'),
+        ], $systems);
+    }
+
     public function test_with_yes_only_the_file_whose_source_changed_is_translated(): void
     {
         $this->artisan('i18n:translate', ['--yes' => true])->assertSuccessful();
@@ -202,6 +241,52 @@ class I18nTranslateTest extends TestCase
         $this->assertFileDoesNotExist($this->lang.'/en/nav.php');
     }
 
+    /**
+     * @return iterable<string, array{string, list<string>}>
+     */
+    public static function badGermanAnswers(): iterable
+    {
+        // Only the footer has a placeholder to lose; everything else fails every German request.
+        yield 'a placeholder lost (criterion 11)' => ['placeholder', ['social']];
+        yield 'cut short while thinking (criterion 8)' => ['truncated', ['social', 'home', 'cv', 'boot.skip']];
+        yield 'declined by a safety classifier' => ['refusal', ['social', 'home', 'cv', 'boot.skip']];
+        yield 'the API never reached' => ['unreachable', ['social', 'home', 'cv', 'boot.skip']];
+    }
+
+    #[DataProvider('badGermanAnswers')]
+    public function test_a_bad_answer_fails_the_run_leaves_the_target_alone_and_is_asked_again_alone(string $kind, array $owed): void
+    {
+        (new LangFiles)->write($this->lang.'/fr/footer.php', LangFiles::PHP, ['social' => 'Profil :network']);
+        $this->fakeApi(function (Request $request) use ($kind) {
+            $locale = $this->requestedLocale($request);
+            $answer = array_map(fn (string $value) => strtoupper($locale).' '.$value, $this->requestedStrings($request));
+            if ($locale !== 'de') {
+                return Http::response($this->apiResponse($answer));
+            }
+
+            return match ($kind) {
+                'placeholder' => Http::response($this->apiResponse(array_map(fn (string $value) => str_replace(':network', 'network', $value), $answer))),
+                'truncated' => Http::response(['content' => [['type' => 'thinking', 'thinking' => '']], 'stop_reason' => 'max_tokens']),
+                'refusal' => Http::response(['stop_reason' => 'refusal'] + $this->apiResponse($answer)),
+                default => Http::failedConnection()($request),
+            };
+        });
+
+        $this->artisan('i18n:translate', ['--yes' => true])
+            ->expectsOutputToContain('lang/de/footer.php — translation failed, left to translate')
+            ->expectsOutputToContain('Completed with errors')
+            ->assertFailed();
+
+        $this->assertFileDoesNotExist($this->lang.'/de/footer.php');
+        $this->assertSame(['social' => 'EN Profil :network'], include $this->lang.'/en/footer.php');
+
+        $this->fakeTranslations();
+        $this->artisan('i18n:translate', ['--yes' => true])->assertSuccessful();
+
+        $this->assertSame(['de' => $owed], $this->sentKeysByLocale());
+        $this->assertSame(['social' => 'DE Profil :network'], include $this->lang.'/de/footer.php');
+    }
+
     public function test_a_failure_is_named_and_fails_the_run_instead_of_reporting_success(): void
     {
         $this->fakeTranslations(failing: ['de']);
@@ -235,7 +320,7 @@ class I18nTranslateTest extends TestCase
 
         $this->artisan('i18n:translate', ['--no-interaction' => true])->assertFailed();
 
-        $this->assertLogged('warning', 'i18n:translate refused to run without consent', ['step' => 'refused_without_consent', 'key_count' => 6]);
+        $this->assertLogged('warning', 'Translation command refused to run without consent', ['step' => 'refused_without_consent', 'command' => 'i18n:translate', 'count' => 6]);
         $this->assertNotLogged('info', 'i18n:translate started');
     }
 

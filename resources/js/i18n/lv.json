@@ -6,20 +6,20 @@
         "no_results": "Nav rezultātu"
     },
     "theme_switcher": {
-        "aria_label": "Mainīt tēmu",
-        "current_aria": "Pašreizējā tēma: {theme}",
+        "aria_label": "Mainīt motīvu",
+        "current_aria": "Pašreizējais motīvs: {theme}",
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
-                "hint": "Kiber-panka terminalis"
+                "hint": "Kiberpanka terminālis"
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Varš & viktoiāņu stils"
+                "hint": "Varš un viktoriāniskums"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Lietus & neoni"
+                "hint": "Lietus un neona gaismas"
             }
         }
     },
@@ -29,35 +29,35 @@
         "off": "izslēgtas"
     },
     "boot": {
-        "skip": "[ NOKLIKŠĶINIET VAI NOSPIEDIET JEBKURU TAUSTIŅU, LAI IZLAISTU ]"
+        "skip": "[ NOKLIKŠĶINIET VAI NOSPIEDIET JEBKURU TAUSTIŅU, LAI IZLAIDTU ]"
     },
     "skills_editor": {
         "icon_aria": "Kategorijas {n} ikona",
         "name_aria": "Kategorijas {n} nosaukums",
-        "remove_category": "Noņemt kategoriju {n}",
-        "tech_aria": "Tehnologija {t} no kategorijas {n}",
-        "remove_tech": "Noņemt tehnologiju {t}",
-        "add_tech": "+ Pievienot tehnologiju",
+        "remove_category": "Dzēst kategoriju {n}",
+        "tech_aria": "Tehnoloģija {t} kategorijā {n}",
+        "remove_tech": "Dzēst tehnoloģiju {t}",
+        "add_tech": "+ Pievienot tehnoloģiju",
         "add_category": "+ Pievienot kategoriju",
-        "drag_category": "Vilkt, lai pārkārtotu kategoriju",
-        "drag_tech": "Vilkt, lai pārkārtotu tehnologiju",
+        "drag_category": "Vilkt, lai mainītu kategorijas secību",
+        "drag_tech": "Vilkt, lai mainītu tehnoloģijas secību",
         "icons": {
             "hexagone_creux": "Dobs sešstūris",
-            "hexagone_plein": "Pildīts sešstūris",
-            "carre_pointe": "Punktots kvadrāts",
+            "hexagone_plein": "Pilns sešstūris",
+            "carre_pointe": "Punktēts kvadrāts",
             "cible": "Mērķis",
-            "double_cercle": "Dubultaplis",
-            "cercle_croix": "Aplis-krusts",
-            "cercle_x": "Aplis-X",
-            "cercle_point": "Aplis-punkts",
-            "losange_plein": "Pildīts rombs",
+            "double_cercle": "Divi apļi",
+            "cercle_croix": "Aplis ar krustu",
+            "cercle_x": "Aplis ar X",
+            "cercle_point": "Aplis ar punktu",
+            "losange_plein": "Pilns rombs",
             "losange_creux": "Dobs rombs",
             "petit_losange": "Mazs rombs",
-            "triangle_plein": "Pildīts trijstūris",
-            "triangle_creux": "Dobs trijstūris",
+            "triangle_plein": "Pilns trīsstūris",
+            "triangle_creux": "Dobs trīsstūris",
             "delta": "Delta",
-            "etoile_4": "4 zaru zvaigzne",
-            "etoile_creuse": "Doba zvaigzne",
+            "etoile_4": "Četrstaru zvaigzne",
+            "etoile_creuse": "Dobā zvaigzne",
             "etoile_apl": "APL zvaigzne",
             "etoile_operateur": "Operatora zvaigzne",
             "hexagone_apl": "APL sešstūris",
@@ -68,8 +68,8 @@
             "trigramme": "Trigramma",
             "engrenage": "Zobrats",
             "eclair": "Zibens",
-            "chevron": "Ševrons",
-            "double_chevron": "Dubultševrons"
+            "chevron": "V-veida zīme",
+            "double_chevron": "Dubultā V-veida zīme"
         }
     }
 }

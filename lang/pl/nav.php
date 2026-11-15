@@ -8,5 +8,5 @@ return [
     'main_label' => 'Nawigacja główna',
     'menu' => 'Menu',
     'admin_panel' => 'Panel administracyjny',
-    'logout' => 'Wyloguj się',
+    'logout' => 'Wyloguj',
 ];

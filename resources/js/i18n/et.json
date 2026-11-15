@@ -1,25 +1,25 @@
 {
     "language_switcher": {
-        "aria_label": "Muuda keelt",
+        "aria_label": "Keele vahetamine",
         "filter_placeholder": "Filtreeri…",
         "filter_aria_label": "Otsi keelt",
-        "no_results": "Tulemusi ei leitud"
+        "no_results": "Tulemusi pole"
     },
     "theme_switcher": {
-        "aria_label": "Muuda teemat",
+        "aria_label": "Teema vahetamine",
         "current_aria": "Praegune teema: {theme}",
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
-                "hint": "Terminal küberrpunk"
+                "hint": "Küberpunki terminal"
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Vask & victoriuse ajastu"
+                "hint": "Vask ja viktoriaanlik"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Vihm & neonid"
+                "hint": "Vihm ja neoonid"
             }
         }
     },
@@ -29,47 +29,47 @@
         "off": "väljas"
     },
     "boot": {
-        "skip": "[ KLIKI VÕI VAJUTA NUPPU VAHELE JÄTMISEKS ]"
+        "skip": "[ KLÕPSAKE VÕI VAJUTAGE KLAHVI, ET VAHELE JÄTTA ]"
     },
     "skills_editor": {
         "icon_aria": "Kategooria {n} ikoon",
         "name_aria": "Kategooria {n} nimi",
-        "remove_category": "Eemalda kategooria {n}",
-        "tech_aria": "Tehnoloogia {t} kategooriast {n}",
-        "remove_tech": "Eemalda tehnoloogia {t}",
+        "remove_category": "Kustuta kategooria {n}",
+        "tech_aria": "Kategooria {n} tehnoloogia {t}",
+        "remove_tech": "Kustuta tehnoloogia {t}",
         "add_tech": "+ Lisa tehnoloogia",
         "add_category": "+ Lisa kategooria",
-        "drag_category": "Lohistamisega kategooria ümber järjestamiseks",
-        "drag_tech": "Lohistamisega tehnoloogia ümber järjestamiseks",
+        "drag_category": "Lohista kategooria ümberjärjestamiseks",
+        "drag_tech": "Lohista tehnoloogia ümberjärjestamiseks",
         "icons": {
-            "hexagone_creux": "Täis kuusnurk",
-            "hexagone_plein": "Täis kuusnurk",
-            "carre_pointe": "Osutatud ruut",
+            "hexagone_creux": "Õõnes kuusnurk",
+            "hexagone_plein": "Täidetud kuusnurk",
+            "carre_pointe": "Punktiga ruut",
             "cible": "Sihtmärk",
-            "double_cercle": "Kahekordne ring",
-            "cercle_croix": "Ring-rist",
-            "cercle_x": "Ring-X",
-            "cercle_point": "Ring-punkt",
-            "losange_plein": "Täis romb",
-            "losange_creux": "Tühi romb",
+            "double_cercle": "Topeltring",
+            "cercle_croix": "Rist-ring",
+            "cercle_x": "X-ring",
+            "cercle_point": "Punktiga ring",
+            "losange_plein": "Täidetud romb",
+            "losange_creux": "Õõnes romb",
             "petit_losange": "Väike romb",
-            "triangle_plein": "Täis kolmnurk",
-            "triangle_creux": "Tühi kolmnurk",
+            "triangle_plein": "Täidetud kolmnurk",
+            "triangle_creux": "Õõnes kolmnurk",
             "delta": "Delta",
-            "etoile_4": "4-harulised tähed",
-            "etoile_creuse": "Tühi täht",
-            "etoile_apl": "APL täht",
+            "etoile_4": "4-haruline täht",
+            "etoile_creuse": "Õõnes täht",
+            "etoile_apl": "APL-täht",
             "etoile_operateur": "Operaatori täht",
-            "hexagone_apl": "APL kuusnurk",
-            "anneau_benzene": "Benteeni ring",
-            "marqueur_terminal": "Terminali marker",
+            "hexagone_apl": "APL-kuusnurk",
+            "anneau_benzene": "Benseenrõngas",
+            "marqueur_terminal": "Terminali markeer",
             "therefore": "Therefore",
             "reference": "Viide",
             "trigramme": "Trigramm",
             "engrenage": "Hammasratas",
             "eclair": "Välk",
-            "chevron": "Ševroon",
-            "double_chevron": "Kahekordne ševroon"
+            "chevron": "Ševron",
+            "double_chevron": "Topeltševron"
         }
     }
 }

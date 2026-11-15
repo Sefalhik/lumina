@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'title' => 'CV — Laurent Bernard-Cardascia',
-    'meta_description' => 'Laurent Bernard-Cardascia szakmai pályafutása, Tech Lead: tapasztalatok, technológiák és eredmények.',
+    'title' => 'Önéletrajz — Laurent Bernard-Cardascia',
+    'meta_description' => 'Laurent Bernard-Cardascia, Tech Lead szakmai pályafutása: munkahelyek, technológiák és eredmények.',
     'heading' => 'Pályafutás',
-    'subtitle' => 'Curriculum vitae',
+    'subtitle' => 'Önéletrajz',
     'experience_heading' => 'Szakmai tapasztalat',
-    'empty' => 'A pályafutás hamarosan megjelenik.',
-    'period_present' => 'ma',
-    'current_badge' => 'Jelenleg foglalkoztatott',
+    'empty' => 'A pályafutás részletei hamarosan megjelennek.',
+    'period_present' => 'jelenig',
+    'current_badge' => 'Jelenleg itt dolgozik',
     'achievements_label' => 'Eredmények',
 ];

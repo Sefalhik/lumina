@@ -6,7 +6,7 @@ return [
     'projects' => 'Projekty',
     'blog' => 'Blog',
     'main_label' => 'Hlavní navigace',
-    'menu' => 'Nabídka',
-    'admin_panel' => 'Panel administrace',
-    'logout' => 'Odhlášení',
+    'menu' => 'Menu',
+    'admin_panel' => 'Administrační panel',
+    'logout' => 'Odhlásit se',
 ];

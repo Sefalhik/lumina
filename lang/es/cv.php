@@ -2,12 +2,12 @@
 
 return [
     'title' => 'CV — Laurent Bernard-Cardascia',
-    'meta_description' => 'Trayectoria profesional de Laurent Bernard-Cardascia, Tech Lead: experiencias, tecnologías y logros.',
+    'meta_description' => 'Trayectoria profesional de Laurent Bernard-Cardascia, Tech Lead: experiencia, tecnologías y logros.',
     'heading' => 'Trayectoria',
-    'subtitle' => 'Currículum vitae',
+    'subtitle' => 'Currículum vítae',
     'experience_heading' => 'Experiencia profesional',
     'empty' => 'La trayectoria se publicará próximamente.',
-    'period_present' => 'hoy',
-    'current_badge' => 'En el cargo',
+    'period_present' => 'actualidad',
+    'current_badge' => 'En activo',
     'achievements_label' => 'Logros',
 ];

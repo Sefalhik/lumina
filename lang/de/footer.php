@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'social_aria' => 'Profil :network (neues Fenster)',
+    'social_aria' => 'Profil bei :network (neues Fenster)',
     'email_aria' => 'E-Mail an :email senden',
     'contact_label' => 'Kontakt',
 ];

@@ -1,14 +1,14 @@
 <?php
 
 return [
-    'title' => 'Hem',
+    'title' => 'Startsida',
     'cta_projects' => 'Se mina projekt',
     'cta_cv' => 'Mitt CV',
-    'about_heading' => 'Om',
-    'skills_heading' => 'Stack & expertis',
-    'fallback_tagline' => 'Initialisering pågår',
-    'fallback_subtitle' => 'Innehåll läses in',
-    'fallback_bio' => 'Innehållet på denna sida är ännu inte initialiserat.',
+    'about_heading' => 'Om mig',
+    'skills_heading' => 'Stack & kompetens',
+    'fallback_tagline' => 'Initierar',
+    'fallback_subtitle' => 'Innehållet laddas',
+    'fallback_bio' => 'Innehållet på den här sidan har ännu inte initierats.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
@@ -27,7 +27,7 @@ return [
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
+            'tech' => 'Arkitektur',
             'category' => 'Design',
         ],
     ],

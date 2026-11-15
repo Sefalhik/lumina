@@ -2,12 +2,12 @@
 
 return [
     'title' => 'CV — Laurent Bernard-Cardascia',
-    'meta_description' => 'Karriärväg för Laurent Bernard-Cardascia, Tech Lead: erfarenheter, teknologier och prestationer.',
-    'heading' => 'Karriärväg',
-    'subtitle' => 'Curriculum vitae',
-    'experience_heading' => 'Yrkesverksamhet',
-    'empty' => 'Karriärvägen kommer att publiceras snart.',
-    'period_present' => 'idag',
-    'current_badge' => 'Nuvarande position',
-    'achievements_label' => 'Prestationer',
+    'meta_description' => 'Yrkesbakgrund för Laurent Bernard-Cardascia, Tech Lead: erfarenheter, teknik och resultat.',
+    'heading' => 'Yrkesbakgrund',
+    'subtitle' => 'CV',
+    'experience_heading' => 'Yrkeserfarenhet',
+    'empty' => 'Yrkesbakgrunden publiceras inom kort.',
+    'period_present' => 'nuvarande',
+    'current_badge' => 'Aktuell',
+    'achievements_label' => 'Resultat',
 ];

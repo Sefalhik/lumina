@@ -5,7 +5,7 @@ return [
     'cv' => 'CV',
     'projects' => 'Proiecte',
     'blog' => 'Blog',
-    'main_label' => 'Navigație principală',
+    'main_label' => 'Navigare principală',
     'menu' => 'Meniu',
     'admin_panel' => 'Panou de administrare',
     'logout' => 'Deconectare',

@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'title' => 'CV — Laurent Bernard-Cardascia',
-    'meta_description' => 'Profesionalni put Laurent Bernard-Cardascia, Tech Lead: iskustva, tehnologije i dostignuća.',
-    'heading' => 'Putanja karijere',
-    'subtitle' => 'Curriculum vitae',
-    'experience_heading' => 'Profesionalno iskustvo',
-    'empty' => 'Putanja karijere će biti objavljena uskoro.',
+    'title' => 'Životopis — Laurent Bernard-Cardascia',
+    'meta_description' => 'Profesionalni put Laurenta Bernarda-Cardascie, Tech Lead: iskustva, tehnologije i postignuća.',
+    'heading' => 'Put',
+    'subtitle' => 'Životopis',
+    'experience_heading' => 'Radno iskustvo',
+    'empty' => 'Put će uskoro biti objavljen.',
     'period_present' => 'danas',
-    'current_badge' => 'Trenutno zaposlен',
-    'achievements_label' => 'Dostignuća',
+    'current_badge' => 'Trenutno zaposlen',
+    'achievements_label' => 'Postignuća',
 ];

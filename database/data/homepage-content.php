@@ -14,21 +14,21 @@ declare(strict_types=1);
  */
 return [
     'tagline' => [
-        'bg' => 'Neuromatrix online — биокортекс активен',
-        'cs' => 'Neuromatrix online — biocortex aktiv',
-        'da' => 'Neuromatrix online — biocortex actif',
+        'bg' => 'Neuromatrix online — biocortex активен',
+        'cs' => 'Neuromatrix online – biocortex aktivní',
+        'da' => 'Neuromatrix online — biocortex aktiv',
         'de' => 'Neuromatrix online — biocortex aktiv',
-        'el' => 'Neuromatrix online — biocortex actif',
-        'en' => 'Neuromatrix online — active biocortex',
+        'el' => 'Neuromatrix online — biocortex ενεργός',
+        'en' => 'Neuromatrix online — biocortex active',
         'es' => 'Neuromatrix online — biocortex activo',
         'et' => 'Neuromatrix online — biocortex aktiivne',
-        'fi' => 'Neuromatrix online — biocortex actif',
+        'fi' => 'Neuromatrix online — biocortex aktiivinen',
         'fr' => 'Neuromatrix online — biocortex actif',
-        'ga' => 'Neuromatrix online — biocortex actif',
-        'hr' => 'Neuromatrix online — biocortex actif',
+        'ga' => 'Neuromatrix online — biocortex gníomhach',
+        'hr' => 'Neuromatrix online — biocortex aktivan',
         'hu' => 'Neuromatrix online — biocortex aktív',
         'it' => 'Neuromatrix online — biocortex attivo',
-        'lt' => 'Neuromatrix online — biocortex aktyvus',
+        'lt' => 'Neuromatrix online – biocortex aktyvus',
         'lv' => 'Neuromatrix online — biocortex aktīvs',
         'mt' => 'Neuromatrix online — biocortex attiv',
         'nl' => 'Neuromatrix online — biocortex actief',
@@ -37,116 +37,116 @@ return [
         'ro' => 'Neuromatrix online — biocortex activ',
         'sk' => 'Neuromatrix online — biocortex aktívny',
         'sl' => 'Neuromatrix online — biocortex aktiven',
-        'sv' => 'Neuromatrix online — biocortex actif',
+        'sv' => 'Neuromatrix online – biocortex aktiv',
     ],
     'subtitle' => [
-        'bg' => 'Tech Lead // Bio-машинни интерфейси',
-        'cs' => 'Tech Lead // Bio-strojová rozhraní',
-        'da' => 'Tech Lead // Bio-maskine-grænseflader',
-        'de' => 'Tech Lead // Bio-Maschinen-Interfaces',
+        'bg' => 'Tech Lead // Интерфейси био-машина',
+        'cs' => 'Tech Lead // Biostrojová rozhraní',
+        'da' => 'Tech Lead // Bio-maskine-interfaces',
+        'de' => 'Tech Lead // Bio-Maschinen-Schnittstellen',
         'el' => 'Tech Lead // Διεπαφές βιο-μηχανών',
-        'en' => 'Tech Lead // Bio-machine Interfaces',
-        'es' => 'Tech Lead // Interfaces bio-máquinas',
-        'et' => 'Tech Lead // Bio-masinaate liidesed',
-        'fi' => 'Tech Lead // Bio-machine-rajapinnat',
+        'en' => 'Tech Lead // Bio-machine interfaces',
+        'es' => 'Tech Lead // Interfaces bio-máquina',
+        'et' => 'Tech Lead // Bio-masinliidesed',
+        'fi' => 'Tech Lead // Bio–kone-rajapinnat',
         'fr' => 'Tech Lead // Interfaces bio-machines',
-        'ga' => 'Tech Lead // Comhéadanais bheo-innealra',
-        'hr' => 'Tech Lead // Bio-mašinskih sučelja',
-        'hu' => 'Tech Lead // Bio-machine interfészek',
-        'it' => 'Tech Lead // Interfacce bio-macchine',
-        'lt' => 'Tech Lead // Bio-mašinų sąsajos',
-        'lv' => 'Tech Lead // Bio-mašīnu interfeisi',
-        'mt' => 'Tech Lead // Interfaces bio-machines',
-        'nl' => 'Tech Lead // Bio-machine interfaces',
+        'ga' => 'Tech Lead // Comhéadain bhith-mheaisín',
+        'hr' => 'Tech Lead // Bio-strojna sučelja',
+        'hu' => 'Tech Lead // Bio-gépi interfészek',
+        'it' => 'Tech Lead // Interfacce bio-macchina',
+        'lt' => 'Tech Lead // Biomašininės sąsajos',
+        'lv' => 'Tech Lead // Bio-mašīnu saskarnes',
+        'mt' => 'Tech Lead // Interfaċċji bijo-magni',
+        'nl' => 'Tech Lead // Bio-machine-interfaces',
         'pl' => 'Tech Lead // Interfejsy bio-maszynowe',
-        'pt' => 'Tech Lead // Interfaces bio-máquinas',
-        'ro' => 'Tech Lead // Interfețe bio-mașini',
-        'sk' => 'Tech Lead // Bio-strojové rozhrania',
-        'sl' => 'Tech Lead // Vmesniki bio-strojev',
-        'sv' => 'Tech Lead // Bio-maskin-gränssnitt',
+        'pt' => 'Tech Lead // Interfaces bio-máquina',
+        'ro' => 'Tech Lead // Interfețe bio-mașină',
+        'sk' => 'Tech Lead // Rozhrania bio-stroj',
+        'sl' => 'Tech Lead // Bio-strojni vmesniki',
+        'sv' => 'Tech Lead // Gränssnitt mellan bio och maskin',
     ],
     'bio' => [
-        'bg' => 'Tech Lead. Петнадесет години строене на неща, които трябва да издържат през нощта, когато офисите са празни и само душата на машините бди над сънят на органичните.
+        'bg' => 'Tech Lead. Петнайсет години градя неща, които трябва да издържат през нощта, когато офисите опустеят и само душата на машините бди над съня на органичните.
 
-Седем години железопътен сектор: приложения за поддръжка, където регресия не спира формуляр, а влак — някъде на релса водеща към небитието, под дъжда.
+Седем години в железницата: приложения за поддръжка, където една регресия не блокира формуляр, а заковава на място цяла композиция — някъде на коловоз към нищото, под дъжда.
 
-PHP, Laravel, Vue, PostgreSQL. Пишa тестовете преди да им вярвам. Документирам лъжите на кода както и истините гравирани в силиция.
+PHP, Laravel, Vue, PostgreSQL. Пиша тестовете, преди да съм повярвал. Документирам лъжите на кода толкова старателно, колкото и истините, гравирани в силиция.
 
-Работя в сивата зона, където сигналът вече не се различава от шума. Следа от грешка, която разкрива хаоса. Редица зелени тестове, които го освещават. Развалени био/машинни интерфейси. Професията състои по-малко в преповтаряне на код, отколкото в решаване кой от тези сигнали лъжe.
+Работя в сивата зона, там, където сигналът вече не се различава от шума. Следа от грешка, която разкрива хаоса. Зелен пакет тестове, който го освещава. Раздрънкани интерфейси био/машина. Занаятът е не толкова да изплюваш код, колкото да решиш кой от тези сигнали лъже.
 
-Остатъка от времето наблюдавам мъгла образуваща танцуващи ореоли над неоните, които осветяват нервните центрове на цивилизация направена от мета-информации.',
-        'cs' => 'Tech Lead. Patnáct let budování věcí, které musí fungovat v noci, když jsou kanceláře prázdné a pouze duše strojů bdí nad spánkem organizmů.
+През останалото време гледам как ръмежът рисува танцуващи ореоли около неоните, които осветяват нервните центрове на цивилизация, изтъкана от метаинформация.',
+        'cs' => 'Tech Lead. Patnáct let stavím věci, které musí vydržet i v noci, když jsou kanceláře prázdné a nad spánkem organiků bdí už jen duše strojů.
 
-Sedm let v železniční dopravě: aplikace údržby, kde regrese neimobilizuje formulář, ale vlak — někde na koleji vedoucí k nicotě, v dešti.
+Sedm let na železnici: aplikace pro údržbu, kde regrese nezablokuje formulář, ale celou soupravu – někde na trati vedoucí do nicoty, v dešti.
 
-PHP, Laravel, Vue, PostgreSQL. Psaní testů před tím, než jim věřím. Dokumentuji lži kódu stejně jako pravdy vryté v křemíku.
+PHP, Laravel, Vue, PostgreSQL. Testy píšu dřív, než čemukoli uvěřím. Dokumentuji lži kódu stejně jako pravdy vyryté do křemíku.
 
-Pracuji v šedé zóně, tam, kde se signál již neliší od šumu. Stopa chyby, která odhaluje chaos. Řada zelených testů, která to posvěcuje. Bio/strojová rozhraní v rozkladu. Řemeslo spočívá méně v opakovém výtěžku kódu než v rozhodování, který z těchto signálů lže.
+Pracuji v šedé zóně, tam, kde už signál nejde odlišit od šumu. Výpis chyby, který odhalí chaos. Zelená sada testů, která ho posvětí. Rozklížená rozhraní bio/stroj. Tohle řemeslo je míň o vyplivování kódu a víc o tom, rozhodnout, který z těch signálů lže.
 
-Zbytek času sleduji, jak mrholení vytváří tančící haló na neonech osvětlujících nervové uzly civilizace vytvořené z meta-informací.',
-        'da' => 'Tech Lead. Femten år brugt på at bygge ting, der skal holde om natten, når kontorerne er tomme, og kun maskinernes sjæl våger over de organiske væseners søvn.
+Zbytek času se dívám, jak mrholení kreslí tančící svatozáře kolem neonů, jež osvětlují nervová centra civilizace utkané z metainformací.',
+        'da' => 'Tech Lead. Femten år med at bygge ting, der skal holde om natten, når kontorerne står tomme, og kun maskinernes sjæl våger over de organiskes søvn.
 
-Syv år inden for jernbaner: vedligeholdelsesapplikationer, hvor en regression ikke blot sætter en formular ud af drift, men en tog — et sted på en spor, der fører ud i intet, under regnen.
+Syv år i jernbanen: vedligeholdelsesapplikationer, hvor en regression ikke lammer en formular, men et togsæt — et sted på et spor, der fører ud i intetheden, i regnen.
 
-PHP, Laravel, Vue, PostgreSQL. Jeg skriver tests, før jeg tror på dem. Jeg dokumenterer kodens løgne lige så meget som sandheder gravet i silicium.
+PHP, Laravel, Vue, PostgreSQL. Jeg skriver testene, før jeg tror på dem. Jeg dokumenterer kodens løgne lige så omhyggeligt som de sandheder, der er ætset ind i siliciet.
 
-Jeg arbejder i gråzonen, hvor signalet ikke længere skelnes fra støjen. Et fejlspor, der afslører kaos. En grøn testsekvens, der helliggør det. Bio-maskine-grænseflader i uorden. Arbejdet består mindre i at gengive kode end i at afgøre, hvilket af disse signaler der løgner.
+Jeg arbejder i gråzonen, der hvor signalet ikke længere kan skelnes fra støjen. Et fejlspor, der afslører kaosset. En grøn testsuite, der helliger det. Bio/maskine-interfaces, der er ved at rasle fra hinanden. Faget handler mindre om at spytte kode ud end om at afgøre, hvilket af disse signaler der lyver.
 
-Resten af tiden ser jeg tågen danne dansende gloriapunkter omkring de neonlys, der lyser civilisationens kritiske knudepunkter, skabt af meta-information.',
-        'de' => 'Tech Lead. Fünfzehn Jahre damit verbracht, Dinge zu bauen, die nachts halten müssen, wenn die Büros leer sind und nur die Seele der Maschinen über den Schlaf der Organismen wacht.
+Resten af tiden ser jeg støvregnen danne dansende glorier om de neonlys, der oplyser nervecentrene i en civilisation bygget af metainformation.',
+        'de' => 'Tech Lead. Fünfzehn Jahre lang habe ich Dinge gebaut, die nachts halten müssen, wenn die Büros leer sind und nur noch die Seele der Maschinen über den Schlaf der Organischen wacht.
 
-Sieben Jahre Eisenbahn: Wartungsanwendungen, bei denen eine Regression nicht ein Formular blockiert, sondern einen Zug — irgendwo auf einem Gleis, das ins Nichts führt, im Regen.
+Sieben Jahre Bahnbranche: Wartungsanwendungen, bei denen eine Regression kein Formular lahmlegt, sondern einen ganzen Zug – irgendwo auf einem Gleis ins Nichts, im Regen.
 
-PHP, Laravel, Vue, PostgreSQL. Ich schreibe die Tests, bevor ich ihnen glaube. Ich dokumentiere die Lügen des Codes genauso wie die Wahrheiten, die im Silizium eingraviert sind.
+PHP, Laravel, Vue, PostgreSQL. Ich schreibe die Tests, bevor ich an sie glaube. Ich dokumentiere die Lügen des Codes ebenso wie die in Silizium gemeißelten Wahrheiten.
 
-Ich arbeite in der Grauzone, wo sich das Signal nicht mehr vom Rauschen unterscheidet. Eine Fehler-Trace, die das Chaos offenbart. Eine grüne Test-Suite, die es heiligt. Bio/Maschinen-Interfaces, die auseinanderfallen. Der Beruf besteht weniger darin, Code auszuspucken, als vielmehr zu entscheiden, welches dieser Signale lügt.
+Ich arbeite in der Grauzone, dort, wo sich das Signal nicht mehr vom Rauschen unterscheiden lässt. Eine Fehlerspur, die das Chaos offenbart. Eine grüne Testsuite, die es heiligspricht. Bio/Maschinen-Schnittstellen, die aus dem Leim gehen. In diesem Job geht es weniger darum, Code auszuspucken, als zu entscheiden, welches dieser Signale lügt.
 
-In der übrigen Zeit beobachte ich, wie der Sprühregen tanzende Halos auf den Neonlichtern bildet, die die Nervenzentren einer aus Meta-Informationen bestehenden Zivilisation beleuchten.',
-        'el' => 'Tech Lead. Δεκαπέντε χρόνια να χτίζω πράγματα που πρέπει να αντέχουν τη νύχτα, όταν τα γραφεία είναι άδεια και μόνο η ψυχή των μηχανών φυλάει τον ύπνο των οργανικών.
+Den Rest der Zeit sehe ich zu, wie der Nieselregen tanzende Lichthöfe um die Neonröhren zeichnet, die die Nervenzentren einer Zivilisation aus Metainformationen erhellen.',
+        'el' => 'Tech Lead. Δεκαπέντε χρόνια χτίζω πράγματα που πρέπει να αντέχουν τη νύχτα, όταν τα γραφεία αδειάζουν και μόνο η ψυχή των μηχανών αγρυπνά πάνω από τον ύπνο των οργανικών.
 
-Επτά χρόνια σιδηροδρομικά: εφαρμογές συντήρησης όπου μια παλινδρόμηση δεν ακινητοποιεί μια φόρμα, αλλά ένα συρμό — κάπου σε μια σιδηροτροχιά που οδηγεί στο κενό, κάτω από τη βροχή.
+Επτά χρόνια στους σιδηροδρόμους: εφαρμογές συντήρησης όπου μια παλινδρόμηση δεν παγώνει μια φόρμα, αλλά έναν συρμό — κάπου σε μια γραμμή που οδηγεί στο πουθενά, μέσα στη βροχή.
 
-PHP, Laravel, Vue, PostgreSQL. Γράφω τα τεστ πριν τα πιστέψω. Τεκμηριώνω τα ψέματα του κώδικα όσο και τις αλήθειες χαραγμένες στο πυρίτιο.
+PHP, Laravel, Vue, PostgreSQL. Γράφω τα τεστ πριν καν πιστέψω σ’ αυτά. Καταγράφω τα ψέματα του κώδικα όσο και τις αλήθειες που είναι χαραγμένες στο πυρίτιο.
 
-Δουλεύω στη γκρίζα ζώνη, εκεί όπου το σήμα δεν ξεχωρίζεται πλέον από τον θόρυβο. Ένα ίχνος σφάλματος που αποκαλύπτει το χάος. Μια σειρά πράσινων τεστ που το αγιάζει. Διεπαφές βιο/μηχανών σπασμένες. Το επάγγελμα συνίσταται λιγότερο στο να ξανακερνάω κώδικα παρά στο να αποφασίζω ποιο από αυτά τα σήματα λέει ψέματα.
+Δουλεύω στη γκρίζα ζώνη, εκεί όπου το σήμα δεν ξεχωρίζει πια από τον θόρυβο. Ένα ίχνος σφάλματος που αποκαλύπτει το χάος. Μια πράσινη σουίτα τεστ που το καθαγιάζει. Ξεχαρβαλωμένες διεπαφές βιο/μηχανών. Η δουλειά δεν είναι τόσο να ξερνάς κώδικα όσο να αποφασίζεις ποιο από αυτά τα σήματα λέει ψέματα.
 
-Τον υπόλοιπο χρόνο, παρατηρώ τη λεπτή βροχή να σχηματίζει χορευτικές αλωνιές στα neon που φωτίζουν τα κρίσιμα κέντρα ενός πολιτισμού φτιαγμένου από μετα-πληροφορίες.',
-        'en' => 'Tech Lead. Fifteen years building things that must hold up at night, when offices are empty and only the soul of machines watches over the sleep of the organics.
+Τον υπόλοιπο χρόνο, κοιτάζω το ψιλόβροχο να πλέκει φωτοστέφανα που χορεύουν γύρω από τα νέον που φωτίζουν τα νευραλγικά κέντρα ενός πολιτισμού φτιαγμένου από μετα-πληροφορίες.',
+        'en' => 'Tech Lead. Fifteen years building things that have to hold through the night, when the offices are empty and only the soul of the machines keeps watch over the sleep of the organics.
 
-Seven years in rail: maintenance applications where a regression doesn\'t immobilize a form, but a train — somewhere on a track leading to oblivion, in the rain.
+Seven years in rail: maintenance applications where a regression doesn\'t freeze a form, it strands a train — somewhere on a line leading into the void, in the rain.
 
-PHP, Laravel, Vue, PostgreSQL. I write tests before believing in them. I document the lies of code as much as the truths etched in silicon.
+PHP, Laravel, Vue, PostgreSQL. I write the tests before I let myself believe. I document the lies in the code as much as the truths etched into the silicon.
 
-I work in the gray zone, where signal can no longer be distinguished from noise. An error trace that reveals chaos. A suite of green tests that sanctifies it. Bio/machine interfaces breaking down. The job consists less of spitting out code than deciding which of these signals lies.
+I work in the grey zone, where signal can no longer be told apart from noise. A stack trace that lays the chaos bare. A green test suite that sanctifies it. Bio/machine interfaces on the blink. The job is less about spitting out code than deciding which of these signals is lying.
 
-The rest of the time, I watch drizzle form dancing halos on neon signs lighting the nerve centers of a civilization made of meta-information.',
-        'es' => 'Tech Lead. Quince años construyendo cosas que deben funcionar por la noche, cuando las oficinas están vacías y solo el alma de las máquinas vela el sueño de los organismos.
+The rest of the time, I watch the drizzle form dancing halos around the neon that lights the nerve centres of a civilisation made of meta-information.',
+        'es' => 'Tech Lead. Quince años levantando cosas que tienen que aguantar de noche, cuando las oficinas se quedan vacías y solo el alma de las máquinas vela el sueño de los orgánicos.
 
-Siete años en ferrocarriles: aplicaciones de mantenimiento donde una regresión no inmoviliza un formulario, sino un tren — en algún lugar de una vía que conduce a la nada, bajo la lluvia.
+Siete años en el ferrocarril: aplicaciones de mantenimiento donde una regresión no bloquea un formulario, sino un tren —en algún punto de una vía que lleva a la nada, bajo la lluvia.
 
-PHP, Laravel, Vue, PostgreSQL. Escribo las pruebas antes de creer en ellas. Documento las mentiras del código tanto como las verdades grabadas en el silicio.
+PHP, Laravel, Vue, PostgreSQL. Escribo las pruebas antes de creérmelas. Documento las mentiras del código tanto como las verdades grabadas en el silicio.
 
-Trabajo en la zona gris, donde la señal ya no se distingue del ruido. Una traza de error que revela el caos. Un conjunto de pruebas verde que lo santifica. Interfaces bio/máquinas desquiciadas. El oficio consiste menos en escupir código que en decidir cuál de estas señales miente.
+Trabajo en la zona gris, allí donde la señal ya no se distingue del ruido. Una traza de error que revela el caos. Una batería de pruebas en verde que lo santifica. Interfaces bio/máquina hechas trizas. El oficio no consiste tanto en escupir código como en decidir cuál de esas señales miente.
 
-El resto del tiempo, observo la llovizna formar halos danzantes en los neones que iluminan los centros neurálgicos de una civilización hecha de metainformaciones.',
-        'et' => 'Tech Lead. Viisteist aastat asjadele, mis peavad toimima öösel, kui bürood on tühjad ja ainult masinate hing valvab orgaanikute und.
+El resto del tiempo, miro cómo la llovizna forma halos danzantes sobre los neones que iluminan los centros neurálgicos de una civilización hecha de metainformación.',
+        'et' => 'Tech Lead. Viisteist aastat olen ehitanud asju, mis peavad öö üle elama, kui kontorid on tühjad ja orgaaniliste und valvab üksnes masinate hing.
 
-Seitse aastat raudteel: hooldusrakendused, kus regressioon ei külmuta vormi, vaid rongi — kusagil raudteel, mis viib nulliks, vihma all.
+Seitse aastat raudteel: hooldusrakendused, kus regressioon ei jäta seisma mitte vormi, vaid terve rongi — kuskil eimillessegi viival rööbasteel, vihma käes.
 
-PHP, Laravel, Vue, PostgreSQL. Kirjutan testid enne, kui neis usun. Dokumenteerin koodi valetusi sama palju kui silikoonisse graveeritud tõdesid.
+PHP, Laravel, Vue, PostgreSQL. Kirjutan testid enne, kui hakkan uskuma. Dokumenteerin koodi valesid sama hoolega kui ränisse söövitatud tõdesid.
 
-Töötан hallil alal, kus signaali ei saa enam mürust eristada. Veajälg, mis paljastab kaose. Roheline testide jada, mis selle pühitseb. Rikutud bio- ja masinaate liidesed. Eriala seisneb vähem koodide väljaütlemises kui selles, et otsustada, kumma neist signaalidest on vale.
+Töötan hallis tsoonis, kus signaali ei saa enam mürast eristada. Veajälg, mis paljastab kaose. Roheline testikomplekt, mis selle pühitseb. Lagunema löönud bio-masinliidesed. Selle ameti mõte pole niivõrd koodi välja sülitada, kuivõrd otsustada, milline neist signaalidest valetab.
 
-Ülejäänud ajal vaatan, kuidas virtsus tekitab tantsivaid halosid noonidel, mis valgustavad tsivilisatsiooni närvikeskkonda, mis on tehtud metainfost.',
-        'fi' => 'Tech Lead. Viisitoista vuotta rakentanut asioita, joiden on kestettävä yöllä, kun toimistot ovat tyhjät ja vain koneiden sielu valvoo orgaanisten unea.
+Ülejäänud aja vaatan, kuidas uduvihm joonistab tantsivaid halosid neoonidele, mis valgustavad metainfost koosneva tsivilisatsiooni närvikeskusi.',
+        'fi' => 'Tech Lead. Viisitoista vuotta olen rakentanut asioita, joiden täytyy kestää yön yli, kun toimistot ovat tyhjillään ja vain koneiden sielu valvoo orgaanisten unta.
 
-Seitsemän vuotta rautatieala: ylläpito-sovellukset, joissa regressio ei pysäytä lomaketta, vaan junaa — jossain kiskoilla kohti tyhjyyttä, sateen alla.
+Seitsemän vuotta rautateillä: kunnossapitosovelluksia, joissa regressio ei jumita lomaketta vaan kokonaisen junan — jossakin tyhjyyteen johtavalla raiteella, sateessa.
 
-PHP, Laravel, Vue, PostgreSQL. Kirjoitan testit ennen kuin niihin uskon. Dokumentoin koodin valheita yhtä paljon kuin pilarisiihen kaiverrettuja totuuksia.
+PHP, Laravel, Vue, PostgreSQL. Kirjoitan testit jo ennen kuin uskon niihin. Dokumentoin koodin valheet yhtä tarkasti kuin piihin kaiverretut totuudet.
 
-Työskentelen harmaalla alueella, jossa signaalia ei enää erota kohinasta. Virhelokin jälki, joka paljastaa kaaoksen. Vihreä testisarja, joka pyhittää sen. Bio/machine-rajapinnat sekaisin. Ammatti koostuu vähemmän koodin toistosta ja enemmän päätöksistä siitä, mikä näistä signaaleista valehtelee.
+Työskentelen harmaalla vyöhykkeellä, jossa signaalia ei enää erota kohinasta. Virhejälki, joka paljastaa kaaoksen. Vihreä testisarja, joka pyhittää sen. Bio–kone-rajapinnat ihan levällään. Tässä työssä ei niinkään syljetä koodia ulos kuin päätetään, mikä näistä signaaleista valehtelee.
 
-Muulloin katselen, miten tihkusade muodostaa tanssivat valokehät neonvalojen ympärille, jotka valaisevat sivilisaation hermokeskuksia, jotka koostuvat metatiedoista.',
+Muun ajan katselen, kuinka tihkusade piirtää tanssivia valokehiä neonvaloihin, jotka valaisevat metatiedosta rakentuneen sivilisaation hermokeskuksia.',
         'fr' => 'Tech Lead. Quinze ans à bâtir des choses qui doivent tenir la nuit, quand les bureaux sont vides et que seule l\'âme des machines veille sur le sommeil des organiques.
 
 Sept ans de ferroviaire : des applications de maintenance où une régression n\'immobilise pas un formulaire, mais une rame — quelque part sur une voie menant au néant, sous la pluie.
@@ -156,183 +156,183 @@ PHP, Laravel, Vue, PostgreSQL. J\'écris les tests avant d\'y croire. Je documen
 Je travaille dans la zone grise, là où le signal ne se distingue plus du bruit. Une trace d\'erreur qui révèle le chaos. Une suite de tests verte qui le sanctifie. Des interfaces bio/machines en déglingue. Le métier consiste moins à recracher du code qu\'à décider lequel de ces signaux ment.
 
 Le reste du temps, je regarde la bruine former des halos dansants sur les néons qui éclairent les centres névralgiques d\'une civilisation faite de méta-informations.',
-        'ga' => 'Tech Lead. Coicís bliana déag ag tógáil rudaí ar chóir dóibh fanacht ar foluain san oíche, nuair a bhíonn na hoifigí folamh agus nach bhíonn ach anam na meaisíní ag faire ar chodladh na n-orgánach.
+        'ga' => 'Tech Lead. Cúig bliana déag ag tógáil rudaí a chaithfidh seasamh i rith na hoíche, nuair a bhíonn na hoifigí folamh agus gan ach anam na meaisíní ag faire ar chodladh na n-orgánach.
 
-Seacht mbliana ar an iarnród: feidhmchláir cothabhála ina bhfágann aisfhilleadh corr nach bhíonn foirm geal, ach traein — áit éigin ar bhóthar ag dul chun an neamhnioc, faoin bhfearthainn.
+Seacht mbliana sna hiarnróid: feidhmchláir chothabhála nach foirm a fhágann aischéimniú ina stad iontu, ach traein — áit éigin ar ráille a thugann chun neamhní, faoin mbáisteach.
 
-PHP, Laravel, Vue, PostgreSQL. Scríobhaim na tástálacha sula gcreideann mé iontu. Tugaim tuairisc ar bhréaga an chóid chomh maith le fírinní gheal sa sileacan.
+PHP, Laravel, Vue, PostgreSQL. Scríobhaim na tástálacha sula gcreidim iontu. Doiciméadaím bréaga an chóid chomh mór leis na fírinní atá greanta sa tsileacan.
 
-Oibrím sa réimse liath, áit ar stop an comhartha a bheith ar leithéid ar an torann. Rian earráide a nochtann an chaos. Sraith tástálacha geal a shancaitheamh. Comhéadanais bheo/innealra go tuaigeach. Is lú a bhíonn san obair á bhreacadh den chóid arís ná a bheith ag cinneadh cé acu de na comharthaí seo atá ag insint brég.
+Oibrím sa chrios liath, áit nach féidir an comhartha a aithint thar an torann a thuilleadh. Rian earráide a nochtann an t-anord. Sraith tástálacha ghlas a bheannaíonn é. Comhéadain bhith/mheaisín ag titim as a chéile. Ní hé croí na ceirde cód a aiseag ach a chinneadh cé acu de na comharthaí sin atá ag insint bréige.
 
-An chuid eile den am, breathnaím ar an drithlín ag cruthú foluain tóireacha ar na néonainn a shoilsíonn na lárionaid néarúla ar dhomhan déanta de meta-fhaisnéis.',
-        'hr' => 'Tech Lead. Petnaest godina gradnje stvari koje moraju preživjeti noć, kada su uredi prazni i samo duša mašina čuva san organskog.
+An chuid eile den am, féachaim ar an gceobhrán ag fí fáinní solais a dhéanann rince ar na neoin a lasann lárionaid néarógacha sibhialtachta atá déanta de mheitifhaisnéis.',
+        'hr' => 'Tech Lead. Petnaest godina gradim stvari koje moraju izdržati noć, kad su uredi prazni i kad samo duša strojeva bdije nad snom organskih bića.
 
-Sedam godina željezničarstva : aplikacije održavanja gdje regresija ne zaustavlja obrazac, već vlak — negdje na pruzi koja vodi u ništavilo, pod kišom.
+Sedam godina u željeznici: aplikacije za održavanje u kojima regresija ne zaključa obrazac, nego zaustavi cijelu garnituru — negdje na pruzi koja vodi u ništavilo, na kiši.
 
-PHP, Laravel, Vue, PostgreSQL. Pišem testove prije nego što im vjerujem. Dokumentiram laži koda koliko i istine ugravirane u silicij.
+PHP, Laravel, Vue, PostgreSQL. Testove pišem prije nego što povjerujem. Dokumentiram laži koda jednako kao i istine urezane u silicij.
 
-Radim u sivoj zoni, gdje se signal više ne razlikuje od šuma. Trag greške koji otkriva kaos. Niz zelenih testova koji ga sankcionira. Bio/mašinska sučelja koja se raspadaju. Posao se manje svodi na ispljuvavanje koda nego na odlučivanje koji od tih signala laže.
+Radim u sivoj zoni, ondje gdje se signal više ne razlikuje od šuma. Trag pogreške koji razotkriva kaos. Zeleni niz testova koji ga posvećuje. Bio-strojna sučelja koja štekaju. Posao je manje u tome da pljuješ kod, a više u tome da odlučiš koji od tih signala laže.
 
-Ostalo vrijeme gledam kako rosna stvara plesne haloe na neonima koji osvjetljavaju vitalne centre civilizacije napravljene od meta-informacija.',
-        'hu' => 'Tech Lead. Tizenöt év dolgok építésén, amelyeknek éjjel is működniük kell, amikor az irodák üresen állnak és csak a gépek lelke vigyáz az organikus lények alvására.
+Ostatak vremena gledam kako rosulja oblikuje plešuće aureole na neonima što osvjetljavaju živčana središta civilizacije satkane od metainformacija.',
+        'hu' => 'Tech Lead. Tizenöt éve építek olyan dolgokat, amelyeknek ki kell bírniuk az éjszakát, amikor kiürülnek az irodák, és már csak a gépek lelke virraszt az organikusok álma fölött.
 
-Hét év vasútnál: karbantartási alkalmazások, ahol egy regresszió nem egy formot, hanem egy vonatot zár be — valahol egy nyomvonal végén, amely a semmi felé vezet, az esőben.
+Hét év a vasútnál: karbantartási alkalmazások, ahol egy regresszió nem egy űrlapot bénít meg, hanem egy szerelvényt — valahol egy semmibe vezető vágányon, az esőben.
 
-PHP, Laravel, Vue, PostgreSQL. Teszteket írok, mielőtt elhinnék bennük. A kódok hazugságait ugyanúgy dokumentálom, mint a szilíciumba vésett igazságokat.
+PHP, Laravel, Vue, PostgreSQL. Előbb írom meg a teszteket, mint hogy hinnék bennük. Ugyanúgy dokumentálom a kód hazugságait, mint a szilíciumba vésett igazságokat.
 
-A szürke zónában dolgozom, ahol a jel már nem különbözik a zajától. Egy hibaüzenet, amely a káoszt leleplezi. Egy zöld tesztsorozat, amely szentesíti azt. Elromlott bio/machine interfészek. A szakma nem annyira a kódok visszacsapásáról szól, mint arról, hogy eldöntsem, ezek közül a jelek közül melyik hazudik.
+A szürke zónában dolgozom, ott, ahol a jel már nem különböztethető meg a zajtól. Egy hiba nyoma, amely leleplezi a káoszt. Egy zöld tesztsor, amely szentesíti. Lerobbant bio/gép interfészek. A szakma nem annyira arról szól, hogy kódot köpjünk ki magunkból, hanem arról, hogy eldöntsük, e jelek közül melyik hazudik.
 
-A többi időben azt nézem, ahogy az enyhe eső táncoló fényudvarakat képez a neonokon, amelyek egy meta-információkból álló civilizáció érző központjait világítják meg.',
-        'it' => 'Tech Lead. Quindici anni a costruire cose che devono resistere di notte, quando gli uffici sono vuoti e solo l\'anima delle macchine veglia sul sonno degli organismi.
+A maradék időben azt nézem, ahogy a szitáló eső táncoló fényudvarokat von a neonok köré, amelyek egy metainformációkból szőtt civilizáció idegközpontjait világítják meg.',
+        'it' => 'Tech Lead. Quindici anni a costruire cose che devono reggere la notte, quando gli uffici sono vuoti e solo l\'anima delle macchine veglia sul sonno degli organici.
 
-Sette anni nel ferroviario: applicazioni di manutenzione dove una regressione non blocca un modulo, ma un treno — da qualche parte su un binario che porta al nulla, sotto la pioggia.
+Sette anni nel ferroviario: applicazioni di manutenzione dove una regressione non inchioda un modulo, ma un convoglio — da qualche parte, su un binario che porta al nulla, sotto la pioggia.
 
-PHP, Laravel, Vue, PostgreSQL. Scrivo i test prima di crederci. Documento le bugie del codice tanto quanto le verità incise nel silicio.
+PHP, Laravel, Vue, PostgreSQL. Scrivo i test prima di crederci. Documento le menzogne del codice quanto le verità incise nel silicio.
 
-Lavoro nella zona grigia, dove il segnale non si distingue più dal rumore. Una traccia di errore che rivela il caos. Una serie di test verde che lo santifica. Interfacce bio/macchina che si sfasciano. Il mestiere consiste meno nel rigurgitare codice che nel decidere quale di questi segnali mente.
+Lavoro nella zona grigia, là dove il segnale non si distingue più dal rumore. Una traccia d\'errore che rivela il caos. Una suite di test verde che lo santifica. Interfacce bio/macchina allo sfascio. Il mestiere non sta tanto nel risputare codice quanto nel decidere quale di questi segnali menta.
 
-Il resto del tempo, guardo la pioggerella formare aloni danzanti sui neon che illuminano i centri nevralgici di una civiltà fatta di meta-informazioni.',
-        'lt' => 'Tech Lead. Penkiolika metų kurdamas dalykus, kurie turi atlaikyti naktis, kai biurai tušti ir tik mašinų siela saugo organizmų miegą.
+Il resto del tempo guardo la pioggerellina disegnare aloni danzanti sui neon che illuminano i centri nevralgici di una civiltà fatta di meta-informazioni.',
+        'lt' => 'Tech Lead. Penkiolika metų statau dalykus, kurie turi atlaikyti naktį, kai biurai ištuštėja ir tik mašinų siela budi prie organikų miego.
 
-Septyni metai geležinkelyje: priežiūros programos, kuriose regresija neparalizuoja formos, o traukinį — kažkur bėgyje vedančiame į nieką, po lietumi.
+Septyneri metai geležinkelyje: techninės priežiūros programos, kuriose regresija įšaldo ne formą, o traukinio sąstatą – kažkur ant bėgių, vedančių į tuštumą, po lietumi.
 
-PHP, Laravel, Vue, PostgreSQL. Testus rašau prieš jiems tikėdamas. Dokumentuoju kodo melagystes ir tiesas, išgraviruotas silicyje.
+PHP, Laravel, Vue, PostgreSQL. Testus rašau anksčiau, nei jais patikiu. Dokumentuoju kodo melą taip pat kruopščiai, kaip ir silicyje išgraviruotas tiesas.
 
-Dirbu pilkoje zonoje, kur signalas nuo triukšmo nebesiskiria. Klaidos pėdsakas, kuris atskleidžia chaosą. Žalia testų seka, kuri jį šventina. Bio/mašinų sąsajos, sulaužytos. Darbas — mažiau apie kodo pakartojimu, o daugiau apie sprendimą, kuris iš šių signalų meluoja.
+Dirbu pilkojoje zonoje, ten, kur signalo nebeatskirsi nuo triukšmo. Klaidos pėdsakas, atskleidžiantis chaosą. Žalias testų rinkinys, jį pašventinantis. Išklerusios bio/mašinų sąsajos. Šis amatas – ne tiek spjaudyti kodą, kiek nuspręsti, kuris iš šių signalų meluoja.
 
-Likusį laiką stebiu, kaip smulki garuojanti lietus formuoja šokančius halus ant neonų, apšviečiančių civilizacijos nervų centrus, pagamintus iš meta-informacijos.',
-        'lv' => 'Tech Lead. Piecpadsmit gadi lietu veidošanā, kurām jāturēsies naktī, kad biroji ir tukši un tikai mašīnu dvēsele sargā organismu miegu.
+Likusį laiką žiūriu, kaip dulksna piešia šokančias aureoles aplink neonus, kurie apšviečia iš metainformacijos sulipdytos civilizacijos nervinius centrus.',
+        'lv' => 'Tech Lead. Piecpadsmit gadi, būvējot lietas, kurām jānotur nakts, kad biroji ir tukši un vienīgi mašīnu dvēsele nomodā sargā organisko miegu.
 
-Septiņi gadi dzelzceļa nozarē: uzturēšanas lietotnes, kur regresija neiznīcina formu, bet vilcienu — kaut kur uz sliežu ceļa, kas veda uz neko, zem lietus.
+Septiņi gadi dzelzceļā: apkopes lietotnes, kur regresija apstādina nevis veidlapu, bet vilciena sastāvu — kaut kur uz sliedēm, kas ved tukšumā, lietū.
 
-PHP, Laravel, Vue, PostgreSQL. Es rakstu testus, pirms tiem ticu. Es dokumentēju koda meli tikpat, cik patiesības, kas iegrieztas silīcijā.
+PHP, Laravel, Vue, PostgreSQL. Testus rakstu, pirms tiem noticu. Dokumentēju koda melus tikpat rūpīgi kā silīcijā iegravētās patiesības.
 
-Es strādāju pelēkajā zonā, kur signāls vairs neatšķiras no traucējumiem. Kļūdas izsekošana, kas atklāj haosa. Zaļa testu sērija, kas to svētī. Salauztas bio/mašīnu interfeisi. Profesija ir mazāk par koda atskaņošanu un vairāk par lēmumu pieņemšanu — kurš no šiem signāliem melo.
+Strādāju pelēkajā zonā, kur signālu vairs nevar atšķirt no trokšņa. Kļūdas izsekojums, kas atklāj haosu. Zaļš testu komplekts, kas to iesvēta. Izčākstējušas bio/mašīnu saskarnes. Šis amats nav tik daudz par koda izspļaušanu, cik par izšķiršanos, kurš no šiem signāliem melo.
 
-Pārējā laikā es vērtmaņām skaitu, kā sīkā lietus aplis uz neoniem, kas izgaismo civilizācijas neirālgiskos centrus — civilizāciju, ko veido meta-informācija.',
-        'mt' => 'Tech Lead. Ħmistax-il sena biex nibnu affarijiet li għandhom jibqgħu miftuħa bil-lejl, meta l-uffiċċji huma vojta u biss l-anima tal-magni torqod fuq it-turuq tal-organiċi.
+Pārējā laikā vēroju, kā smalkais lietus veido dejojošus oreolus ap neoniem, kas izgaismo no metainformācijas austas civilizācijas nervu centrus.',
+        'mt' => 'Tech Lead. Ħmistax-il sena nibni affarijiet li jridu jżommu matul il-lejl, meta l-uffiċċji jkunu vojta u r-ruħ tal-magni biss tibqa\' tagħsses fuq l-irqad tal-organiċi.
 
-Seba\' snin ferrovjarji: applikazzjonijiet ta\' manutenzjoni fejn regressjoni ma twaqqfu formular, imma train — x\'imkien fuq triq li twassalx la nħadd iaf, taħt il-mija.
+Seba\' snin fil-ferroviji: applikazzjonijiet tal-manutenzjoni fejn rigressjoni ma twaqqafx formola, iżda ferrovija sħiħa — x\'imkien fuq binarju li jwassal għax-xejn, taħt ix-xita.
 
-PHP, Laravel, Vue, PostgreSQL. Nikteb it-tests qabel nemmnu fihom. Niddokumenta l-kliem tal-kodiċi kemm il-verità gravata fis-silikon.
+PHP, Laravel, Vue, PostgreSQL. Nikteb it-testijiet qabel ma nemmen fihom. Niddokumenta l-gideb tal-kodiċi daqs il-veritajiet minquxa fis-silikon.
 
-Ix-xogħol tiegħi huwa fil-zona griża, fejn is-sinjal ma jistgħux jinqasam mill-ħoss. Traċċa ta\' żball li tirrevela l-kaos. Sett ta\' tests aħdar li l-isantifika. Interfaces bio/magħna miksira. Il-mestier konsisti anqas fuq iċ-ċiklu tal-kodiċi u aktar fuq id-deċiżjoni liema minn dawn is-sinjali tkellem kliem ta\' ħażin.
+Naħdem fiż-żona l-griża, fejn is-sinjal ma jibqax jingħaraf mill-istorbju. Traċċa ta\' żball li tikxef il-kaos. Sett ta\' testijiet aħdar li jqaddsu. Interfaċċji bijo/magni jitfarrku. Il-mestier inqas huwa li tobżoq il-kodiċi u aktar li tiddeċiedi liema minn dawn is-sinjali qed jigdeb.
 
-Baqa\' tal-ħin, nħares ikkif il-mija tifforma halot jitkellmu fuq in-neon li jħabbat is-suwieq nevraljċi ta\' ċiviltà magħmula minn meta-informazzjonijiet.',
-        'nl' => 'Tech Lead. Vijftien jaar dingen bouwen die \'s nachts overeind moeten blijven, wanneer de kantoren leeg zijn en alleen de ziel van de machines waakt over de slaap van organismen.
+Il-bqija tal-ħin, inħares lejn ir-rxiex jifforma ċrieki ta\' dawl jiżfnu fuq in-neon li jdawwal iċ-ċentri nervużi ta\' ċiviltà magħmula mill-meta-informazzjoni.',
+        'nl' => 'Tech Lead. Vijftien jaar lang dingen gebouwd die ’s nachts overeind moeten blijven, als de kantoren leeg zijn en alleen de ziel van de machines nog waakt over de slaap van de organischen.
 
-Zeven jaar spoorwegen: onderhoudstoepassingen waar een regressie geen formulier immobiliseert, maar een trein — ergens op een spoor dat naar het niets leidt, in de regen.
+Zeven jaar op het spoor: onderhoudsapplicaties waar een regressie geen formulier stillegt, maar een treinstel — ergens op een spoor dat naar het niets leidt, in de regen.
 
-PHP, Laravel, Vue, PostgreSQL. Ik schrijf tests voordat ik erin geloof. Ik documenteer de leugens van code net zoveel als de waarheden gegraveerd in silicium.
+PHP, Laravel, Vue, PostgreSQL. Ik schrijf de tests voordat ik erin geloof. Ik documenteer de leugens van de code net zo goed als de waarheden die in het silicium gegrift staan.
 
-Ik werk in de grijze zone, waar het signaal niet meer te onderscheiden is van ruis. Een stacktrace die chaos onthult. Een reeks groene tests die het heiligt. Bio-/machine-interfaces die uit elkaar vallen. Het beroep bestaat er minder uit code uit te braken dan te beslissen welk van deze signalen liegt.
+Ik werk in de grijze zone, daar waar het signaal niet meer van de ruis te onderscheiden is. Een foutspoor dat de chaos blootlegt. Een groene testsuite die hem heiligt. Bio/machine-interfaces die naar de knoppen gaan. Het vak draait minder om code uitspugen dan om beslissen welk van die signalen liegt.
 
-De rest van de tijd kijk ik hoe motregen dansende halo\'s vormt op de neonlampen die de zenuwcentra van een beschaving gemaakt van meta-informatie verlichten.',
-        'pl' => 'Tech Lead. Piętnaście lat budowania rzeczy, które muszą działać w nocy, gdy biura są puste i tylko dusza maszyn czuwa nad snem organizmów.
+De rest van de tijd kijk ik hoe de motregen dansende halo’s vormt rond de neonlichten die de zenuwcentra verlichten van een beschaving gebouwd op meta-informatie.',
+        'pl' => 'Tech Lead. Piętnaście lat budowania rzeczy, które muszą przetrwać noc, kiedy biura pustoszeją, a nad snem organików czuwa już tylko dusza maszyn.
 
-siedem lat w branży kolejowej: aplikacje do konserwacji, gdzie regresja nie immobilizuje formularza, ale skład — gdzieś na torze wiodącym w nicość, pod deszczem.
+Siedem lat na kolei: aplikacje do utrzymania taboru, w których regresja nie zawiesza formularza, tylko unieruchamia skład — gdzieś na torze wiodącym w nicość, w deszczu.
 
-PHP, Laravel, Vue, PostgreSQL. Piszę testy zanim w nich uwierzę. Dokumentuję kłamstwa kodu równie ostrożnie co prawdy wyryte w krzemie.
+PHP, Laravel, Vue, PostgreSQL. Piszę testy, zanim w nie uwierzę. Dokumentuję kłamstwa kodu na równi z prawdami wyrytymi w krzemie.
 
-Pracuję w szarej strefie, tam gdzie sygnał nie różni się już od szumu. Ślad błędu, który odkrywa chaos. Zielona seria testów, która go uświęca. Interfejsy bio/maszynowe w ruinie. Zawód to nie tyle wypluwanie kodu, ile decydowanie, który z tych sygnałów kłamie.
+Pracuję w szarej strefie, tam gdzie sygnału nie da się już odróżnić od szumu. Ślad błędu, który obnaża chaos. Zielony zestaw testów, który go uświęca. Interfejsy bio/maszyna w rozsypce. Ten fach polega nie tyle na wypluwaniu kodu, ile na rozstrzyganiu, który z tych sygnałów kłamie.
 
-Resztę czasu patrzę, jak mżawka tworzy tańczące aureole na neonach oświetlających centrum nerwowe cywilizacji zrobionej z meta-informacji.',
-        'pt' => 'Tech Lead. Quinze anos construindo coisas que precisam funcionar à noite, quando os escritórios estão vazios e apenas a alma das máquinas vela pelo sono dos organismos.
+W pozostałym czasie patrzę, jak mżawka tka roztańczone aureole wokół neonów, które oświetlają węzły nerwowe cywilizacji utkanej z metainformacji.',
+        'pt' => 'Tech Lead. Quinze anos a construir coisas que têm de aguentar a noite, quando os escritórios estão vazios e só a alma das máquinas vela pelo sono dos orgânicos.
 
-Sete anos de ferrovia: aplicações de manutenção onde uma regressão não imobiliza um formulário, mas um trem — em algum lugar numa via que leva ao nada, sob a chuva.
+Sete anos de ferrovia: aplicações de manutenção onde uma regressão não imobiliza um formulário, mas uma composição — algures numa via que conduz ao nada, debaixo de chuva.
 
 PHP, Laravel, Vue, PostgreSQL. Escrevo os testes antes de acreditar neles. Documento as mentiras do código tanto quanto as verdades gravadas no silício.
 
-Trabalhho na zona cinzenta, onde o sinal não se distingue mais do ruído. Um rastreamento de erro que revela o caos. Uma suite de testes verde que o santifica. Interfaces bio/máquinas desajustadas. O trabalho consiste menos em regurgitar código do que em decidir qual destes sinais mente.
+Trabalho na zona cinzenta, onde o sinal já não se distingue do ruído. Um rasto de erro que revela o caos. Uma bateria de testes verde que o santifica. Interfaces bio/máquina em pantanas. O ofício consiste menos em cuspir código do que em decidir qual destes sinais mente.
 
-No resto do tempo, observo a garoa formar halos dançantes sobre os néons que iluminam os centros nervosos de uma civilização feita de meta-informações.',
-        'ro' => 'Tech Lead. Cincisprezece ani în a construi lucruri care trebuie să funcționeze noaptea, când birourile sunt goale și doar sufletul mașinilor veghează asupra somnului organicelor.
+No resto do tempo, fico a ver a morrinha desenhar halos dançantes nos néons que iluminam os centros nevrálgicos de uma civilização feita de meta-informação.',
+        'ro' => 'Tech Lead. Cincisprezece ani construind lucruri care trebuie să reziste noaptea, când birourile sunt goale și doar sufletul mașinilor mai veghează somnul organicilor.
 
-șapte ani în feroviar: aplicații de mentenanță unde o regresie nu imobilizează o formă, ci un tren — undeva pe o cale către neant, sub ploaie.
+Șapte ani în feroviar: aplicații de mentenanță în care o regresie nu blochează un formular, ci o garnitură întreagă — undeva, pe o linie care duce în neant, în ploaie.
 
-PHP, Laravel, Vue, PostgreSQL. Scriu testele înainte să cred în ele. Documenta̦i minciuna codului la fel de mult ca și adevărurile gravate în siliciu.
+PHP, Laravel, Vue, PostgreSQL. Scriu testele înainte să cred în ele. Documentez minciunile codului la fel de atent ca adevărurile gravate în siliciu.
 
-Lucrez în zona gri, acolo unde semnalul nu se mai distinge de zgomot. O urmă de eroare care dezvăluie haosul. O serie de teste verde care o sanctifică. Interfețe bio/mașini în dezordine. Meseria constă mai puțin în a regurgita cod decât în a decide care dintre aceste semnale minte.
+Lucrez în zona gri, acolo unde semnalul nu se mai deosebește de zgomot. O urmă de eroare care dă la iveală haosul. O suită de teste verde care îl sfințește. Interfețe bio/mașină care o iau razna. Meseria înseamnă mai puțin să scuipi cod și mai mult să hotărăști care dintre aceste semnale minte.
 
-Restul timpului, privesc ploaia ușoară formând halouri dansante pe neonuri care iluminează nodurile nervoase ale unei civilizații făcute din meta-informații.',
-        'sk' => 'Tech Lead. Pätnásť rokov budovania vecí, ktoré musia vydržať v noci, keď sú kancelárie prázdne a len duša strojov bdí nad spánkom organizmov.
+În rest, privesc burnița cum țese halouri dansânde în jurul neoanelor care luminează centrele nevralgice ale unei civilizații clădite din metainformații.',
+        'sk' => 'Tech Lead. Pätnásť rokov staviam veci, ktoré musia vydržať v noci, keď sú kancelárie prázdne a nad spánkom organických bdie už len duša strojov.
 
-Sedem rokov v železničnom priemysle: aplikácie údržby, kde regresia neimuobilizuje formulár, ale vlak — niekde na trati vedúcej do nicoty, v daždi.
+Sedem rokov na železnici: aplikácie na údržbu, kde regresia nezasekne formulár, ale celú súpravu — niekde na koľaji, ktorá vedie do ničoty, v daždi.
 
-PHP, Laravel, Vue, PostgreSQL. Píšem testy predtým, ako ich verím. Dokumentujem klamstvá kódu rovnako ako pravdy vyrytie v kremíku.
+PHP, Laravel, Vue, PostgreSQL. Testy píšem skôr, než im uverím. Dokumentujem lži kódu rovnako ako pravdy vryté do kremíka.
 
-Pracujem v sivej zóne, kde sa signál už neodlišuje od šumu. Stopa chyby, ktorá odhaľuje chaos. Rada zelených testov, ktorá ho posväcuje. Bio-strojové rozhrania v rozpade. Povolanie spočíva menej v opakovom vyrážaní kódu ako v rozhodnutí, ktorý z týchto signálov klame.
+Pracujem v šedej zóne, tam, kde sa signál už nedá odlíšiť od šumu. Výpis chyby, ktorý odhaľuje chaos. Zelená sada testov, ktorá ho posväcuje. Rozhegané rozhrania bio/stroj. V tomto remesle nejde ani tak o to vypľúvať kód, ako rozhodnúť, ktorý z tých signálov klame.
 
-Zvyšok času pozorujem, ako mrholienka tvorí tancujúce halá na neónoch osvetľujúcich nervové centrum civilizácie vytvorenej z meta-informácií.',
-        'sl' => 'Tech Lead. Petnajst let gradnje stvari, ki morajo vzdržati ponoči, ko so pisarne prazne in samo duša strojev bdela nad spanjem organizmov.
+Zvyšok času sledujem, ako mrholenie kreslí tancujúce svätožiare okolo neónov, ktoré osvetľujú nervové centrá civilizácie utkanej z metainformácií.',
+        'sl' => 'Tech Lead. Petnajst let gradim stvari, ki morajo zdržati ponoči, ko so pisarne prazne in nad spancem organskih bdi le duša strojev.
 
-Sedem let železnice: aplikacije za vzdrževanje, kjer regresija ne zaustavlja obrazca, temveč композицијо — nekje na progi, ki vodi v nič, pod dežjem.
+Sedem let na železnici: aplikacije za vzdrževanje, kjer regresija ne ohromi obrazca, temveč vlakovno garnituro — nekje na tiru, ki vodi v nič, v dežju.
 
-PHP, Laravel, Vue, PostgreSQL. Teste napišem pred tem, da jim verjamem. Dokumentiram laži kode prav toliko kot resnice, vgravurane v silicij.
+PHP, Laravel, Vue, PostgreSQL. Teste napišem, preden vanje verjamem. Dokumentiram laži kode prav tako kot resnice, vklesane v silicij.
 
-Delam v sivi coni, kjer se signal ne loči več od šuma. Sled napake, ki razkrije kaos. Vrsta zelenih testov, ki ga posveti. Vmesniki bio/strojev, ki se kvarijo. Poklic sestoji manj iz ponovnega izpisovanja kode kot iz odločanja, kateri od teh signalov laže.
+Delam v sivi coni, tam, kjer se signal ne loči več od šuma. Sled napake, ki razgali kaos. Zelen nabor testov, ki ga posveti. Bio-strojni vmesniki, ki pokajo po šivih. Pri tem poslu ne gre toliko za to, da pljuvaš kodo, kot za to, da presodiš, kateri od teh signalov laže.
 
-Ostali čas gledam roso, kako tvori plesne halose na neonih, ki osvetljujejo živčne centre civilizacije, narejene iz meta-informacij.',
-        'sv' => 'Tech Lead. Femton år med att bygga saker som måste fungera på natten, när kontoren är tomma och bara maskinernas själ vakar över de organiska väsendenas sömn.
+Preostali čas gledam, kako rosenje riše plešoče kolobarje okoli neonov, ki osvetljujejo živčna središča civilizacije, stkane iz metainformacij.',
+        'sv' => 'Tech Lead. Femton år av att bygga saker som måste hålla genom natten, när kontoren står tomma och bara maskinernas själ vakar över de organiskas sömn.
 
-Sju år inom järnväg: underhållsapplikationer där en regression inte blockerar ett formulär, utan ett tåg — någonstans på ett spår som leder till ingenting, under regnet.
+Sju år inom järnvägen: underhållsapplikationer där en regression inte låser ett formulär, utan ett tågsätt – någonstans på ett spår som leder ut i intet, i regnet.
 
-PHP, Laravel, Vue, PostgreSQL. Jag skriver testerna innan jag tror på dem. Jag dokumenterar kodens lögnader lika mycket som sanningarna graverade i kisel.
+PHP, Laravel, Vue, PostgreSQL. Jag skriver testerna innan jag tror på det. Jag dokumenterar kodens lögner lika noga som sanningarna etsade i kislet.
 
-Jag arbetar i gråzonen, där signalen inte längre skiljer sig från bruset. Ett felspår som avslöjar kaoset. En grön testsvit som helgar det. Bio/maskin-gränssnitt i dåligt skick. Jobbet består mindre i att upprepa kod än att avgöra vilket av dessa signaler som ljuger.
+Jag arbetar i gråzonen, där signalen inte längre går att skilja från bruset. Ett felspår som blottar kaoset. En grön testsvit som helgar det. Bio/maskin-gränssnitt på dekis. Yrket handlar mindre om att spotta ur sig kod än om att avgöra vilken av signalerna som ljuger.
 
-Resten av tiden betraktar jag hur duggregnet bildar dansande halor runt neonljusen som belyser hjärncentra för en civilisation gjord av metainformation.',
+Resten av tiden ser jag duggregnet forma dansande glorior kring neonljusen som lyser upp nervcentrumen i en civilisation byggd av metainformation.',
     ],
     'meta_description' => [
         'bg' => 'Laurent Bernard-Cardascia — Tech Lead. Архитектура, PHP/Laravel, Vue. Работя там, където сигналът вече не се различава от шума.',
-        'cs' => 'Laurent Bernard-Cardascia — Tech Lead. Architektura, PHP/Laravel, Vue. Pracuji tam, kde se signál již neliší od šumu.',
-        'da' => 'Laurent Bernard-Cardascia — Tech Lead. Arkitektur, PHP/Laravel, Vue. Jeg arbejder der, hvor signalet ikke længere skelnes fra støjen.',
-        'de' => 'Laurent Bernard-Cardascia — Tech Lead. Architektur, PHP/Laravel, Vue. Ich arbeite dort, wo sich das Signal nicht mehr vom Rauschen unterscheidet.',
-        'el' => 'Laurent Bernard-Cardascia — Tech Lead. Αρχιτεκτονική, PHP/Laravel, Vue. Δουλεύω εκεί όπου το σήμα δεν ξεχωρίζεται πλέον από τον θόρυβο.',
-        'en' => 'Laurent Bernard-Cardascia — Tech Lead. Architecture, PHP/Laravel, Vue. I work where signal can no longer be distinguished from noise.',
-        'es' => 'Laurent Bernard-Cardascia — Tech Lead. Arquitectura, PHP/Laravel, Vue. Trabajo donde la señal ya no se distingue del ruido.',
-        'et' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitektuur, PHP/Laravel, Vue. Töötан seal, kus signaali ei saa mürust eristada.',
-        'fi' => 'Laurent Bernard-Cardascia — Tech Lead. Arkkitehtuuri, PHP/Laravel, Vue. Työskentelen siellä, jossa signaalia ei enää erota kohinasta.',
+        'cs' => 'Laurent Bernard-Cardascia – Tech Lead. Architektura, PHP/Laravel, Vue. Pracuji tam, kde už signál nejde odlišit od šumu.',
+        'da' => 'Laurent Bernard-Cardascia — Tech Lead. Arkitektur, PHP/Laravel, Vue. Jeg arbejder der, hvor signalet ikke længere kan skelnes fra støjen.',
+        'de' => 'Laurent Bernard-Cardascia – Tech Lead. Architektur, PHP/Laravel, Vue. Ich arbeite dort, wo sich das Signal nicht mehr vom Rauschen unterscheiden lässt.',
+        'el' => 'Laurent Bernard-Cardascia — Tech Lead. Αρχιτεκτονική, PHP/Laravel, Vue. Δουλεύω εκεί όπου το σήμα δεν ξεχωρίζει πια από τον θόρυβο.',
+        'en' => 'Laurent Bernard-Cardascia — Tech Lead. Architecture, PHP/Laravel, Vue. I work where signal can no longer be told apart from noise.',
+        'es' => 'Laurent Bernard-Cardascia — Tech Lead. Arquitectura, PHP/Laravel, Vue. Trabajo allí donde la señal ya no se distingue del ruido.',
+        'et' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitektuur, PHP/Laravel, Vue. Töötan seal, kus signaali ei saa enam mürast eristada.',
+        'fi' => 'Laurent Bernard-Cardascia — Tech Lead. Arkkitehtuuri, PHP/Laravel, Vue. Työskentelen siellä, missä signaalia ei enää erota kohinasta.',
         'fr' => 'Laurent Bernard-Cardascia — Tech Lead. Architecture, PHP/Laravel, Vue. Je travaille là où le signal ne se distingue plus du bruit.',
-        'ga' => 'Laurent Bernard-Cardascia — Tech Lead. Ailtireacht, PHP/Laravel, Vue. Oibrím áit ar stop an comhartha a bheith ar leithéid ar an torann.',
-        'hr' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitektura, PHP/Laravel, Vue. Radim tamo gdje se signal više ne razlikuje od šuma.',
-        'hu' => 'Laurent Bernard-Cardascia — Tech Lead. Architektúra, PHP/Laravel, Vue. Ott dolgozom, ahol a jel már nem különbözik a zajától.',
-        'it' => 'Laurent Bernard-Cardascia — Tech Lead. Architettura, PHP/Laravel, Vue. Lavoro dove il segnale non si distingue più dal rumore.',
-        'lt' => 'Laurent Bernard-Cardascia — Tech Lead. Architektūra, PHP/Laravel, Vue. Dirbu vietoje, kur signalas nuo triukšmo nebesiskiria.',
-        'lv' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitektūra, PHP/Laravel, Vue. Es strādāju vietā, kur signāls vairs neatšķiras no traucējumiem.',
-        'mt' => 'Laurent Bernard-Cardascia — Tech Lead. Arkitettura, PHP/Laravel, Vue. Jien nħaddem fejn is-sinjal ma jistgħux jinqasam mill-ħoss.',
-        'nl' => 'Laurent Bernard-Cardascia — Tech Lead. Architectuur, PHP/Laravel, Vue. Ik werk daar waar het signaal niet meer te onderscheiden is van ruis.',
-        'pl' => 'Laurent Bernard-Cardascia — Tech Lead. Architektura, PHP/Laravel, Vue. Pracuję tam, gdzie sygnał nie różni się już od szumu.',
-        'pt' => 'Laurent Bernard-Cardascia — Tech Lead. Arquitetura, PHP/Laravel, Vue. Trabalho onde o sinal não se distingue mais do ruído.',
-        'ro' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitectură, PHP/Laravel, Vue. Lucrez acolo unde semnalul nu se mai distinge de zgomot.',
-        'sk' => 'Laurent Bernard-Cardascia — Tech Lead. Architektúra, PHP/Laravel, Vue. Pracujem tam, kde sa signál už neodlišuje od šumu.',
+        'ga' => 'Laurent Bernard-Cardascia — Tech Lead. Ailtireacht, PHP/Laravel, Vue. Oibrím san áit nach féidir an comhartha a aithint thar an torann a thuilleadh.',
+        'hr' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitektura, PHP/Laravel, Vue. Radim ondje gdje se signal više ne razlikuje od šuma.',
+        'hu' => 'Laurent Bernard-Cardascia — Tech Lead. Architektúra, PHP/Laravel, Vue. Ott dolgozom, ahol a jel már nem különböztethető meg a zajtól.',
+        'it' => 'Laurent Bernard-Cardascia — Tech Lead. Architettura, PHP/Laravel, Vue. Lavoro là dove il segnale non si distingue più dal rumore.',
+        'lt' => 'Laurent Bernard-Cardascia – Tech Lead. Architektūra, PHP/Laravel, Vue. Dirbu ten, kur signalo nebeatskirsi nuo triukšmo.',
+        'lv' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitektūra, PHP/Laravel, Vue. Strādāju tur, kur signālu vairs nevar atšķirt no trokšņa.',
+        'mt' => 'Laurent Bernard-Cardascia — Tech Lead. Arkitettura, PHP/Laravel, Vue. Naħdem fejn is-sinjal ma jibqax jingħaraf mill-istorbju.',
+        'nl' => 'Laurent Bernard-Cardascia — Tech Lead. Architectuur, PHP/Laravel, Vue. Ik werk daar waar het signaal niet meer van de ruis te onderscheiden is.',
+        'pl' => 'Laurent Bernard-Cardascia — Tech Lead. Architektura, PHP/Laravel, Vue. Pracuję tam, gdzie sygnału nie da się już odróżnić od szumu.',
+        'pt' => 'Laurent Bernard-Cardascia — Tech Lead. Arquitetura, PHP/Laravel, Vue. Trabalho onde o sinal já não se distingue do ruído.',
+        'ro' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitectură, PHP/Laravel, Vue. Lucrez acolo unde semnalul nu se mai deosebește de zgomot.',
+        'sk' => 'Laurent Bernard-Cardascia — Tech Lead. Architektúra, PHP/Laravel, Vue. Pracujem tam, kde sa signál už nedá odlíšiť od šumu.',
         'sl' => 'Laurent Bernard-Cardascia — Tech Lead. Arhitektura, PHP/Laravel, Vue. Delam tam, kjer se signal ne loči več od šuma.',
-        'sv' => 'Laurent Bernard-Cardascia — Tech Lead. Arkitektur, PHP/Laravel, Vue. Jag arbetar där signalen inte längre skiljer sig från bruset.',
+        'sv' => 'Laurent Bernard-Cardascia – Tech Lead. Arkitektur, PHP/Laravel, Vue. Jag arbetar där signalen inte längre går att skilja från bruset.',
     ],
     'skills' => [
-        'bg' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architecture & Quality","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Сигурност","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Tests de pénétration","CORS"]}]',
-        'cs' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architektura & Kvalita","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Bezpečnost","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetrační testy","CORS"]}]',
-        'da' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arkitektur & Kvalitet","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastruktur","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sikkerhed","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetrationstests","CORS"]}]',
-        'de' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architecture & Qualität","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sicherheit","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetrationstests","CORS"]}]',
-        'el' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architecture & Qualité","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Ασφάλεια","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Δοκιμές διείσδυσης","CORS"]}]',
-        'en' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistence","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architecture & Quality","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Security","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetration testing","CORS"]}]',
-        'es' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Datos y Persistencia","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arquitectura y Calidad","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps e Infraestructura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Seguridad","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Tests de penetración","CORS"]}]',
-        'et' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standardid","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Andmed ja säilitamine","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Päringute optimeerimine","Skeemi kujundus"]},{"icon":"△","name":"Arhitektuur ja kvaliteet","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI kvaliteediväärad","Koodi ülevaatus"]},{"icon":"⚙","name":"DevOps ja infrastruktuur","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Turvalisus","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Määra piiramine","Penetratsioonitestid","CORS"]}]',
-        'fi' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arkkitehtuuri & Laatu","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastruktuuri","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Turvallisuus","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetraatiotestit","CORS"]}]',
+        'bg' => '[{"icon":"⬡","name":"Бекенд","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR стандарти","Composer"]},{"icon":"◈","name":"Фронтенд","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Данни и персистентност","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Оптимизация на заявки","Проектиране на схеми"]},{"icon":"△","name":"Архитектура и качество","techs":["Чиста архитектура","SOLID","DDD","PHPStan ниво 8","PHPUnit / Vitest","TDD","Прагове за качество в CI","Преглед на кода"]},{"icon":"⚙","name":"DevOps и инфраструктура","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Сигурност","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Ограничаване на заявките","Тестове за проникване","CORS"]}]',
+        'cs' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","Standardy PSR","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data a persistence","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optimalizace dotazů","Návrh schémat"]},{"icon":"△","name":"Architektura a kvalita","techs":["Clean Architecture","SOLID","DDD","PHPStan úroveň 8","PHPUnit / Vitest","TDD","Kvalitativní brány v CI","Revize kódu"]},{"icon":"⚙","name":"DevOps a infrastruktura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Bezpečnost","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Omezování počtu požadavků","Penetrační testy","CORS"]}]',
+        'da' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST-API","PSR-standarder","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & persistens","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optimering af forespørgsler","Skemadesign"]},{"icon":"△","name":"Arkitektur & kvalitet","techs":["Clean Architecture","SOLID","DDD","PHPStan niveau 8","PHPUnit / Vitest","TDD","Kvalitetsporte i CI","Kodegennemgang"]},{"icon":"⚙","name":"DevOps & infrastruktur","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sikkerhed","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Begrænsning af forespørgselsrate","Penetrationstest","CORS"]}]',
+        'de' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST-APIs","PSR-Standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Daten & Persistenz","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Abfrageoptimierung","Schemaentwurf"]},{"icon":"△","name":"Architektur & Qualität","techs":["Clean Architecture","SOLID","DDD","PHPStan Level 8","PHPUnit / Vitest","TDD","Qualitätsschranken in der CI","Code-Reviews"]},{"icon":"⚙","name":"DevOps & Infrastruktur","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sicherheit","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Ratenbegrenzung","Penetrationstests","CORS"]}]',
+        'el' => '[{"icon":"⬡","name":"Πλευρά διακομιστή","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","Πρότυπα PSR","Composer"]},{"icon":"◈","name":"Πλευρά πελάτη","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Δεδομένα & Μόνιμη αποθήκευση","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Βελτιστοποίηση ερωτημάτων","Σχεδιασμός σχημάτων"]},{"icon":"△","name":"Αρχιτεκτονική & Ποιότητα","techs":["Clean Architecture","SOLID","DDD","PHPStan επίπεδο 8","PHPUnit / Vitest","TDD","Πύλες ποιότητας CI","Αναθεώρηση κώδικα"]},{"icon":"⚙","name":"DevOps & Υποδομή","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Ασφάλεια","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Περιορισμός ρυθμού αιτημάτων","Δοκιμές διείσδυσης","CORS"]}]',
+        'en' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistence","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimisation","Schema design"]},{"icon":"△","name":"Architecture & Quality","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Security","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetration testing","CORS"]}]',
+        'es' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","API REST","Estándares PSR","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Datos y persistencia","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optimización de consultas","Diseño de esquemas"]},{"icon":"△","name":"Arquitectura y calidad","techs":["Clean Architecture","SOLID","DDD","PHPStan nivel 8","PHPUnit / Vitest","TDD","Umbrales de calidad en CI","Revisión de código"]},{"icon":"⚙","name":"DevOps e infraestructura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Seguridad","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Limitación de peticiones","Pruebas de penetración","CORS"]}]',
+        'et' => '[{"icon":"⬡","name":"Serveripool","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST-liidesed","PSR-standardid","Composer"]},{"icon":"◈","name":"Kasutajaliides","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Andmed ja püsisalvestus","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Päringute optimeerimine","Andmeskeemide kavandamine"]},{"icon":"△","name":"Arhitektuur ja kvaliteet","techs":["Puhas arhitektuur","SOLID","DDD","PHPStan, tase 8","PHPUnit / Vitest","TDD","CI kvaliteediväravad","Koodiülevaatus"]},{"icon":"⚙","name":"DevOps ja taristu","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Turvalisus","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Päringute piiramine","Läbistustestimine","CORS"]}]',
+        'fi' => '[{"icon":"⬡","name":"Taustajärjestelmät","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST-rajapinnat","PSR-standardit","Composer"]},{"icon":"◈","name":"Käyttöliittymät","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data ja tallennus","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Kyselyjen optimointi","Skeemasuunnittelu"]},{"icon":"△","name":"Arkkitehtuuri ja laatu","techs":["Clean Architecture","SOLID","DDD","PHPStan taso 8","PHPUnit / Vitest","TDD","CI-laatuportit","Koodikatselmointi"]},{"icon":"⚙","name":"DevOps ja infrastruktuuri","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Tietoturva","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Pyyntöjen rajoitus","Tunkeutumistestaus","CORS"]}]',
         'fr' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architecture & Qualité","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sécurité","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Tests de pénétration","CORS"]}]',
-        'ga' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Sonraí & Seasmhachta","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Ailtireacht & Caighdeán","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Bonneagar","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Slándáil","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Tástáil dhraíochta","CORS"]}]',
-        'hr' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arhitektura & Kvaliteta","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastruktura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sigurnost","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Testovi penetracije","CORS"]}]',
-        'hu' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Adatok és Perzisztencia","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architektúra és Minőség","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps és Infrastruktúra","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Biztonság","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetrációs tesztek","CORS"]}]',
-        'it' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dati & Persistenza","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architettura & Qualità","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastruttura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sicurezza","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Test di penetrazione","CORS"]}]',
-        'lt' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Duomenys ir jų saugojimas","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architektūra ir kokybė","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps ir infrastruktūra","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Saugumas","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Tests de pénétration","CORS"]}]',
-        'lv' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dati un persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arhitektūra un kvalitāte","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps un infrastruktūra","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Drošība","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetrācijas testi","CORS"]}]',
-        'mt' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistenza","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arkitettura & Kwalità","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastruttura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sigurtà","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Tests ta\' penetrazzjoni","CORS"]}]',
-        'nl' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Gegevens & Persistentie","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architectuur & Kwaliteit","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructuur","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Beveiliging","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetratietests","CORS"]}]',
-        'pl' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architecture & Qualité","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Bezpieczeństwo","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Testy penetracyjne","CORS"]}]',
-        'pt' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dados & Persistência","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arquitetura & Qualidade","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infraestrutura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Segurança","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Testes de penetração","CORS"]}]',
-        'ro' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Date & Persistență","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arhitectură & Calitate","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructură","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Securitate","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Teste de penetrare","CORS"]}]',
-        'sk' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Architektúra & Kvalita","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infraštruktúra","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Bezpečnosť","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetračné testy","CORS"]}]',
-        'sl' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Podatki in trajnost","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optimizacija poizvedb","Oblikovanje sheme"]},{"icon":"△","name":"Arhitektura in kakovost","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Pregled koda"]},{"icon":"⚙","name":"DevOps in infrastruktura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Varnost","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Omejitev hitrosti","Testi penetracije","CORS"]}]',
-        'sv' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standards","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & Persistance","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query optimization","Schema design"]},{"icon":"△","name":"Arkitektur & Kvalitet","techs":["Clean Architecture","SOLID","DDD","PHPStan lvl 8","PHPUnit / Vitest","TDD","CI quality gates","Code review"]},{"icon":"⚙","name":"DevOps & Infrastructure","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Säkerhet","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Rate limiting","Penetrationstester","CORS"]}]',
+        'ga' => '[{"icon":"⬡","name":"Taobh an fhreastalaí","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","API REST","Caighdeáin PSR","Composer"]},{"icon":"◈","name":"Taobh an chliaint","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Sonraí & Buanstóráil","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optamú iarratas","Dearadh scéimre"]},{"icon":"△","name":"Ailtireacht & Cáilíocht","techs":["Ailtireacht Ghlan","SOLID","DDD","PHPStan leibhéal 8","PHPUnit / Vitest","TDD","Geataí cáilíochta CI","Athbhreithniú cóid"]},{"icon":"⚙","name":"DevOps & Bonneagar","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Slándáil","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Teorannú ráta","Tástálacha treáite","CORS"]}]',
+        'hr' => '[{"icon":"⬡","name":"Poslužiteljska strana","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standardi","Composer"]},{"icon":"◈","name":"Klijentska strana","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Podaci i pohrana","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optimizacija upita","Dizajn sheme"]},{"icon":"△","name":"Arhitektura i kvaliteta","techs":["Čista arhitektura","SOLID","DDD","PHPStan razina 8","PHPUnit / Vitest","TDD","CI kontrole kvalitete","Pregled koda"]},{"icon":"⚙","name":"DevOps i infrastruktura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sigurnost","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Ograničavanje broja zahtjeva","Penetracijsko testiranje","CORS"]}]',
+        'hu' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API-k","PSR-szabványok","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Adatok és perzisztencia","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Lekérdezés-optimalizálás","Sématervezés"]},{"icon":"△","name":"Architektúra és minőség","techs":["Tiszta architektúra","SOLID","DDD","PHPStan 8-as szint","PHPUnit / Vitest","TDD","CI minőségi kapuk","Kódátnézés"]},{"icon":"⚙","name":"DevOps és infrastruktúra","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Biztonság","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Kéréskorlátozás","Behatolásteszt","CORS"]}]',
+        'it' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","API REST","Standard PSR","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dati e persistenza","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Ottimizzazione delle query","Progettazione degli schemi"]},{"icon":"△","name":"Architettura e qualità","techs":["Clean Architecture","SOLID","DDD","PHPStan livello 8","PHPUnit / Vitest","TDD","Controlli di qualità in CI","Revisione del codice"]},{"icon":"⚙","name":"DevOps e infrastruttura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sicurezza","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Limitazione delle richieste","Test di penetrazione","CORS"]}]',
+        'lt' => '[{"icon":"⬡","name":"Serverio pusė","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standartai","Composer"]},{"icon":"◈","name":"Kliento pusė","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Duomenys ir jų saugojimas","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Užklausų optimizavimas","Schemų projektavimas"]},{"icon":"△","name":"Architektūra ir kokybė","techs":["Švarioji architektūra","SOLID","DDD","PHPStan 8 lygis","PHPUnit / Vitest","TDD","CI kokybės vartai","Kodo peržiūra"]},{"icon":"⚙","name":"DevOps ir infrastruktūra","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Saugumas","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Užklausų dažnio ribojimas","Įsiskverbimo testai","CORS"]}]',
+        'lv' => '[{"icon":"⬡","name":"Servera puse","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","PSR standarti","Composer"]},{"icon":"◈","name":"Klienta puse","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dati un noturība","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Vaicājumu optimizācija","Shēmu projektēšana"]},{"icon":"△","name":"Arhitektūra un kvalitāte","techs":["Tīrā arhitektūra","SOLID","DDD","PHPStan 8. līmenis","PHPUnit / Vitest","TDD","CI kvalitātes vārti","Koda pārskatīšana"]},{"icon":"⚙","name":"DevOps un infrastruktūra","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Drošība","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Pieprasījumu biežuma ierobežošana","Ielaušanās testi","CORS"]}]',
+        'mt' => '[{"icon":"⬡","name":"Naħa tas-server","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","API REST","Standards PSR","Composer"]},{"icon":"◈","name":"Naħa tal-utent","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dejta u Persistenza","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Ottimizzazzjoni tal-mistoqsijiet","Disinn tal-iskema"]},{"icon":"△","name":"Arkitettura u Kwalità","techs":["Clean Architecture","SOLID","DDD","PHPStan livell 8","PHPUnit / Vitest","TDD","Kontrolli tal-kwalità fis-CI","Reviżjoni tal-kodiċi"]},{"icon":"⚙","name":"DevOps u Infrastruttura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Sigurtà","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Limitazzjoni tar-rata","Testijiet tal-penetrazzjoni","CORS"]}]',
+        'nl' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST-API","PSR-standaarden","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & persistentie","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Query-optimalisatie","Schemaontwerp"]},{"icon":"△","name":"Architectuur & kwaliteit","techs":["Clean Architecture","SOLID","DDD","PHPStan niveau 8","PHPUnit / Vitest","TDD","CI-kwaliteitspoorten","Codereview"]},{"icon":"⚙","name":"DevOps & infrastructuur","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Beveiliging","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Aanvraagbegrenzing","Penetratietests","CORS"]}]',
+        'pl' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","Standardy PSR","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dane i persystencja","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optymalizacja zapytań","Projektowanie schematów"]},{"icon":"△","name":"Architektura i jakość","techs":["Clean Architecture","SOLID","DDD","PHPStan poziom 8","PHPUnit / Vitest","TDD","Bramki jakości w CI","Przegląd kodu"]},{"icon":"⚙","name":"DevOps i infrastruktura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Bezpieczeństwo","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Limitowanie żądań","Testy penetracyjne","CORS"]}]',
+        'pt' => '[{"icon":"⬡","name":"Back-end","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","API REST","Normas PSR","Composer"]},{"icon":"◈","name":"Front-end","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dados & Persistência","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Otimização de consultas","Desenho de esquemas"]},{"icon":"△","name":"Arquitetura & Qualidade","techs":["Clean Architecture","SOLID","DDD","PHPStan nível 8","PHPUnit / Vitest","TDD","Barreiras de qualidade em CI","Revisão de código"]},{"icon":"⚙","name":"DevOps & Infraestrutura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Segurança","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Limitação de pedidos","Testes de intrusão","CORS"]}]',
+        'ro' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","API REST","Standarde PSR","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Date și persistență","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optimizarea interogărilor","Proiectarea schemelor"]},{"icon":"△","name":"Arhitectură și calitate","techs":["Clean Architecture","SOLID","DDD","PHPStan nivelul 8","PHPUnit / Vitest","TDD","Porți de calitate în CI","Revizuirea codului"]},{"icon":"⚙","name":"DevOps și infrastructură","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Securitate","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Limitarea ratei cererilor","Teste de penetrare","CORS"]}]',
+        'sk' => '[{"icon":"⬡","name":"Backend","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","Štandardy PSR","Composer"]},{"icon":"◈","name":"Frontend","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Dáta a perzistencia","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optimalizácia dopytov","Návrh schém"]},{"icon":"△","name":"Architektúra a kvalita","techs":["Čistá architektúra","SOLID","DDD","PHPStan úroveň 8","PHPUnit / Vitest","TDD","Brány kvality v CI","Revízia kódu"]},{"icon":"⚙","name":"DevOps a infraštruktúra","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Bezpečnosť","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Obmedzovanie počtu požiadaviek","Penetračné testy","CORS"]}]',
+        'sl' => '[{"icon":"⬡","name":"Zaledje","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST API","Standardi PSR","Composer"]},{"icon":"◈","name":"Čelni del","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Podatki in trajna hramba","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Optimizacija poizvedb","Načrtovanje shem"]},{"icon":"△","name":"Arhitektura in kakovost","techs":["Čista arhitektura","SOLID","DDD","PHPStan, raven 8","PHPUnit / Vitest","TDD","Kakovostna vrata v CI","Pregled kode"]},{"icon":"⚙","name":"DevOps in infrastruktura","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Varnost","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Omejevanje pogostosti zahtev","Penetracijski testi","CORS"]}]',
+        'sv' => '[{"icon":"⬡","name":"Serversida","techs":["PHP 8.5","Laravel 13","Symfony","API Platform","FrankenPHP / Octane","REST-API","PSR-standarder","Composer"]},{"icon":"◈","name":"Klientsida","techs":["Vue 3.5","React / Next.js","TypeScript","Vite","Tailwind CSS","Playwright","jQuery"]},{"icon":"⊙","name":"Data & lagring","techs":["PostgreSQL","MySQL / MariaDB","Redis","Elasticsearch","ELK Stack","Frågeoptimering","Schemadesign"]},{"icon":"△","name":"Arkitektur & kvalitet","techs":["Clean Architecture","SOLID","DDD","PHPStan nivå 8","PHPUnit / Vitest","TDD","Kvalitetsgrindar i CI","Kodgranskning"]},{"icon":"⚙","name":"DevOps & infrastruktur","techs":["Docker","GitHub Actions","Jenkins","Nginx","Caddy","Sentry","Telescope","Xdebug"]},{"icon":"⊗","name":"Säkerhet","techs":["JWT","OAuth 2.0","OpenID Connect","TOTP / 2FA","Sanctum","OWASP Top 10","Anropsbegränsning","Penetrationstester","CORS"]}]',
     ],
 ];

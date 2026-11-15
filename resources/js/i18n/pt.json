@@ -1,12 +1,12 @@
 {
     "language_switcher": {
-        "aria_label": "Alterar idioma",
+        "aria_label": "Mudar de idioma",
         "filter_placeholder": "Filtrar…",
         "filter_aria_label": "Pesquisar um idioma",
         "no_results": "Nenhum resultado"
     },
     "theme_switcher": {
-        "aria_label": "Alterar tema",
+        "aria_label": "Mudar de tema",
         "current_aria": "Tema atual: {theme}",
         "themes": {
             "sprawl": {
@@ -29,7 +29,7 @@
         "off": "paradas"
     },
     "boot": {
-        "skip": "[ CLIQUE OU PRESSIONE UMA TECLA PARA PULAR ]"
+        "skip": "[ CLIQUE OU PRIMA UMA TECLA PARA IGNORAR ]"
     },
     "skills_editor": {
         "icon_aria": "Ícone da categoria {n}",
@@ -44,7 +44,7 @@
         "icons": {
             "hexagone_creux": "Hexágono vazio",
             "hexagone_plein": "Hexágono cheio",
-            "carre_pointe": "Quadrado pontudo",
+            "carre_pointe": "Quadrado com ponto",
             "cible": "Alvo",
             "double_cercle": "Duplo círculo",
             "cercle_croix": "Círculo-cruz",
@@ -56,20 +56,20 @@
             "triangle_plein": "Triângulo cheio",
             "triangle_creux": "Triângulo vazio",
             "delta": "Delta",
-            "etoile_4": "Estrela 4 pontas",
+            "etoile_4": "Estrela de 4 pontas",
             "etoile_creuse": "Estrela vazia",
             "etoile_apl": "Estrela APL",
-            "etoile_operateur": "Estrela operador",
+            "etoile_operateur": "Estrela de operador",
             "hexagone_apl": "Hexágono APL",
-            "anneau_benzene": "Anel benzeno",
-            "marqueur_terminal": "Marcador terminal",
-            "therefore": "Therefore",
+            "anneau_benzene": "Anel benzénico",
+            "marqueur_terminal": "Marcador de terminal",
+            "therefore": "Portanto",
             "reference": "Referência",
-            "trigramme": "Triagrama",
+            "trigramme": "Trigrama",
             "engrenage": "Engrenagem",
-            "eclair": "Raio",
+            "eclair": "Relâmpago",
             "chevron": "Chevron",
-            "double_chevron": "Duplo chevron"
+            "double_chevron": "Chevron duplo"
         }
     }
 }

@@ -2,7 +2,7 @@
     "language_switcher": {
         "aria_label": "Vaihda kieltä",
         "filter_placeholder": "Suodata…",
-        "filter_aria_label": "Etsi kieltä",
+        "filter_aria_label": "Hae kieltä",
         "no_results": "Ei tuloksia"
     },
     "theme_switcher": {
@@ -11,65 +11,65 @@
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
-                "hint": "Cyberpunk-pääte"
+                "hint": "Kyberpunk-pääte"
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Kupari & viktoriaaninen"
+                "hint": "Kupari ja viktoriaaninen"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Sade & neonit"
+                "hint": "Sade ja neonit"
             }
         }
     },
     "motion_toggle": {
         "label": "Animaatiot",
         "on": "päällä",
-        "off": "pois"
+        "off": "pois päältä"
     },
     "boot": {
         "skip": "[ NAPSAUTA TAI PAINA NÄPPÄINTÄ OHITTAAKSESI ]"
     },
     "skills_editor": {
-        "icon_aria": "Luokan {n} kuvake",
-        "name_aria": "Luokan {n} nimi",
-        "remove_category": "Poista luokka {n}",
-        "tech_aria": "Luokan {n} teknologia {t}",
+        "icon_aria": "Kategorian {n} kuvake",
+        "name_aria": "Kategorian {n} nimi",
+        "remove_category": "Poista kategoria {n}",
+        "tech_aria": "Kategorian {n} teknologia {t}",
         "remove_tech": "Poista teknologia {t}",
         "add_tech": "+ Lisää teknologia",
-        "add_category": "+ Lisää luokka",
-        "drag_category": "Vedä järjestääksesi luokan uudelleen",
-        "drag_tech": "Vedä järjestääksesi teknologian uudelleen",
+        "add_category": "+ Lisää kategoria",
+        "drag_category": "Vedä muuttaaksesi kategorian järjestystä",
+        "drag_tech": "Vedä muuttaaksesi teknologian järjestystä",
         "icons": {
-            "hexagone_creux": "Ontto kuusikulma",
-            "hexagone_plein": "Täysi kuusikulma",
-            "carre_pointe": "Terävä neliö",
-            "cible": "Kohde",
-            "double_cercle": "Kaksoiskehä",
-            "cercle_croix": "Kehä-risti",
-            "cercle_x": "Kehä-X",
-            "cercle_point": "Kehä-piste",
-            "losange_plein": "Täysi rombi",
-            "losange_creux": "Ontto rombi",
-            "petit_losange": "Pieni rombi",
-            "triangle_plein": "Täysi kolmio",
+            "hexagone_creux": "Ontto kuusikulmio",
+            "hexagone_plein": "Täytetty kuusikulmio",
+            "carre_pointe": "Pisteellinen neliö",
+            "cible": "Tähtäin",
+            "double_cercle": "Kaksoisympyrä",
+            "cercle_croix": "Ympyrä ristillä",
+            "cercle_x": "Ympyrä X:llä",
+            "cercle_point": "Ympyrä pisteellä",
+            "losange_plein": "Täytetty vinoneliö",
+            "losange_creux": "Ontto vinoneliö",
+            "petit_losange": "Pieni vinoneliö",
+            "triangle_plein": "Täytetty kolmio",
             "triangle_creux": "Ontto kolmio",
             "delta": "Delta",
             "etoile_4": "4-haarainen tähti",
             "etoile_creuse": "Ontto tähti",
             "etoile_apl": "APL-tähti",
             "etoile_operateur": "Operaattoritähti",
-            "hexagone_apl": "APL-kuusikulma",
+            "hexagone_apl": "APL-kuusikulmio",
             "anneau_benzene": "Bentseenirengas",
             "marqueur_terminal": "Päätemerkki",
-            "therefore": "Therefore",
+            "therefore": "Koska",
             "reference": "Viite",
             "trigramme": "Trigrammi",
             "engrenage": "Hammaspyörä",
             "eclair": "Salama",
-            "chevron": "Chevron",
-            "double_chevron": "Kaksois-chevron"
+            "chevron": "Kulmanuoli",
+            "double_chevron": "Kaksoiskulmanuoli"
         }
     }
 }

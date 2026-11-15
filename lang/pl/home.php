@@ -3,12 +3,12 @@
 return [
     'title' => 'Strona główna',
     'cta_projects' => 'Zobacz moje projekty',
-    'cta_cv' => 'Moje CV',
-    'about_heading' => 'O nas',
-    'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Inicjalizacja w toku',
-    'fallback_subtitle' => 'Trwa ładowanie zawartości',
-    'fallback_bio' => 'Zawartość tej strony nie została jeszcze zainicjowana.',
+    'cta_cv' => 'Mój CV',
+    'about_heading' => 'O mnie',
+    'skills_heading' => 'Stack i kompetencje',
+    'fallback_tagline' => 'Trwa inicjalizacja',
+    'fallback_subtitle' => 'Trwa ładowanie treści',
+    'fallback_bio' => 'Treść tej strony nie została jeszcze zainicjalizowana.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
@@ -27,7 +27,7 @@ return [
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
+            'tech' => 'Architektura',
             'category' => 'Design',
         ],
     ],

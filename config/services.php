@@ -35,9 +35,9 @@ return [
         ],
     ],
 
+    // The models the translation commands use are in config/i18n.php, `translation` (LUMN-33).
     'anthropic' => [
         'api_key' => env('ANTHROPIC_API_KEY'),
-        'model' => env('ANTHROPIC_MODEL', 'claude-haiku-4-5-20251001'),
     ],
 
 ];

@@ -2,13 +2,13 @@
 
 return [
     'title' => 'Startseite',
-    'cta_projects' => 'Meine Projekte anschauen',
+    'cta_projects' => 'Meine Projekte ansehen',
     'cta_cv' => 'Mein Lebenslauf',
     'about_heading' => 'Über mich',
     'skills_heading' => 'Stack & Expertise',
     'fallback_tagline' => 'Initialisierung läuft',
-    'fallback_subtitle' => 'Inhalte werden geladen',
-    'fallback_bio' => 'Der Inhalt dieser Seite wurde noch nicht initialisiert.',
+    'fallback_subtitle' => 'Inhalt wird geladen',
+    'fallback_bio' => 'Der Inhalt dieser Seite ist noch nicht initialisiert.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
@@ -23,7 +23,7 @@ return [
         '2' => [
             'icon' => '⬡',
             'tech' => 'PostgreSQL',
-            'category' => 'Daten',
+            'category' => 'Data',
         ],
         '3' => [
             'icon' => '◈',

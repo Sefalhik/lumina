@@ -1,14 +1,14 @@
 <?php
 
 return [
-    'title' => 'Hjem',
+    'title' => 'Forside',
     'cta_projects' => 'Se mine projekter',
     'cta_cv' => 'Mit CV',
-    'about_heading' => 'Om',
-    'skills_heading' => 'Stack & expertise',
+    'about_heading' => 'Om mig',
+    'skills_heading' => 'Stack & ekspertise',
     'fallback_tagline' => 'Initialisering i gang',
     'fallback_subtitle' => 'Indhold indlæses',
-    'fallback_bio' => 'Indholdet på denne side er ikke initialiseret endnu.',
+    'fallback_bio' => 'Indholdet på denne side er endnu ikke initialiseret.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
@@ -27,7 +27,7 @@ return [
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
+            'tech' => 'Arkitektur',
             'category' => 'Design',
         ],
     ],

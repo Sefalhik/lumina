@@ -1,12 +1,12 @@
 <?php
 
 return [
-    'home' => 'Startpagina',
+    'home' => 'Home',
     'cv' => 'CV',
     'projects' => 'Projecten',
     'blog' => 'Blog',
     'main_label' => 'Hoofdnavigatie',
     'menu' => 'Menu',
     'admin_panel' => 'Beheerpaneel',
-    'logout' => 'Afmelden',
+    'logout' => 'Uitloggen',
 ];

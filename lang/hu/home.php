@@ -1,14 +1,14 @@
 <?php
 
 return [
-    'title' => 'Kezdőlap',
-    'cta_projects' => 'Projektek megtekintése',
-    'cta_cv' => 'Az én CV-m',
-    'about_heading' => 'Névjegy',
-    'skills_heading' => 'Stack & szakértelem',
+    'title' => 'Főoldal',
+    'cta_projects' => 'Projektjeim megtekintése',
+    'cta_cv' => 'Önéletrajzom',
+    'about_heading' => 'Rólam',
+    'skills_heading' => 'Technológiai verem és szakértelem',
     'fallback_tagline' => 'Inicializálás folyamatban',
-    'fallback_subtitle' => 'Tartalom betöltése folyamatban',
-    'fallback_bio' => 'Ennek az oldalnak a tartalma még nem inicializálva.',
+    'fallback_subtitle' => 'A tartalom betöltése folyamatban van',
+    'fallback_bio' => 'Ennek az oldalnak a tartalma még nincs inicializálva.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
@@ -23,12 +23,12 @@ return [
         '2' => [
             'icon' => '⬡',
             'tech' => 'PostgreSQL',
-            'category' => 'Data',
+            'category' => 'Adatbázis',
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
-            'category' => 'Design',
+            'tech' => 'Architektúra',
+            'category' => 'Tervezés',
         ],
     ],
 ];
