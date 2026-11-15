@@ -7,8 +7,7 @@ namespace Tests\Unit\Services;
 use App\Services\ReleaseInService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
+use Tests\Concerns\UsesTemporaryDirectory;
 
 /**
  * A site as scripts/release.sh lays one out, in a temporary directory: releases/, and a `current`
@@ -18,6 +17,8 @@ use RecursiveIteratorIterator;
  */
 class ReleaseInServiceTest extends TestCase
 {
+    use UsesTemporaryDirectory;
+
     private const string A = '20261011-080000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
     private const string B = '20261011-090000-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -27,22 +28,9 @@ class ReleaseInServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->site = sys_get_temp_dir().'/lumina-site-'.uniqid();
+        $this->site = $this->temporaryDirectory();
         $this->release(self::A);
         $this->release(self::B);
-    }
-
-    protected function tearDown(): void
-    {
-        $entries = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->site, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-        foreach ($entries as $entry) {
-            $entry->isDir() && ! $entry->isLink() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
-        }
-        rmdir($this->site);
-        parent::tearDown();
     }
 
     public function test_a_release_in_service_serves_its_own_requests(): void

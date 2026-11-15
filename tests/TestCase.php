@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Http;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -16,5 +17,10 @@ abstract class TestCase extends BaseTestCase
         // A deprecation a test cannot avoid — raised by a package, not by this code — is let
         // through with withDeprecationHandling() in that test, and the reason in a comment.
         $this->withoutDeprecationHandling();
+
+        // No test reaches the network (docs/testing-conventions.md): a request no fake answers
+        // throws instead of leaving the machine. A test fakes what it calls; one that calls
+        // nothing needs nothing.
+        Http::preventStrayRequests();
     }
 }

@@ -28,7 +28,8 @@ return [
     'indexable_locales' => ['fr', 'en', 'de', 'it', 'nl'],
     /*
     | Models whose content `php artisan cms:translate` walks. A model listed
-    | here must use HasTranslations and declare a non-empty $translatable.
+    | here must implement TranslatableContent — HasTranslations fulfils it —
+    | and declare a non-empty $translatable. cms:translate refuses any other.
     |
     | The converse is the one that gets forgotten: a model that declares a
     | non-empty $translatable and is *not* listed here is never translated,

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\CmsTranslate;
 use App\Models\SiteIdentity;
 use App\Services\AnthropicTranslator;
 use App\Services\Http\SecurityHeaders;
@@ -10,7 +11,10 @@ use App\Services\Seo\LocalizedUrlService;
 use App\Services\SiteIdentityService;
 use App\Services\Smoke\Site\CertificateInspector;
 use App\Services\Smoke\Site\StreamCertificateInspector;
-use App\Services\TranslationCache;
+use App\Services\Translation\LangFiles;
+use App\Services\Translation\LangFileTranslation;
+use App\Services\Translation\TranslationPlanner;
+use App\Services\Translation\TranslationSources;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\Support\Facades\Vite;
@@ -40,8 +44,20 @@ class AppServiceProvider extends ServiceProvider
             (float) config('smoke.timeout', 10),
         ));
 
-        $this->app->bind(TranslationCache::class, fn () => new TranslationCache(
-            (string) config('i18n.cache_path', storage_path('app/i18n')),
+        // Two registries of translation sources (LUMN-110): the one for lang/ and the JS islands is
+        // committed beside the files it describes; the one for CMS content stays beside the local
+        // database it describes.
+        $this->app->bind(LangFileTranslation::class, fn ($app) => new LangFileTranslation(
+            $app->make(LangFiles::class),
+            $app->make(TranslationPlanner::class),
+            new TranslationSources(lang_path('.translation-sources.json')),
+            $app->make(AnthropicTranslator::class),
+            lang_path(),
+            (string) config('i18n.js_i18n_path', resource_path('js/i18n')),
+        ));
+
+        $this->app->when(CmsTranslate::class)->needs(TranslationSources::class)->give(fn () => new TranslationSources(
+            (string) config('i18n.cache_path', storage_path('app/i18n')).'/cms-sources.json',
         ));
 
         $this->app->bind(AnthropicTranslator::class, fn () => new AnthropicTranslator(

@@ -169,7 +169,9 @@ A covered line is one that ran, not one that is tested. Line coverage is blind t
   date computed from now when that date decides the result. Using the clock is fine; an outcome
   that changes with the day it runs is not. Anchor on absolute dates.
 - **Let a test reach the network.** Every HTTP call is faked explicitly, and
-  `Http::preventStrayRequests()` makes a forgotten one throw.
+  `Http::preventStrayRequests()`, called for the whole suite by `Tests\TestCase` since LUMN-110,
+  makes a forgotten one throw — `Http::fake()` limited to one URL used to let every other one
+  through. `StrayRequestsAreRefusedTest` fails the day that call is removed.
 
 ## PHP — database
 - Test database: **PostgreSQL**, dedicated `cardascia_it_test` database — **never** the `cardascia_it` schema
@@ -454,3 +456,16 @@ The smoke tests (LUMN-49) run against a healthy deployed site faked at the HTTP 
 `Http::preventStrayRequests()` makes any request the fake does not know throw: a probe hitting an
 unexpected URL fails loudly, and no test reaches the network. Details in
 [Smoke tests](smoke-tests.md#where-the-code-lives).
+
+## Shared test helpers — `tests/Concerns/`
+
+Three traits written for LUMN-110, each because the same code had been copied into several tests:
+
+| Trait | What it gives | Why it exists |
+|---|---|---|
+| `UsesTemporaryDirectory` | `temporaryDirectory()`: a directory of the test's own, removed with everything in it — symbolic links included — by a PHPUnit `#[After]` hook | The recursive removal was copied into four test classes. A hook rather than a Laravel callback, so a bare PHPUnit test case can use it too (`FrontControllerTest`, `ReleaseInServiceTest`) |
+| `FakesTranslationApi` | `fakeTranslations()`: the Anthropic API answering every request with `<LOCALE> <value>`, a locale able to fail on demand; `sentKeysByLocale()` to assert what was asked | Lets a test say *which* keys were sent, for *which* locale — the question the translation commands are about |
+| `AssertsLogs` | `spyOnLogs()`, then `assertLogged($level, $message, $context)`: the static message, the three mandatory keys of [Logging conventions](logging-conventions.md), and the values the test names | The same `withArgs()` closure was being written test by test |
+
+A process killed outright — a fatal error under a mutation pass — skips every hook: its temporary
+directory stays in `/tmp`, named `lumina_test_…`. Removing them by hand after a pass is safe.

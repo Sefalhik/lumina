@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Contracts\TranslatableContent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -23,7 +24,7 @@ use Spatie\Translatable\HasTranslations;
  * @property Carbon $started_at
  * @property Carbon|null $ended_at
  */
-class Experience extends Model
+class Experience extends Model implements TranslatableContent
 {
     use HasTranslations;
 

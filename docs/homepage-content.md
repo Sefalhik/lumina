@@ -26,8 +26,9 @@ Two traps this sequence exists to avoid:
 - **`setTranslations()` merges, it does not replace.** Seeding new French onto an existing row
   leaves the old translations of the *previous* text sitting beside it. `cms:translate` has to run
   before the export, or the file freezes new French next to stale locales.
-- **`i18n:translate --force` is currently required** to regenerate `lang/*/home.php`, because the
-  checksum defect filed as LUMN-25 makes the command answer `unchanged, skipping` forever.
+- **`cms:translate` needs its registry on this machine.** Without one it adopts the translations it
+  finds, stale ones included: run it once, before editing the French — see
+  [The trap of a machine without that registry](i18n.md#php-artisan-cmstranslate).
 
 ## `php artisan cms:export-seed`
 

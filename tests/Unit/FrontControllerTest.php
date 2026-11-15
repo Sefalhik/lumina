@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
+use Tests\Concerns\UsesTemporaryDirectory;
 
 /**
  * public/index.php itself, run for real in a site of two releases.
@@ -21,6 +20,8 @@ use RecursiveIteratorIterator;
  */
 class FrontControllerTest extends TestCase
 {
+    use UsesTemporaryDirectory;
+
     private const string A = '20261011-080000-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
     private const string B = '20261011-090000-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -30,22 +31,9 @@ class FrontControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->site = sys_get_temp_dir().'/lumina-front-'.uniqid();
+        $this->site = $this->temporaryDirectory();
         $this->release(self::A);
         $this->release(self::B);
-    }
-
-    protected function tearDown(): void
-    {
-        $entries = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($this->site, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::CHILD_FIRST,
-        );
-        foreach ($entries as $entry) {
-            $entry->isDir() && ! $entry->isLink() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
-        }
-        rmdir($this->site);
-        parent::tearDown();
     }
 
     public function test_the_release_in_service_answers_its_own_requests(): void

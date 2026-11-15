@@ -29,7 +29,7 @@
 - [ ] **Un test par critère d'acceptation** du ticket — pas un test qui les survole tous
 - [ ] **Chaque garde-fou prouvé par mutation** : le saboter fait tomber un test, et le bon
 - [ ] **Composants créés documentés** dans `CLAUDE.md` — vérifié par `grep`, pas de mémoire
-- [ ] **Locales régénérées** si une clé de traduction a changé, et le cache avec
+- [ ] **Locales régénérées** si une clé de traduction a changé, et le registre `lang/.translation-sources.json` avec
 - [ ] **`npm run check:full` : 8/8**
 - [ ] **Décisions écartées consignées** dans le code ou le ticket, avec leur motif
 
