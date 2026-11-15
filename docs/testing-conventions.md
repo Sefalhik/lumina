@@ -157,7 +157,45 @@ A covered line is one that ran, not one that is tested. Line coverage is blind t
 - **the seam between two files** — a file name, a cache key, a path written on both sides. Each
   side is at 100% and nothing checks they agree. A seam gets a test of its own;
 - **a tolerance that stops halfway.** What one layer accepts must hold all the way down. Assert the
-  effect the accepted value produces, not the status code.
+  effect the accepted value produces, not the status code;
+- **a condition taken one way only.** A ternary, a `??`, an `&&`: the line runs, one side never
+  does. Measure it with [Branches — Xdebug, on demand](#branches--xdebug-on-demand).
+
+### Branches — Xdebug, on demand
+
+PCOV, which the hook and CI use, measures lines only. Xdebug measures branches. Both are installed
+for PHP 8.5 CLI; **Xdebug stays `off`** (`xdebug.mode=off` in
+`/etc/php/8.5/mods-available/xdebug.ini`) and is switched on for one run:
+
+```bash
+XDEBUG_MODE=coverage php -d memory_limit=6G vendor/bin/phpunit --path-coverage \
+    --coverage-text=/tmp/branches.txt tests/Unit/Services/Translation tests/Feature/Console/I18nTranslateTest.php
+```
+
+- **Nothing else changes.** When PCOV is loaded, php-code-coverage takes it for line coverage and
+  Xdebug only for `--path-coverage`: `composer test:coverage`, the hook and CI are unaffected.
+- **`off`, because it was measured** on 2026-11-15: in `develop`, the mode the package installs,
+  the suite took 68% longer (49 s against 29 s); in `off`, no difference.
+- **Measure the files a ticket touches**, not the whole suite: about 100 s for 160 tests, and the
+  default 512 MB runs out.
+- **Read the Branches column.** Paths count every combination of branches and grow exponentially:
+  they are not a target.
+
+Two kinds of unseen branch are not paths through the code. They get the verdict "unreachable", and
+no test:
+
+- **`JMP_FRAMELESS`.** Since PHP 8.4, and so on our 8.5, a call to some built-in functions without a
+  leading `\` — `in_array`, `trim`, `dirname`, `implode`, `substr`, `str_replace`… — compiles to a
+  jump taken only if a function of the same name exists in the current namespace. None does. To
+  check a file:
+  `php -d opcache.enable_cli=1 -d opcache.opt_debug_level=0x10000 -r 'opcache_compile_file("app/….php");' 2>&1 | grep JMP_FRAMELESS`.
+- **A method passed as a first-class callable** (`$this->showTask(...)`) is recorded under another
+  name, and its own entry looks never called.
+
+**The measured case is LUMN-110**: 413 lines out of 413, after both mutation passes. Branches: 15
+unseen out of 361, fourteen of the two kinds above, and one real — a `null` in a French file, read
+as empty, that no test passed. A covered branch is one that ran, not one that is checked: the
+measure points at the conditions to mutate, it does not replace the mutations.
 
 ### Never
 

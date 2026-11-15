@@ -80,7 +80,7 @@ in [Homepage content](docs/homepage-content.md), `deploy:smoke` in [Smoke tests]
 | Frontend | Blade (structure/SEO) + Vue 3.5 islands (`<script setup>`) |
 | Assets | Vite 8 + SCSS + Tailwind 4 (`@tailwindcss/vite`) + DaisyUI 5 |
 | Routes (JS) | `tightenco/ziggy` — `route('name')` helper available in all JS via `@routes` directive |
-| Testing (PHP) | PHPUnit 13, PCOV coverage driver |
+| Testing (PHP) | PHPUnit 13, PCOV for line coverage; Xdebug, off by default, for branches on demand — [Branches — Xdebug, on demand](docs/testing-conventions.md#branches--xdebug-on-demand) |
 | Testing (JS) | Vitest 4 + `@vitest/coverage-v8`, Playwright for E2E |
 | Blog | Database-backed, custom lightweight CMS (planned) |
 
