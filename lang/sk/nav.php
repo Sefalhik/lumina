@@ -7,6 +7,6 @@ return [
     'blog' => 'Blog',
     'main_label' => 'Hlavná navigácia',
     'menu' => 'Ponuka',
-    'admin_panel' => 'Panel administrácie',
-    'logout' => 'Odhlásiť',
+    'admin_panel' => 'Administračný panel',
+    'logout' => 'Odhlásiť sa',
 ];

@@ -2,11 +2,11 @@
 
 return [
     'home' => 'Home',
-    'cv' => 'Resume',
+    'cv' => 'CV',
     'projects' => 'Projects',
     'blog' => 'Blog',
-    'main_label' => 'Main Navigation',
+    'main_label' => 'Main navigation',
     'menu' => 'Menu',
-    'admin_panel' => 'Admin Panel',
-    'logout' => 'Logout',
+    'admin_panel' => 'Admin panel',
+    'logout' => 'Log out',
 ];

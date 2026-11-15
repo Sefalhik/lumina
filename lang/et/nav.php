@@ -7,6 +7,6 @@ return [
     'blog' => 'Blogi',
     'main_label' => 'Peamine navigeerimine',
     'menu' => 'Menüü',
-    'admin_panel' => 'Administreerimispaneel',
+    'admin_panel' => 'Halduspaneel',
     'logout' => 'Logi välja',
 ];

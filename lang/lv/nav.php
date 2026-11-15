@@ -8,5 +8,5 @@ return [
     'main_label' => 'Galvenā navigācija',
     'menu' => 'Izvēlne',
     'admin_panel' => 'Administrēšanas panelis',
-    'logout' => 'Izlogoties',
+    'logout' => 'Izrakstīties',
 ];

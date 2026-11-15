@@ -2,12 +2,12 @@
 
 return [
     'title' => 'CV — Laurent Bernard-Cardascia',
-    'meta_description' => 'Poklicna pot Laurent Bernard-Cardascia, Tech Lead: izkušnje, tehnologije in dosežki.',
-    'heading' => 'Poklicna pot',
+    'meta_description' => 'Poklicna pot Laurenta Bernarda-Cardascie, Tech Lead: izkušnje, tehnologije in dosežki.',
+    'heading' => 'Pot',
     'subtitle' => 'Življenjepis',
     'experience_heading' => 'Poklicne izkušnje',
-    'empty' => 'Poklicna pot bo objavljena kmalu.',
+    'empty' => 'Pot bo objavljena kmalu.',
     'period_present' => 'danes',
-    'current_badge' => 'Trenutna pozicija',
+    'current_badge' => 'Trenutno zaposlen',
     'achievements_label' => 'Dosežki',
 ];

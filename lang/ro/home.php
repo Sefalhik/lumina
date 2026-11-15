@@ -4,10 +4,10 @@ return [
     'title' => 'Acasă',
     'cta_projects' => 'Vezi proiectele mele',
     'cta_cv' => 'CV-ul meu',
-    'about_heading' => 'Despre',
-    'skills_heading' => 'Stack & expertise',
+    'about_heading' => 'Despre mine',
+    'skills_heading' => 'Stack & expertiză',
     'fallback_tagline' => 'Inițializare în curs',
-    'fallback_subtitle' => 'Conținut în curs de încărcare',
+    'fallback_subtitle' => 'Conținutul se încarcă',
     'fallback_bio' => 'Conținutul acestei pagini nu a fost încă inițializat.',
     'fallback_skills' => [
         '0' => [
@@ -23,11 +23,11 @@ return [
         '2' => [
             'icon' => '⬡',
             'tech' => 'PostgreSQL',
-            'category' => 'Data',
+            'category' => 'Date',
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
+            'tech' => 'Arhitectură',
             'category' => 'Design',
         ],
     ],

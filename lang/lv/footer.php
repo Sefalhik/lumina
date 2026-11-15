@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'social_aria' => 'Profils :network (jauns logs)',
+    'social_aria' => 'Profils :network (jaunā logā)',
     'email_aria' => 'Sūtīt e-pastu uz :email',
-    'contact_label' => 'Kontakts',
+    'contact_label' => 'Kontakti',
 ];

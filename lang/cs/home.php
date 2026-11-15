@@ -1,14 +1,14 @@
 <?php
 
 return [
-    'title' => 'Domů',
-    'cta_projects' => 'Zobrazit moje projekty',
+    'title' => 'Úvod',
+    'cta_projects' => 'Zobrazit mé projekty',
     'cta_cv' => 'Můj životopis',
-    'about_heading' => 'O aplikaci',
-    'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Inicializace probíhá',
-    'fallback_subtitle' => 'Obsah se načítá',
-    'fallback_bio' => 'Obsah této stránky ještě není inicializován.',
+    'about_heading' => 'O mně',
+    'skills_heading' => 'Technologie a odbornost',
+    'fallback_tagline' => 'Probíhá inicializace',
+    'fallback_subtitle' => 'Obsah se právě načítá',
+    'fallback_bio' => 'Obsah této stránky zatím není inicializován.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
@@ -27,7 +27,7 @@ return [
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
+            'tech' => 'Architektura',
             'category' => 'Design',
         ],
     ],

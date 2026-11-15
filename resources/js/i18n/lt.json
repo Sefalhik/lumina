@@ -3,7 +3,7 @@
         "aria_label": "Keisti kalbą",
         "filter_placeholder": "Filtruoti…",
         "filter_aria_label": "Ieškoti kalbos",
-        "no_results": "Nėra rezultatų"
+        "no_results": "Rezultatų nerasta"
     },
     "theme_switcher": {
         "aria_label": "Keisti temą",
@@ -11,15 +11,15 @@
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
-                "hint": "Kibernetinio terminalio stilius"
+                "hint": "Kiberpanko terminalas"
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Varis ir viktorinis stilius"
+                "hint": "Varis ir viktorijos stilius"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Lietus ir neoniniai žibintai"
+                "hint": "Lietus ir neonas"
             }
         }
     },
@@ -29,35 +29,35 @@
         "off": "išjungtos"
     },
     "boot": {
-        "skip": "[ SPUSTELĖKITE ARBA PASPAUSKITE BET KURĮ KLAVIŠĄ, NORĖDAMI PRALEISTI ]"
+        "skip": "[ SPUSTELĖKITE ARBA PASPAUSKITE KLAVIŠĄ, KAD PRALEISTUMBĖTE ]"
     },
     "skills_editor": {
         "icon_aria": "Kategorijos {n} piktograma",
         "name_aria": "Kategorijos {n} pavadinimas",
-        "remove_category": "Ištrinti kategoriją {n}",
-        "tech_aria": "Technologija {t} iš kategorijos {n}",
-        "remove_tech": "Ištrinti technologiją {t}",
+        "remove_category": "Pašalinti kategoriją {n}",
+        "tech_aria": "Technologija {t} kategorijoje {n}",
+        "remove_tech": "Pašalinti technologiją {t}",
         "add_tech": "+ Pridėti technologiją",
         "add_category": "+ Pridėti kategoriją",
-        "drag_category": "Tempti norėdami pertvarkyti kategoriją",
-        "drag_tech": "Tempti norėdami pertvarkyti technologiją",
+        "drag_category": "Vilkite, kad pakeistumėte kategorijos eiliškumą",
+        "drag_tech": "Vilkite, kad pakeistumėte technologijos eiliškumą",
         "icons": {
-            "hexagone_creux": "Tuščias šešiakampis",
+            "hexagone_creux": "Tuščiaviduris šešiakampis",
             "hexagone_plein": "Pilnas šešiakampis",
-            "carre_pointe": "Taškintas kvadratas",
+            "carre_pointe": "Taškuotas kvadratas",
             "cible": "Taikinys",
             "double_cercle": "Dvigubas apskritimas",
             "cercle_croix": "Apskritimas su kryžiumi",
             "cercle_x": "Apskritimas su X",
             "cercle_point": "Apskritimas su tašku",
             "losange_plein": "Pilnas rombas",
-            "losange_creux": "Tuščias rombas",
+            "losange_creux": "Tuščiavidurys rombas",
             "petit_losange": "Mažas rombas",
             "triangle_plein": "Pilnas trikampis",
-            "triangle_creux": "Tuščias trikampis",
+            "triangle_creux": "Tuščiavidurys trikampis",
             "delta": "Delta",
-            "etoile_4": "4 šakų žvaigždė",
-            "etoile_creuse": "Tuščia žvaigždė",
+            "etoile_4": "Keturių spindulių žvaigždė",
+            "etoile_creuse": "Tuščiavidurė žvaigždė",
             "etoile_apl": "APL žvaigždė",
             "etoile_operateur": "Operatoriaus žvaigždė",
             "hexagone_apl": "APL šešiakampis",
@@ -65,11 +65,11 @@
             "marqueur_terminal": "Terminalo žymeklis",
             "therefore": "Therefore",
             "reference": "Nuoroda",
-            "trigramme": "Trigramas",
-            "engrenage": "Krumpliaraštis",
+            "trigramme": "Trigrama",
+            "engrenage": "Pavara",
             "eclair": "Žaibas",
-            "chevron": "Chevron",
-            "double_chevron": "Dvigubas chevron"
+            "chevron": "Ševronas",
+            "double_chevron": "Dvigubas ševronas"
         }
     }
 }

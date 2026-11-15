@@ -30,7 +30,7 @@ trait FakesTranslationApi
             'type' => 'message',
             'role' => 'assistant',
             'content' => [['type' => 'text', 'text' => json_encode($data)]],
-            'model' => 'claude-haiku-4-5-20251001',
+            'model' => 'claude-haiku-5-5',
             'stop_reason' => 'end_turn',
             'usage' => ['input_tokens' => 100, 'output_tokens' => 50],
         ];
@@ -48,9 +48,7 @@ trait FakesTranslationApi
      */
     protected function fakeTranslations(array $failing = []): void
     {
-        Http::swap(new Factory);
-        Http::preventStrayRequests();
-        Http::fake([self::MESSAGES_URL => function (Request $request) use ($failing) {
+        $this->fakeApi(function (Request $request) use ($failing) {
             $locale = $this->requestedLocale($request);
             if (in_array($locale, $failing, true)) {
                 return Http::response(['error' => ['message' => 'overloaded']], 529);
@@ -60,28 +58,43 @@ trait FakesTranslationApi
                 fn (string $value) => strtoupper($locale).' '.$value,
                 $this->requestedStrings($request),
             )));
-        }]);
+        });
     }
 
     /**
-     * The French strings sent in one request, read back from its prompt.
+     * Answers every request with `$answer`, replacing whatever was faked before — a second
+     * `Http::fake()` would only be consulted after the first. Starts a fresh record of requests.
+     *
+     * @param  callable(Request): mixed  $answer
+     */
+    protected function fakeApi(callable $answer): void
+    {
+        Http::swap(new Factory);
+        Http::preventStrayRequests();
+        Http::fake([self::MESSAGES_URL => $answer]);
+    }
+
+    /**
+     * The French strings sent in one request: the user turn is the JSON object itself.
      *
      * @return array<string, string>
      */
     protected function requestedStrings(Request $request): array
     {
-        $prompt = (string) $request->data()['messages'][0]['content'];
-        $marker = "Source JSON (French):\n";
-
         /** @var array<string, string> */
-        return json_decode(substr($prompt, (int) strpos($prompt, $marker) + strlen($marker)), true, flags: JSON_THROW_ON_ERROR);
+        return json_decode((string) $request->data()['messages'][0]['content'], true, flags: JSON_THROW_ON_ERROR);
     }
 
+    /**
+     * The locale a request asks for, read back from the language its system prompt names on its
+     * first line ("… into British English.") through `config/i18n.php`, `translation_languages`.
+     */
     protected function requestedLocale(Request $request): string
     {
-        preg_match('/ \(([a-z]{2})\)\.\n/', (string) $request->data()['messages'][0]['content'], $match);
+        preg_match('/ into (.+?)\.\n/', (string) $request->data()['system'], $match);
+        $locale = array_search($match[1] ?? '', (array) config('i18n.translation_languages'), true);
 
-        return $match[1] ?? '';
+        return is_string($locale) ? $locale : '';
     }
 
     /**

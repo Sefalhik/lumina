@@ -1,13 +1,13 @@
 {
     "language_switcher": {
-        "aria_label": "Ibdel il-lingwa",
-        "filter_placeholder": "Iffiltra…",
+        "aria_label": "Bidel il-lingwa",
+        "filter_placeholder": "Ifittex…",
         "filter_aria_label": "Fittex lingwa",
         "no_results": "L-ebda riżultat"
     },
     "theme_switcher": {
-        "aria_label": "Ibdel it-tema",
-        "current_aria": "Tema attwali: {theme}",
+        "aria_label": "Bidel it-tema",
+        "current_aria": "It-tema attwali: {theme}",
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
@@ -15,21 +15,21 @@
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Ram & Vittorjan"
+                "hint": "Ram u Victorjan"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Xita & neon"
+                "hint": "Xita u dwal tan-neon"
             }
         }
     },
     "motion_toggle": {
         "label": "Animazzjonijiet",
-        "on": "mixgħula",
+        "on": "attivati",
         "off": "mitfija"
     },
     "boot": {
-        "skip": "[ IKKLIKKJA JEW AGĦFAS BUTTUNA BIEX TILEF ]"
+        "skip": "[ IKKLIKKJA JEW IPPRESS XI BUTTUN BIEX TAQBEŻ ]"
     },
     "skills_editor": {
         "icon_aria": "Ikona tal-kategorija {n}",
@@ -39,37 +39,37 @@
         "remove_tech": "Neħħi t-teknoloġija {t}",
         "add_tech": "+ Żid teknoloġija",
         "add_category": "+ Żid kategorija",
-        "drag_category": "Ġarr biex tordna mill-ġdid il-kategorija",
-        "drag_tech": "Ġarr biex tordna mill-ġdid it-teknoloġija",
+        "drag_category": "Iġbed biex terġa' tpoġġi l-kategorija",
+        "drag_tech": "Iġbed biex terġa' tpoġġi t-teknoloġija",
         "icons": {
-            "hexagone_creux": "Eżagonu vojt",
-            "hexagone_plein": "Eżagonu mimlij",
-            "carre_pointe": "Kwadru appuntat",
+            "hexagone_creux": "Eżaġonu vojt",
+            "hexagone_plein": "Eżaġonu mimli",
+            "carre_pointe": "Kwadru b'punt",
             "cible": "Mira",
             "double_cercle": "Ċirku doppju",
-            "cercle_croix": "Ċirku-salib",
+            "cercle_croix": "Ċirku bil-salib",
             "cercle_x": "Ċirku-X",
-            "cercle_point": "Ċirku-punt",
-            "losange_plein": "Rombu mimlij",
+            "cercle_point": "Ċirku bil-punt",
+            "losange_plein": "Rombu mimli",
             "losange_creux": "Rombu vojt",
-            "petit_losange": "Rombu żgħir",
-            "triangle_plein": "Trijanglu mimlij",
-            "triangle_creux": "Trijanglu vojt",
+            "petit_losange": "Romb iż-żgħir",
+            "triangle_plein": "Triangolu mimli",
+            "triangle_creux": "Triangolu vojt",
             "delta": "Delta",
-            "etoile_4": "Stilla b'4 fergħat",
+            "etoile_4": "Stilla b'4 xugaman",
             "etoile_creuse": "Stilla vojta",
             "etoile_apl": "Stilla APL",
-            "etoile_operateur": "Stilla operatur",
-            "hexagone_apl": "Eżagonu APL",
-            "anneau_benzene": "Ħalka benzene",
-            "marqueur_terminal": "Marker terminali",
+            "etoile_operateur": "Stilla tal-operatur",
+            "hexagone_apl": "Eżaġonu APL",
+            "anneau_benzene": "Ċirku tal-benżen",
+            "marqueur_terminal": "Marker tat-terminal",
             "therefore": "Therefore",
             "reference": "Referenza",
             "trigramme": "Trigramma",
-            "engrenage": "Gear",
-            "eclair": "Saetta",
-            "chevron": "Chevron",
-            "double_chevron": "Chevron doppju"
+            "engrenage": "Ingranaġġ",
+            "eclair": "Berqa",
+            "chevron": "Ċevron",
+            "double_chevron": "Ċevron doppju"
         }
     }
 }

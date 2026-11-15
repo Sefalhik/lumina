@@ -4,10 +4,10 @@ return [
     'title' => 'Domov',
     'cta_projects' => 'Zobraziť moje projekty',
     'cta_cv' => 'Môj životopis',
-    'about_heading' => 'O aplikácii',
-    'skills_heading' => 'Stack & expertise',
+    'about_heading' => 'O mne',
+    'skills_heading' => 'Stack a odbornosť',
     'fallback_tagline' => 'Prebieha inicializácia',
-    'fallback_subtitle' => 'Obsah sa načítava',
+    'fallback_subtitle' => 'Obsah sa práve načítava',
     'fallback_bio' => 'Obsah tejto stránky ešte nie je inicializovaný.',
     'fallback_skills' => [
         '0' => [
@@ -23,12 +23,12 @@ return [
         '2' => [
             'icon' => '⬡',
             'tech' => 'PostgreSQL',
-            'category' => 'Data',
+            'category' => 'Dáta',
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
-            'category' => 'Design',
+            'tech' => 'Architektúra',
+            'category' => 'Dizajn',
         ],
     ],
 ];

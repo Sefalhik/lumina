@@ -1,34 +1,34 @@
 <?php
 
 return [
-    'title' => 'Sākumlapa',
+    'title' => 'Sākums',
     'cta_projects' => 'Skatīt manus projektus',
     'cta_cv' => 'Mans CV',
-    'about_heading' => 'Par mums',
-    'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Inicializācija ir procesā',
-    'fallback_subtitle' => 'Saturs tiek ielādēts',
+    'about_heading' => 'Par mani',
+    'skills_heading' => 'Tehnoloģijas un pieredze',
+    'fallback_tagline' => 'Notiek inicializācija',
+    'fallback_subtitle' => 'Notiek satura ielāde',
     'fallback_bio' => 'Šīs lapas saturs vēl nav inicializēts.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',
             'tech' => 'PHP / Laravel',
-            'category' => 'Backend',
+            'category' => 'Serverpuse',
         ],
         '1' => [
             'icon' => '◈',
             'tech' => 'Vue 3 / TypeScript',
-            'category' => 'Frontend',
+            'category' => 'Klientpuse',
         ],
         '2' => [
             'icon' => '⬡',
             'tech' => 'PostgreSQL',
-            'category' => 'Data',
+            'category' => 'Dati',
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
-            'category' => 'Design',
+            'tech' => 'Arhitektūra',
+            'category' => 'Dizains',
         ],
     ],
 ];

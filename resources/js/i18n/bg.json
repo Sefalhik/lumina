@@ -2,7 +2,7 @@
     "language_switcher": {
         "aria_label": "Смяна на езика",
         "filter_placeholder": "Филтриране…",
-        "filter_aria_label": "Търсете език",
+        "filter_aria_label": "Търсене на език",
         "no_results": "Няма резултати"
     },
     "theme_switcher": {
@@ -15,7 +15,7 @@
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Медни и викториански"
+                "hint": "Мед и викториански стил"
             },
             "neon-noir": {
                 "label": "Neon Noir",
@@ -29,42 +29,42 @@
         "off": "изключени"
     },
     "boot": {
-        "skip": "[ КЛИКНЕТЕ ИЛИ НАТИСНЕТЕ КЛАВИШ ЗА ПРОПУСКАНЕ ]"
+        "skip": "[ НАТИСНЕТЕ ИЛИ ЦЪКНETE, ЗА ДА ПРОПУСНЕТЕ ]"
     },
     "skills_editor": {
         "icon_aria": "Икона на категория {n}",
         "name_aria": "Име на категория {n}",
         "remove_category": "Премахване на категория {n}",
-        "tech_aria": "Технология {t} на категория {n}",
-        "remove_tech": "Премахване на технология {t}",
+        "tech_aria": "Технология {t} от категория {n}",
+        "remove_tech": "Премахване на технологията {t}",
         "add_tech": "+ Добавяне на технология",
         "add_category": "+ Добавяне на категория",
-        "drag_category": "Влачете, за да пренаредите категорията",
-        "drag_tech": "Влачете, за да пренаредите технологията",
+        "drag_category": "Плъзнете, за да пренаредите категорията",
+        "drag_tech": "Плъзнете, за да пренаредите технологията",
         "icons": {
-            "hexagone_creux": "Куха шестоъгълник",
-            "hexagone_plein": "Запълнена шестоъгълник",
-            "carre_pointe": "Заострен квадрат",
+            "hexagone_creux": "Празен шестоъгълник",
+            "hexagone_plein": "Пълен шестоъгълник",
+            "carre_pointe": "Квадрат с точка",
             "cible": "Мишена",
             "double_cercle": "Двоен кръг",
-            "cercle_croix": "Кръг-кръст",
-            "cercle_x": "Кръг-X",
-            "cercle_point": "Кръг-точка",
-            "losange_plein": "Запълнен ромб",
-            "losange_creux": "Куб ромб",
+            "cercle_croix": "Кръг с кръст",
+            "cercle_x": "Кръг с X",
+            "cercle_point": "Кръг с точка",
+            "losange_plein": "Пълен ромб",
+            "losange_creux": "Празен ромб",
             "petit_losange": "Малък ромб",
-            "triangle_plein": "Запълнен триъгълник",
-            "triangle_creux": "Куб триъгълник",
+            "triangle_plein": "Пълен триъгълник",
+            "triangle_creux": "Празен триъгълник",
             "delta": "Делта",
-            "etoile_4": "4-разклонена звезда",
-            "etoile_creuse": "Куба звезда",
+            "etoile_4": "4-лъчева звезда",
+            "etoile_creuse": "Празна звезда",
             "etoile_apl": "APL звезда",
-            "etoile_operateur": "Оператор звезда",
+            "etoile_operateur": "Звезда оператор",
             "hexagone_apl": "APL шестоъгълник",
             "anneau_benzene": "Бензенов пръстен",
             "marqueur_terminal": "Терминален маркер",
-            "therefore": "Therefore",
-            "reference": "Справка",
+            "therefore": "Следователно",
+            "reference": "Препратка",
             "trigramme": "Триграма",
             "engrenage": "Зъбно колело",
             "eclair": "Мълния",

@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Console\Commands\CmsTranslate;
 use App\Models\SiteIdentity;
 use App\Services\AnthropicTranslator;
 use App\Services\Http\SecurityHeaders;
@@ -11,9 +10,12 @@ use App\Services\Seo\LocalizedUrlService;
 use App\Services\SiteIdentityService;
 use App\Services\Smoke\Site\CertificateInspector;
 use App\Services\Smoke\Site\StreamCertificateInspector;
+use App\Services\Translation\CmsTranslation;
 use App\Services\Translation\LangFiles;
 use App\Services\Translation\LangFileTranslation;
+use App\Services\Translation\TranslationModel;
 use App\Services\Translation\TranslationPlanner;
+use App\Services\Translation\TranslationPrompt;
 use App\Services\Translation\TranslationSources;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View as ViewFacade;
@@ -56,14 +58,22 @@ class AppServiceProvider extends ServiceProvider
             (string) config('i18n.js_i18n_path', resource_path('js/i18n')),
         ));
 
-        $this->app->when(CmsTranslate::class)->needs(TranslationSources::class)->give(fn () => new TranslationSources(
-            (string) config('i18n.cache_path', storage_path('app/i18n')).'/cms-sources.json',
+        $this->app->bind(CmsTranslation::class, fn ($app) => new CmsTranslation(
+            $app->make(AnthropicTranslator::class),
+            $app->make(TranslationPlanner::class),
+            new TranslationSources((string) config('i18n.cache_path', storage_path('app/i18n')).'/cms-sources.json'),
         ));
 
+        // One model and one prompt per kind of text (LUMN-33): both decided in config/i18n.php and
+        // resources/prompts/translation/, never in .env.
         $this->app->bind(AnthropicTranslator::class, fn () => new AnthropicTranslator(
             apiKey: (string) config('services.anthropic.api_key', ''),
-            model: (string) config('services.anthropic.model', 'claude-haiku-4-5-20251001'),
-            nativeNames: config('i18n.native_names', []),
+            prompt: new TranslationPrompt(
+                resource_path('prompts/translation'),
+                config('i18n.translation_languages', []),
+                config('i18n.glossary', []),
+            ),
+            models: array_map(TranslationModel::fromConfig(...), config('i18n.translation', [])),
         ));
 
         $this->app->bind(LocaleResolver::class, fn () => new LocaleResolver(

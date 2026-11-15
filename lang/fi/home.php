@@ -2,11 +2,11 @@
 
 return [
     'title' => 'Etusivu',
-    'cta_projects' => 'Näytä projektini',
-    'cta_cv' => 'Minun CV',
-    'about_heading' => 'Tietoja',
-    'skills_heading' => 'Stack & osaaminen',
-    'fallback_tagline' => 'Alustetaan',
+    'cta_projects' => 'Katso projektini',
+    'cta_cv' => 'CV',
+    'about_heading' => 'Tietoa',
+    'skills_heading' => 'Teknologiapino & osaaminen',
+    'fallback_tagline' => 'Alustus käynnissä',
     'fallback_subtitle' => 'Sisältöä ladataan',
     'fallback_bio' => 'Tämän sivun sisältöä ei ole vielä alustettu.',
     'fallback_skills' => [
@@ -27,8 +27,8 @@ return [
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
-            'category' => 'Design',
+            'tech' => 'Arkkitehtuuri',
+            'category' => 'Suunnittelu',
         ],
     ],
 ];

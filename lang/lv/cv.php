@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'title' => 'CV — Laurent Bernard-Cardascia',
-    'meta_description' => 'Laurent Bernard-Cardascia profesionālā trajektorija, Tech Lead: pieredze, tehnoloģijas un sasniegumi.',
-    'heading' => 'Trajektorija',
-    'subtitle' => 'Kurikulums vitae',
+    'title' => 'CV — Laurents Bernard-Cardascia',
+    'meta_description' => 'Laurent Bernard-Cardascia, Tech Lead: pieredze, tehnoloģijas un sasniegumi.',
+    'heading' => 'Pieredze',
+    'subtitle' => 'Curriculum vitae',
     'experience_heading' => 'Profesionālā pieredze',
-    'empty' => 'Trajektorija tiks publicēta drīzumā.',
+    'empty' => 'Pieredze tiks publicēta drīzumā.',
     'period_present' => 'šodien',
-    'current_badge' => 'Pašlaik nodarbināts',
+    'current_badge' => 'Pašreiz strādā',
     'achievements_label' => 'Sasniegumi',
 ];

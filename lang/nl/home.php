@@ -3,10 +3,10 @@
 return [
     'title' => 'Home',
     'cta_projects' => 'Bekijk mijn projecten',
-    'cta_cv' => 'Mijn CV',
+    'cta_cv' => 'Mijn cv',
     'about_heading' => 'Over mij',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Initialisatie in uitvoering',
+    'fallback_tagline' => 'Initialisatie bezig',
     'fallback_subtitle' => 'Inhoud wordt geladen',
     'fallback_bio' => 'De inhoud van deze pagina is nog niet geïnitialiseerd.',
     'fallback_skills' => [
@@ -27,7 +27,7 @@ return [
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
+            'tech' => 'Architectuur',
             'category' => 'Design',
         ],
     ],

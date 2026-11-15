@@ -25,8 +25,8 @@
     },
     "motion_toggle": {
         "label": "Animazioni",
-        "on": "attive",
-        "off": "ferme"
+        "on": "attivate",
+        "off": "disattivate"
     },
     "boot": {
         "skip": "[ CLICCA O PREMI UN TASTO PER SALTARE ]"
@@ -52,7 +52,7 @@
             "cercle_point": "Cerchio-punto",
             "losange_plein": "Rombo pieno",
             "losange_creux": "Rombo vuoto",
-            "petit_losange": "Piccolo rombo",
+            "petit_losange": "Rombo piccolo",
             "triangle_plein": "Triangolo pieno",
             "triangle_creux": "Triangolo vuoto",
             "delta": "Delta",
@@ -61,7 +61,7 @@
             "etoile_apl": "Stella APL",
             "etoile_operateur": "Stella operatore",
             "hexagone_apl": "Esagono APL",
-            "anneau_benzene": "Anello benzene",
+            "anneau_benzene": "Anello benzenico",
             "marqueur_terminal": "Marcatore terminale",
             "therefore": "Therefore",
             "reference": "Riferimento",

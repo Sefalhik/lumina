@@ -2,11 +2,11 @@
 
 return [
     'home' => 'Početna',
-    'cv' => 'CV',
+    'cv' => 'Životopis',
     'projects' => 'Projekti',
     'blog' => 'Blog',
     'main_label' => 'Glavna navigacija',
     'menu' => 'Izbornik',
-    'admin_panel' => 'Ploča za administraciju',
-    'logout' => 'Odjavljivanje',
+    'admin_panel' => 'Upravljačka ploča',
+    'logout' => 'Odjava',
 ];

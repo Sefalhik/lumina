@@ -1,13 +1,13 @@
 <?php
 
 return [
-    'title' => 'Paġna Inizjali',
-    'cta_projects' => 'Ara l-projetti tiegħi',
-    'cta_cv' => 'Il-CV tiegħi',
+    'title' => 'Il-Bidu',
+    'cta_projects' => 'Ara l-proġetti tiegħi',
+    'cta_cv' => 'Is-CV tiegħi',
     'about_heading' => 'Dwar',
-    'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Inizjalizzazzjoni fil-progress',
-    'fallback_subtitle' => 'Kontenut qed jiġi ċċarikad',
+    'skills_heading' => 'Stack u kompetenzi',
+    'fallback_tagline' => 'Qed jitħejja',
+    'fallback_subtitle' => 'Il-kontenut qed jitgħabba',
     'fallback_bio' => 'Il-kontenut ta\' din il-paġna għadu ma ġiex inizjalizzat.',
     'fallback_skills' => [
         '0' => [
@@ -27,8 +27,8 @@ return [
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
-            'category' => 'Design',
+            'tech' => 'Arkitettura',
+            'category' => 'Disinn',
         ],
     ],
 ];

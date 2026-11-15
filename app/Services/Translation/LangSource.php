@@ -26,6 +26,14 @@ final readonly class LangSource
         private string $labelPattern,
     ) {}
 
+    /**
+     * The syntax of its texts: a PHP file holds Laravel strings, the JSON file vue-i18n messages.
+     */
+    public function textFormat(): TextFormat
+    {
+        return $this->format === LangFiles::PHP ? TextFormat::Laravel : TextFormat::VueI18n;
+    }
+
     public function path(string $locale): string
     {
         return sprintf($this->pathPattern, $locale);

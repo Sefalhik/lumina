@@ -6,9 +6,9 @@ return [
     'cta_cv' => 'My CV',
     'about_heading' => 'About',
     'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Initialization in progress',
+    'fallback_tagline' => 'Initialising',
     'fallback_subtitle' => 'Content is loading',
-    'fallback_bio' => 'The content of this page has not been initialized yet.',
+    'fallback_bio' => 'The content of this page has not been initialised yet.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

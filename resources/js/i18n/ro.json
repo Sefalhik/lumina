@@ -1,12 +1,12 @@
 {
     "language_switcher": {
-        "aria_label": "Schimbă limba",
-        "filter_placeholder": "Filtrare…",
+        "aria_label": "Schimbați limba",
+        "filter_placeholder": "Filtrați…",
         "filter_aria_label": "Căutați o limbă",
         "no_results": "Niciun rezultat"
     },
     "theme_switcher": {
-        "aria_label": "Schimbă tema",
+        "aria_label": "Schimbați tema",
         "current_aria": "Tema actuală: {theme}",
         "themes": {
             "sprawl": {
@@ -15,28 +15,28 @@
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Cupru & victorian"
+                "hint": "Cupru și victorian"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Ploaie & neon"
+                "hint": "Ploaie și neoane"
             }
         }
     },
     "motion_toggle": {
         "label": "Animații",
-        "on": "pornite",
-        "off": "oprite"
+        "on": "activate",
+        "off": "dezactivate"
     },
     "boot": {
-        "skip": "[ FACEȚI CLIC SAU APĂSAȚI O TASTĂ PENTRU A OMITE ]"
+        "skip": "[ FACEȚI CLIC SAU APĂSAȚI O TASTĂ PENTRU A SĂRI ]"
     },
     "skills_editor": {
         "icon_aria": "Pictograma categoriei {n}",
         "name_aria": "Numele categoriei {n}",
-        "remove_category": "Ștergeți categoria {n}",
+        "remove_category": "Eliminați categoria {n}",
         "tech_aria": "Tehnologia {t} din categoria {n}",
-        "remove_tech": "Ștergeți tehnologia {t}",
+        "remove_tech": "Eliminați tehnologia {t}",
         "add_tech": "+ Adăugați o tehnologie",
         "add_category": "+ Adăugați o categorie",
         "drag_category": "Trageți pentru a reordona categoria",
@@ -44,12 +44,12 @@
         "icons": {
             "hexagone_creux": "Hexagon gol",
             "hexagone_plein": "Hexagon plin",
-            "carre_pointe": "Pătrat punctat",
+            "carre_pointe": "Pătrat cu vârf",
             "cible": "Țintă",
             "double_cercle": "Cerc dublu",
-            "cercle_croix": "Cerc-cruce",
-            "cercle_x": "Cerc-X",
-            "cercle_point": "Cerc-punct",
+            "cercle_croix": "Cerc cu cruce",
+            "cercle_x": "Cerc cu X",
+            "cercle_point": "Cerc cu punct",
             "losange_plein": "Romb plin",
             "losange_creux": "Romb gol",
             "petit_losange": "Romb mic",
@@ -57,19 +57,19 @@
             "triangle_creux": "Triunghi gol",
             "delta": "Delta",
             "etoile_4": "Stea cu 4 brațe",
-            "etoile_creuse": "Stea golă",
+            "etoile_creuse": "Stea goală",
             "etoile_apl": "Stea APL",
             "etoile_operateur": "Stea operator",
             "hexagone_apl": "Hexagon APL",
-            "anneau_benzene": "Inel benzen",
-            "marqueur_terminal": "Marcator terminal",
-            "therefore": "Therefore",
+            "anneau_benzene": "Inel benzenic",
+            "marqueur_terminal": "Marcator de terminal",
+            "therefore": "Deci",
             "reference": "Referință",
             "trigramme": "Trigramă",
-            "engrenage": "Angrenaj",
+            "engrenage": "Roată dințată",
             "eclair": "Fulger",
-            "chevron": "Chevron",
-            "double_chevron": "Chevron dublu"
+            "chevron": "Unghi",
+            "double_chevron": "Unghi dublu"
         }
     }
 }

@@ -1,7 +1,7 @@
 {
     "language_switcher": {
         "aria_label": "Athraigh teanga",
-        "filter_placeholder": "Scagaire…",
+        "filter_placeholder": "Scag…",
         "filter_aria_label": "Cuardaigh teanga",
         "no_results": "Gan torthaí"
     },
@@ -11,65 +11,65 @@
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
-                "hint": "Teirminéal cyberpunk"
+                "hint": "Teirminéal cibearphunc"
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Copar & Victorian"
+                "hint": "Copar agus VICTÉARACH"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Báisteach & neoin"
+                "hint": "Báisteach agus neoin"
             }
         }
     },
     "motion_toggle": {
-        "label": "Beochana",
-        "on": "ar siúl",
-        "off": "múchta"
+        "label": "Beochan",
+        "on": "gníomhachtaithe",
+        "off": "stoptha"
     },
     "boot": {
-        "skip": "[ CLICEÁIL NÓ BRÚIGH CNAIPE CHUN A SCIPEÁIL ]"
+        "skip": "[ CLICEÁIL NÓ BRUIGH AR EOCHAIR CHUN SCIPEADH ]"
     },
     "skills_editor": {
-        "icon_aria": "Deilbhín an chatagóir {n}",
-        "name_aria": "Ainm an chatagóir {n}",
-        "remove_category": "Bain an chatagóir {n}",
-        "tech_aria": "Teicneolaíocht {t} an chatagóir {n}",
-        "remove_tech": "Bain an teicneolaíocht {t}",
+        "icon_aria": "Deilbhín na catagóire {n}",
+        "name_aria": "Ainm na catagóire {n}",
+        "remove_category": "Scrios catagóir {n}",
+        "tech_aria": "Teicneolaíocht {t} de chatagóir {n}",
+        "remove_tech": "Scrios teicneolaíocht {t}",
         "add_tech": "+ Cuir teicneolaíocht leis",
         "add_category": "+ Cuir catagóir leis",
-        "drag_category": "Tarraing chun an chatagóir a athord",
-        "drag_tech": "Tarraing chun an teicneolaíocht a athord",
+        "drag_category": "Tarraing chun an chatagóir a athordú",
+        "drag_tech": "Tarraing chun na teicneolaíochta a athordú",
         "icons": {
-            "hexagone_creux": "Heicseagán folamh",
-            "hexagone_plein": "Heicseagán lán",
-            "carre_pointe": "Cearnóg poncaithe",
+            "hexagone_creux": "Heics folamh",
+            "hexagone_plein": "Heics lán",
+            "carre_pointe": "Cearnóg phointeach",
             "cible": "Sprioc",
-            "double_cercle": "Ciorcal dúbailte",
+            "double_cercle": "Dhá chiorcal",
             "cercle_croix": "Ciorcal-chros",
             "cercle_x": "Ciorcal-X",
-            "cercle_point": "Ciorcal-poncanna",
-            "losange_plein": "Deilbhín lán",
-            "losange_creux": "Deilbhín folamh",
-            "petit_losange": "Beag deilbhín",
+            "cercle_point": "Ciorcal-phointe",
+            "losange_plein": "Rombas lán",
+            "losange_creux": "Rombas folamh",
+            "petit_losange": "Rombas beag",
             "triangle_plein": "Triantán lán",
             "triangle_creux": "Triantán folamh",
             "delta": "Delta",
-            "etoile_4": "Réalta 4 gheal",
+            "etoile_4": "Réalta 4 ghéag",
             "etoile_creuse": "Réalta fholamh",
             "etoile_apl": "Réalta APL",
             "etoile_operateur": "Réalta oibreora",
-            "hexagone_apl": "Heicseagán APL",
-            "anneau_benzene": "Fáinne benzene",
-            "marqueur_terminal": "Marcóir spréachta",
+            "hexagone_apl": "Heics APL",
+            "anneau_benzene": "Fáinne beinséin",
+            "marqueur_terminal": "Marcóir teirminéil",
             "therefore": "Therefore",
             "reference": "Tagairt",
-            "trigramme": "Trigram",
-            "engrenage": "Giaranna",
-            "eclair": "Drithíonn",
-            "chevron": "Chevron",
-            "double_chevron": "Chevron dúbailte"
+            "trigramme": "Trígram",
+            "engrenage": "Gearras",
+            "eclair": "Splanc",
+            "chevron": "Seabhrón",
+            "double_chevron": "Dhá sheabhrón"
         }
     }
 }

@@ -4,9 +4,9 @@ return [
     'home' => 'Baile',
     'cv' => 'CV',
     'projects' => 'Tionscadail',
-    'blog' => 'Blóg',
-    'main_label' => 'Nascleanúchán Príomhúil',
+    'blog' => 'Blag',
+    'main_label' => 'Príomhnascleanúint',
     'menu' => 'Roghchlár',
-    'admin_panel' => 'Painéal Riaracháin',
-    'logout' => 'Logáil Amach',
+    'admin_panel' => 'Painéal riaracháin',
+    'logout' => 'Logáil amach',
 ];

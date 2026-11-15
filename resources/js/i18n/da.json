@@ -7,26 +7,26 @@
     },
     "theme_switcher": {
         "aria_label": "Skift tema",
-        "current_aria": "Nuværende tema: {theme}",
+        "current_aria": "Aktuelt tema: {theme}",
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
-                "hint": "Cyberpunk terminal"
+                "hint": "Cyberpunk-terminal"
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Kobber og viktoriansk"
+                "hint": "Kobber & victoriansk"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Regn og neon"
+                "hint": "Regn & neon"
             }
         }
     },
     "motion_toggle": {
         "label": "Animationer",
-        "on": "til",
-        "off": "fra"
+        "on": "aktiveret",
+        "off": "slået fra"
     },
     "boot": {
         "skip": "[ KLIK ELLER TRYK PÅ EN TAST FOR AT SPRINGE OVER ]"
@@ -34,18 +34,18 @@
     "skills_editor": {
         "icon_aria": "Ikon for kategori {n}",
         "name_aria": "Navn på kategori {n}",
-        "remove_category": "Fjern kategori {n}",
+        "remove_category": "Slet kategori {n}",
         "tech_aria": "Teknologi {t} i kategori {n}",
-        "remove_tech": "Fjern teknologi {t}",
-        "add_tech": "+ Tilføj en teknologi",
-        "add_category": "+ Tilføj en kategori",
-        "drag_category": "Træk for at omordne kategori",
-        "drag_tech": "Træk for at omordne teknologi",
+        "remove_tech": "Slet teknologien {t}",
+        "add_tech": "+ Tilføj teknologi",
+        "add_category": "+ Tilføj kategori",
+        "drag_category": "Træk for at omarrangere kategorien",
+        "drag_tech": "Træk for at omarrangere teknologien",
         "icons": {
             "hexagone_creux": "Hul sekskant",
             "hexagone_plein": "Fyldt sekskant",
-            "carre_pointe": "Markeret kvadrat",
-            "cible": "Målskive",
+            "carre_pointe": "Spidset firkant",
+            "cible": "Mål",
             "double_cercle": "Dobbelt cirkel",
             "cercle_croix": "Cirkel-kryds",
             "cercle_x": "Cirkel-X",
@@ -56,17 +56,17 @@
             "triangle_plein": "Fyldt trekant",
             "triangle_creux": "Hul trekant",
             "delta": "Delta",
-            "etoile_4": "4-takket stjerne",
+            "etoile_4": "Stjerne med 4 arme",
             "etoile_creuse": "Hul stjerne",
             "etoile_apl": "APL-stjerne",
-            "etoile_operateur": "Operatør-stjerne",
+            "etoile_operateur": "Operatorstjerne",
             "hexagone_apl": "APL-sekskant",
             "anneau_benzene": "Benzenring",
             "marqueur_terminal": "Terminalmarkør",
             "therefore": "Therefore",
             "reference": "Reference",
             "trigramme": "Trigram",
-            "engrenage": "Gear",
+            "engrenage": "Tandhjul",
             "eclair": "Lyn",
             "chevron": "Chevron",
             "double_chevron": "Dobbelt chevron"

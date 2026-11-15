@@ -8,6 +8,6 @@ return [
     'experience_heading' => 'Esperienza professionale',
     'empty' => 'Il percorso sarà pubblicato a breve.',
     'period_present' => 'oggi',
-    'current_badge' => 'Posizione attuale',
+    'current_badge' => 'In carica',
     'achievements_label' => 'Risultati',
 ];

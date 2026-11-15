@@ -7,6 +7,9 @@ namespace Tests\Unit\Services\Translation;
 use App\Services\AnthropicTranslator;
 use App\Services\Translation\LangFiles;
 use App\Services\Translation\LangFileTranslation;
+use App\Services\Translation\TextFormat;
+use App\Services\Translation\TranslationContext;
+use App\Services\Translation\TranslationEstimate;
 use App\Services\Translation\TranslationPlanner;
 use App\Services\Translation\TranslationSources;
 use Illuminate\Support\Facades\Http;
@@ -364,6 +367,41 @@ class LangFileTranslationTest extends TestCase
         $this->assertSame([['de', ['cv']], ['en', ['cv']]], array_map(fn ($task) => [$task->locale, $task->keys], $tasks));
     }
 
+    public function test_the_estimate_adds_up_every_task_with_the_interface_model_and_its_format(): void
+    {
+        $plan = $this->service()->plan(['de', 'en'], false);
+        $translator = $this->app->make(AnthropicTranslator::class);
+
+        $expected = new TranslationEstimate;
+        foreach ($plan->tasks as $task) {
+            $expected = $expected->plus($translator->estimate($task->strings(), $task->locale, TranslationContext::Interface, $task->source->textFormat()));
+        }
+
+        $this->assertCount(4, $plan->tasks);
+        $this->assertEquals($expected, $this->service()->estimate($plan));
+        $this->assertSame(4, $expected->requests);
+        // The Laravel and vue-i18n prompts differ: a plan priced with one format for all would differ too.
+        $this->assertNotEquals(
+            $translator->estimate(['home' => 'Accueil'], 'de', TranslationContext::Interface, TextFormat::Laravel),
+            $translator->estimate(['home' => 'Accueil'], 'de', TranslationContext::Interface, TextFormat::VueI18n),
+        );
+    }
+
+    public function test_an_empty_plan_costs_nothing(): void
+    {
+        $this->fakeTranslations();
+        $this->service()->apply($this->service()->plan(self::LOCALES, false), self::LOCALES);
+
+        $this->assertEquals(new TranslationEstimate, $this->service()->estimate($this->service()->plan(self::LOCALES, false)));
+    }
+
+    public function test_the_model_named_is_the_interface_one(): void
+    {
+        config(['i18n.translation.interface.model' => 'interface-model', 'i18n.translation.prose.model' => 'prose-model']);
+
+        $this->assertSame('interface-model', $this->service()->model());
+    }
+
     public function test_the_plan_counts_what_it_would_translate(): void
     {
         $this->writePhp('de', ['home' => 'Startseite']);
@@ -383,7 +421,7 @@ class LangFileTranslationTest extends TestCase
             new LangFiles,
             new TranslationPlanner,
             new TranslationSources($this->registry()),
-            new AnthropicTranslator('test-key', 'claude-haiku-4-5-20251001', []),
+            $this->app->make(AnthropicTranslator::class),
             $this->lang,
             $this->js,
         );

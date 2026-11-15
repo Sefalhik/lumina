@@ -2,20 +2,20 @@
     "language_switcher": {
         "aria_label": "Zmień język",
         "filter_placeholder": "Filtruj…",
-        "filter_aria_label": "Wyszukaj język",
+        "filter_aria_label": "Szukaj języka",
         "no_results": "Brak wyników"
     },
     "theme_switcher": {
         "aria_label": "Zmień motyw",
-        "current_aria": "Aktualny motyw: {theme}",
+        "current_aria": "Obecny motyw: {theme}",
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
-                "hint": "Terminal cyberpunk"
+                "hint": "Cyberpunkowy terminal"
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Miedź i wiktoriańskie"
+                "hint": "Miedź i wiktoriański"
             },
             "neon-noir": {
                 "label": "Neon Noir",
@@ -29,44 +29,44 @@
         "off": "wyłączone"
     },
     "boot": {
-        "skip": "[ KLIKNIJ LUB NACIŚNIJ DOWOLNY KLAWISZ, ABY POMINĄĆ ]"
+        "skip": "[ KLIKNIJ LUB NACIŚNIJ KLAWISZ, ABY POMINĄĆ ]"
     },
     "skills_editor": {
         "icon_aria": "Ikona kategorii {n}",
         "name_aria": "Nazwa kategorii {n}",
         "remove_category": "Usuń kategorię {n}",
-        "tech_aria": "Technologia {t} kategorii {n}",
+        "tech_aria": "Technologia {t} w kategorii {n}",
         "remove_tech": "Usuń technologię {t}",
         "add_tech": "+ Dodaj technologię",
         "add_category": "+ Dodaj kategorię",
         "drag_category": "Przeciągnij, aby zmienić kolejność kategorii",
         "drag_tech": "Przeciągnij, aby zmienić kolejność technologii",
         "icons": {
-            "hexagone_creux": "Pusty sześciokąt",
-            "hexagone_plein": "Pełny sześciokąt",
+            "hexagone_creux": "Sześciokąt pusty",
+            "hexagone_plein": "Sześciokąt pełny",
             "carre_pointe": "Kwadrat z kropką",
             "cible": "Cel",
-            "double_cercle": "Podwójne koło",
-            "cercle_croix": "Koło-krzyż",
-            "cercle_x": "Koło-X",
-            "cercle_point": "Koło-punkt",
-            "losange_plein": "Pełny romb",
-            "losange_creux": "Pusty romb",
+            "double_cercle": "Podwójny okrąg",
+            "cercle_croix": "Okrąg z krzyżem",
+            "cercle_x": "Okrąg z iksem",
+            "cercle_point": "Okrąg z kropką",
+            "losange_plein": "Romb pełny",
+            "losange_creux": "Romb pusty",
             "petit_losange": "Mały romb",
-            "triangle_plein": "Pełny trójkąt",
-            "triangle_creux": "Pusty trójkąt",
+            "triangle_plein": "Trójkąt pełny",
+            "triangle_creux": "Trójkąt pusty",
             "delta": "Delta",
-            "etoile_4": "Gwiazda 4-ramionowa",
-            "etoile_creuse": "Pusta gwiazda",
+            "etoile_4": "Gwiazda 4-ramienna",
+            "etoile_creuse": "Gwiazda pusta",
             "etoile_apl": "Gwiazda APL",
             "etoile_operateur": "Gwiazda operator",
             "hexagone_apl": "Sześciokąt APL",
             "anneau_benzene": "Pierścień benzenowy",
-            "marqueur_terminal": "Znacznik terminalowy",
-            "therefore": "Therefore",
-            "reference": "Odniesienie",
-            "trigramme": "Trygram",
-            "engrenage": "Koło zębate",
+            "marqueur_terminal": "Znacznik terminala",
+            "therefore": "Dlatego",
+            "reference": "Odwołanie",
+            "trigramme": "Trigram",
+            "engrenage": "Przekładnia",
             "eclair": "Błyskawica",
             "chevron": "Szewron",
             "double_chevron": "Podwójny szewron"

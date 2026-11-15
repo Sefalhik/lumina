@@ -2,13 +2,13 @@
 
 return [
     'title' => 'Baile',
-    'cta_projects' => 'Féach ar mo thionscadal',
+    'cta_projects' => 'Féach ar mo thionscadail',
     'cta_cv' => 'Mo CV',
-    'about_heading' => 'Maidir Linn',
-    'skills_heading' => 'Stack & expertise',
-    'fallback_tagline' => 'Tosú ar siúl',
+    'about_heading' => 'Faoi',
+    'skills_heading' => 'Stack & saineolas',
+    'fallback_tagline' => 'Ag tosú',
     'fallback_subtitle' => 'Ábhar á lódáil',
-    'fallback_bio' => 'Níl an t-ábhar ar an leathanach seo tosaithe fós.',
+    'fallback_bio' => 'Níl ábhar an leathanaigh seo tosaithe fós.',
     'fallback_skills' => [
         '0' => [
             'icon' => '⬡',

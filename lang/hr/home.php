@@ -3,9 +3,9 @@
 return [
     'title' => 'Početna',
     'cta_projects' => 'Pogledaj moje projekte',
-    'cta_cv' => 'Moj CV',
-    'about_heading' => 'O nama',
-    'skills_heading' => 'Stack & expertise',
+    'cta_cv' => 'Moj životopis',
+    'about_heading' => 'O meni',
+    'skills_heading' => 'Stack i stručnost',
     'fallback_tagline' => 'Inicijalizacija u tijeku',
     'fallback_subtitle' => 'Sadržaj se učitava',
     'fallback_bio' => 'Sadržaj ove stranice još nije inicijaliziran.',
@@ -27,8 +27,8 @@ return [
         ],
         '3' => [
             'icon' => '◈',
-            'tech' => 'Architecture',
-            'category' => 'Design',
+            'tech' => 'Arhitektura',
+            'category' => 'Dizajn',
         ],
     ],
 ];

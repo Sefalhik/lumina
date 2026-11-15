@@ -8,8 +8,13 @@ use App\Console\Commands\CmsTranslate;
 use App\Models\Contracts\TranslatableContent;
 use App\Models\Experience;
 use App\Models\HomepageContent;
+use App\Services\Translation\TextFormat;
+use App\Services\Translation\TranslationContext;
+use App\Services\Translation\TranslationPrompt;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Translatable\HasTranslations;
@@ -35,7 +40,6 @@ class CmsTranslateTest extends TestCase
             'i18n.native_names' => ['fr' => 'Français', 'de' => 'Deutsch', 'en' => 'English'],
             'i18n.cms_models' => [HomepageContent::class],
             'services.anthropic.api_key' => 'test-key',
-            'services.anthropic.model' => 'claude-haiku-4-5-20251001',
         ]);
     }
 
@@ -45,14 +49,14 @@ class CmsTranslateTest extends TestCase
     {
         config(['services.anthropic.api_key' => null]);
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])
             ->expectsOutputToContain('ANTHROPIC_API_KEY')
             ->assertFailed();
     }
 
     public function test_fails_for_unsupported_locale(): void
     {
-        $this->artisan('cms:translate', ['--locale' => 'xx'])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'xx'])
             ->expectsOutputToContain("'xx' is not in the supported locales list")
             ->assertFailed();
     }
@@ -61,7 +65,7 @@ class CmsTranslateTest extends TestCase
     {
         Http::fake();
 
-        $this->artisan('cms:translate', ['--locale' => 'fr'])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'fr'])
             ->expectsOutputToContain('French is the source of truth')
             ->assertSuccessful();
 
@@ -73,7 +77,7 @@ class CmsTranslateTest extends TestCase
         config(['i18n.cms_models' => ['App\\Models\\NonExistentModel']]);
         Http::fake();
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])
             ->expectsOutputToContain('is not a model implementing TranslatableContent')
             ->assertFailed();
 
@@ -86,7 +90,7 @@ class CmsTranslateTest extends TestCase
 
         Http::fake();
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])
             ->expectsOutputToContain('No CMS models')
             ->doesntExpectOutputToContain('All CMS translations completed')
             ->assertSuccessful();
@@ -100,7 +104,7 @@ class CmsTranslateTest extends TestCase
     {
         config(['services.anthropic.api_key' => null]);
 
-        $this->artisan('cms:translate', ['--locale' => 'de', '--dry-run' => true])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de', '--dry-run' => true])
             ->assertSuccessful();
     }
 
@@ -109,7 +113,7 @@ class CmsTranslateTest extends TestCase
         HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
         Http::fake();
 
-        $this->artisan('cms:translate', ['--locale' => 'de', '--dry-run' => true])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de', '--dry-run' => true])
             ->assertSuccessful();
 
         Http::assertNothingSent();
@@ -120,7 +124,7 @@ class CmsTranslateTest extends TestCase
         $content = HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
         Http::fake();
 
-        $this->artisan('cms:translate', ['--locale' => 'de', '--dry-run' => true]);
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de', '--dry-run' => true]);
 
         $content->refresh();
         $this->assertEmpty($content->getTranslation('tagline', 'de', false));
@@ -132,7 +136,7 @@ class CmsTranslateTest extends TestCase
     {
         Http::fake();
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])
             ->expectsOutputToContain('no records found')
             ->assertSuccessful();
 
@@ -156,13 +160,26 @@ class CmsTranslateTest extends TestCase
             ),
         ]);
 
-        $this->artisan('cms:translate', ['--locale' => 'de', '--force' => true])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de', '--force' => true])
             ->assertSuccessful();
 
         $content = HomepageContent::firstOrFail();
         $this->assertSame('Mein Slogan', $content->getTranslation('tagline', 'de', false));
         $this->assertSame('Mein Untertitel', $content->getTranslation('subtitle', 'de', false));
         $this->assertSame('Meine Bio', $content->getTranslation('bio', 'de', false));
+    }
+
+    public function test_the_content_is_sent_with_the_prose_prompt_and_no_format_syntax(): void
+    {
+        HomepageContent::create(['tagline' => ['fr' => 'Mon accroche'], 'subtitle' => ['fr' => 'Mon sous-titre'], 'bio' => ['fr' => 'Ma bio']]);
+        $this->fakeTranslations();
+
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])->assertSuccessful();
+
+        $prompt = new TranslationPrompt(resource_path('prompts/translation'), config('i18n.translation_languages'), config('i18n.glossary'));
+        Http::assertSentCount(1);
+        Http::assertSent(fn (Request $request) => $request['system'] === $prompt->system(TranslationContext::Prose, TextFormat::Plain, 'de')
+            && $request['model'] === config('i18n.translation.prose.model'));
     }
 
     public function test_translates_to_all_non_fr_locales_when_no_option_given(): void
@@ -179,7 +196,7 @@ class CmsTranslateTest extends TestCase
                 ->push($this->apiResponse(['tagline' => 'EN tagline', 'subtitle' => 'EN subtitle', 'bio' => 'EN bio']), 200),
         ]);
 
-        $this->artisan('cms:translate', ['--force' => true])
+        $this->artisan('cms:translate', ['--yes' => true, '--force' => true])
             ->assertSuccessful();
 
         Http::assertSentCount(2);
@@ -201,7 +218,7 @@ class CmsTranslateTest extends TestCase
         ]);
         $this->fakeTranslations();
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])->assertSuccessful();
 
         Http::assertNothingSent();
         $this->assertFileExists($this->temporaryDirectory().'/cms-sources.json');
@@ -215,10 +232,10 @@ class CmsTranslateTest extends TestCase
             'bio' => ['fr' => 'Bio', 'de' => 'Biografie'],
         ]);
         $this->fakeTranslations();
-        $this->artisan('cms:translate', ['--locale' => 'de'])->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])->assertSuccessful();
         $content->setTranslation('bio', 'fr', 'Nouvelle bio')->save();
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])->assertSuccessful();
 
         $this->assertSame(['de' => ['bio']], $this->sentKeysByLocale());
         $content->refresh();
@@ -226,14 +243,39 @@ class CmsTranslateTest extends TestCase
         $this->assertSame('Slogan', $content->getTranslation('tagline', 'de', false));
     }
 
+    public function test_a_locale_that_failed_on_a_changed_field_still_owes_it(): void
+    {
+        // The case that matters: the old translation is still there and the French moved on, so
+        // only the memory of the failure gets the field translated again — an empty field would be
+        // translated anyway, and prove nothing (LUMN-33, the same survivor as LUMN-110's).
+        $content = HomepageContent::create([
+            'tagline' => ['fr' => 'Accroche', 'de' => 'Slogan', 'en' => 'Tagline'],
+            'subtitle' => ['fr' => 'Sous-titre', 'de' => 'Untertitel', 'en' => 'Subtitle'],
+            'bio' => ['fr' => 'Bio', 'de' => 'Biografie', 'en' => 'Biography'],
+        ]);
+        $this->fakeTranslations();
+        $this->artisan('cms:translate', ['--yes' => true])->assertSuccessful();
+        $content->setTranslation('bio', 'fr', 'Nouvelle bio')->save();
+
+        $this->fakeTranslations(failing: ['de']);
+        $this->artisan('cms:translate', ['--yes' => true])->assertFailed();
+        $this->assertSame('Biografie', $content->refresh()->getTranslation('bio', 'de', false));
+
+        $this->fakeTranslations();
+        $this->artisan('cms:translate', ['--yes' => true])->assertSuccessful();
+
+        $this->assertSame(['de' => ['bio']], $this->sentKeysByLocale());
+        $this->assertSame('DE Nouvelle bio', $content->refresh()->getTranslation('bio', 'de', false));
+    }
+
     public function test_a_failed_locale_is_retried_alone_on_the_next_run(): void
     {
         HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
         $this->fakeTranslations(failing: ['de']);
-        $this->artisan('cms:translate')->assertFailed();
+        $this->artisan('cms:translate', ['--yes' => true])->assertFailed();
 
         $this->fakeTranslations();
-        $this->artisan('cms:translate')->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true])->assertSuccessful();
 
         $this->assertSame(['de' => ['tagline', 'subtitle', 'bio']], $this->sentKeysByLocale());
     }
@@ -246,12 +288,12 @@ class CmsTranslateTest extends TestCase
             'bio' => ['fr' => 'Bio', 'de' => 'Biografie', 'en' => 'Biography'],
         ]);
         $this->fakeTranslations();
-        $this->artisan('cms:translate')->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true])->assertSuccessful();
         $content->setTranslation('bio', 'fr', 'Nouvelle bio')->save();
-        $this->artisan('cms:translate', ['--locale' => 'de'])->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])->assertSuccessful();
 
         $this->fakeTranslations();
-        $this->artisan('cms:translate')->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true])->assertSuccessful();
 
         $this->assertSame(['en' => ['bio']], $this->sentKeysByLocale());
     }
@@ -265,17 +307,114 @@ class CmsTranslateTest extends TestCase
         ]);
         $this->fakeTranslations();
 
-        $this->artisan('cms:translate', ['--locale' => 'de', '--force' => true])->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de', '--force' => true])->assertSuccessful();
 
         $content->refresh();
         $this->assertSame('DE Accroche', $content->getTranslation('tagline', 'de', false));
+    }
+
+    // ── One question, priced, before anything is spent (criterion 9) ─────────
+
+    public function test_in_a_terminal_it_asks_once_and_translates_on_yes(): void
+    {
+        HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
+        $this->fakeTranslations();
+
+        $this->artisan('cms:translate', ['--locale' => 'de'])
+            ->expectsConfirmation('Translate these fields?', 'yes')
+            ->assertSuccessful();
+
+        $this->assertSame('DE Accroche', HomepageContent::firstOrFail()->getTranslation('tagline', 'de', false));
+    }
+
+    public function test_in_a_terminal_no_sends_nothing_writes_nothing_and_records_nothing(): void
+    {
+        HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
+        $this->fakeTranslations();
+
+        $this->artisan('cms:translate', ['--locale' => 'de'])
+            ->expectsConfirmation('Translate these fields?', 'no')
+            ->expectsOutputToContain('Nothing translated, nothing written.')
+            ->assertSuccessful();
+
+        Http::assertNothingSent();
+        $this->assertSame('', HomepageContent::firstOrFail()->getTranslation('tagline', 'de', false));
+        $this->assertFileDoesNotExist($this->temporaryDirectory().'/cms-sources.json');
+    }
+
+    public function test_outside_a_terminal_without_yes_it_stops_before_writing_and_says_why(): void
+    {
+        HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
+        $this->fakeTranslations();
+        $this->spyOnLogs();
+
+        $this->artisan('cms:translate', ['--locale' => 'de', '--no-interaction' => true])
+            ->expectsOutputToContain('Not run: outside a terminal, accept the plan with --yes.')
+            ->assertFailed();
+
+        Http::assertNothingSent();
+        $this->assertFileDoesNotExist($this->temporaryDirectory().'/cms-sources.json');
+        $this->assertLogged('warning', 'Translation command refused to run without consent', ['step' => 'refused_without_consent', 'command' => 'cms:translate', 'count' => 3]);
+        $this->assertNotLogged('info', 'cms:translate started');
+    }
+
+    public function test_nothing_to_translate_asks_nothing_and_still_records_the_sources(): void
+    {
+        HomepageContent::create(['tagline' => ['fr' => 'Accroche', 'de' => 'Slogan'], 'subtitle' => ['fr' => '', 'de' => ''], 'bio' => ['fr' => 'Bio', 'de' => 'Bio']]);
+        $this->fakeTranslations();
+
+        $this->artisan('cms:translate', ['--locale' => 'de', '--no-interaction' => true])
+            ->doesntExpectOutputToContain('API requests')
+            ->assertSuccessful();
+
+        Http::assertNothingSent();
+        $this->assertFileExists($this->temporaryDirectory().'/cms-sources.json');
+    }
+
+    public function test_the_run_is_priced_with_the_prose_model_and_never_the_interface_one(): void
+    {
+        HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
+        // The prose model is free here and the interface one ruinous: the wrong one cannot go unnoticed.
+        config([
+            'i18n.translation.prose.model' => 'prose-model',
+            'i18n.translation.prose.price' => [0, 0],
+            'i18n.translation.interface.model' => 'interface-model',
+            'i18n.translation.interface.price' => [1_000_000, 1_000_000],
+        ]);
+
+        $this->assertSame(0, Artisan::call('cms:translate', ['--dry-run' => true]));
+        $this->assertMatchesRegularExpression(
+            '/6 fields in 1 records: 2 API requests to prose-model, about \d+ input and \d+ output tokens, about \$0\.00\./',
+            Artisan::output(),
+        );
+    }
+
+    public function test_a_failure_names_the_record_and_the_locale(): void
+    {
+        $content = HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
+        $this->fakeTranslations(failing: ['de']);
+
+        $this->artisan('cms:translate', ['--yes' => true])
+            ->expectsOutputToContain("Translation failed for HomepageContent #{$content->id}, locale de")
+            ->assertFailed();
+
+        $this->assertSame('EN Accroche', $content->refresh()->getTranslation('tagline', 'en', false));
+    }
+
+    public function test_a_dry_run_with_a_refused_model_fails(): void
+    {
+        config(['i18n.cms_models' => [\stdClass::class, HomepageContent::class]]);
+
+        $this->artisan('cms:translate', ['--dry-run' => true])
+            ->expectsOutputToContain('stdClass is not a model implementing TranslatableContent.')
+            ->assertFailed();
     }
 
     public function test_a_dry_run_records_nothing(): void
     {
         HomepageContent::create(['tagline' => ['fr' => 'Accroche'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
 
-        $this->artisan('cms:translate', ['--dry-run' => true])->assertSuccessful();
+        $this->artisan('cms:translate', ['--yes' => true, '--dry-run' => true])->assertSuccessful();
 
         $this->assertFileDoesNotExist($this->temporaryDirectory().'/cms-sources.json');
     }
@@ -296,7 +435,7 @@ class CmsTranslateTest extends TestCase
             ], 429),
         ]);
 
-        $this->artisan('cms:translate', ['--locale' => 'de', '--force' => true])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de', '--force' => true])
             ->expectsOutputToContain('Translation failed')
             ->assertFailed();
     }
@@ -317,7 +456,7 @@ class CmsTranslateTest extends TestCase
             ),
         ]);
 
-        $this->artisan('cms:translate', ['--locale' => 'de', '--force' => true])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de', '--force' => true])
             ->expectsOutputToContain('Translation failed')
             ->assertFailed();
     }
@@ -328,7 +467,8 @@ class CmsTranslateTest extends TestCase
     {
         $content = HomepageContent::create(['tagline' => ['fr' => 'Accroche', 'de' => 'Slogan'], 'subtitle' => ['fr' => 'Sous-titre'], 'bio' => ['fr' => 'Bio']]);
 
-        $this->artisan('cms:translate', ['--dry-run' => true])
+        $this->artisan('cms:translate', ['--yes' => true, '--dry-run' => true])
+            ->expectsOutputToContain('Target locales : de, en')
             ->expectsOutputToContain('HomepageContent #'.$content->id)
             ->expectsOutputToContain('de 2 to translate')
             ->expectsOutputToContain('en 3 to translate')
@@ -341,7 +481,7 @@ class CmsTranslateTest extends TestCase
         $this->spyOnLogs();
         $this->fakeTranslations();
 
-        $this->artisan('cms:translate')
+        $this->artisan('cms:translate', ['--yes' => true])
             ->expectsOutputToContain('All CMS translations completed.')
             ->assertSuccessful();
 
@@ -355,7 +495,7 @@ class CmsTranslateTest extends TestCase
         $this->spyOnLogs();
         $this->fakeTranslations(failing: ['de']);
 
-        $this->artisan('cms:translate')
+        $this->artisan('cms:translate', ['--yes' => true])
             ->expectsOutputToContain('Completed with errors')
             ->doesntExpectOutputToContain('All CMS translations completed.')
             ->assertFailed();
@@ -377,7 +517,7 @@ class CmsTranslateTest extends TestCase
             ->push(['error' => ['message' => 'overloaded']], 529)
             ->push($this->apiResponse(['tagline' => 'Zwei', 'subtitle' => 'Zwei', 'bio' => 'Bio']))]);
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])->assertFailed();
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])->assertFailed();
     }
 
     public function test_one_model_failing_fails_the_run_even_when_a_later_one_succeeds(): void
@@ -389,7 +529,7 @@ class CmsTranslateTest extends TestCase
             ->push(['error' => ['message' => 'overloaded']], 529)
             ->push($this->apiResponse(['description' => 'Wartung', 'achievements' => 'Züge']))]);
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])->assertFailed();
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])->assertFailed();
 
         $this->assertSame('Wartung', Experience::firstOrFail()->getTranslation('description', 'de', false));
     }
@@ -406,7 +546,7 @@ class CmsTranslateTest extends TestCase
             config(['i18n.cms_models' => [UntranslatedModel::class]]);
             $this->fakeTranslations();
 
-            $this->artisan('cms:translate', ['--locale' => 'de'])->assertSuccessful();
+            $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])->assertSuccessful();
 
             Http::assertNothingSent();
         } finally {
@@ -419,7 +559,7 @@ class CmsTranslateTest extends TestCase
         config(['i18n.cms_models' => [NotAModel::class]]);
         $this->fakeTranslations();
 
-        $this->artisan('cms:translate', ['--locale' => 'de'])
+        $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de'])
             ->expectsOutputToContain('is not a model implementing TranslatableContent')
             ->assertFailed();
     }
@@ -442,7 +582,7 @@ class CmsTranslateTest extends TestCase
             // Before LUMN-110 it was translated, billed, and the translation thrown away.
             $this->spyOnLogs();
 
-            $this->artisan('cms:translate', ['--locale' => 'de', '--force' => true])
+            $this->artisan('cms:translate', ['--yes' => true, '--locale' => 'de', '--force' => true])
                 ->expectsOutputToContain('is not a model implementing TranslatableContent')
                 ->assertFailed();
 

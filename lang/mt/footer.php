@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'social_aria' => 'Profil :network (finestra ġdida)',
-    'email_aria' => 'Ibgħat email għal :email',
-    'contact_label' => 'Kontatt',
+    'social_aria' => 'Profil :network (tieqa ġdida)',
+    'email_aria' => 'Ibgħat e-mail lil :email',
+    'contact_label' => 'Kuntatt',
 ];

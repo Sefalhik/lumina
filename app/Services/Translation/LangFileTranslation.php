@@ -60,6 +60,24 @@ final class LangFileTranslation
     }
 
     /**
+     * What running the plan would send, with the interface model.
+     */
+    public function estimate(TranslationPlan $plan): TranslationEstimate
+    {
+        $estimate = new TranslationEstimate;
+        foreach ($plan->tasks as $task) {
+            $estimate = $estimate->plus($this->translator->estimate($task->strings(), $task->locale, TranslationContext::Interface, $task->source->textFormat()));
+        }
+
+        return $estimate;
+    }
+
+    public function model(): string
+    {
+        return $this->translator->model(TranslationContext::Interface);
+    }
+
+    /**
      * Runs a plan, then records in the registry what each locale received and what it still owes.
      *
      * @param  list<string>  $allLocales  every target locale, not only this run's
@@ -117,7 +135,12 @@ final class LangFileTranslation
             'locale' => $task->locale,
         ];
 
-        $translated = $task->keys === [] ? [] : $this->translator->translate($task->strings(), $task->locale);
+        $translated = $task->keys === [] ? [] : $this->translator->translate(
+            $task->strings(),
+            $task->locale,
+            TranslationContext::Interface,
+            $task->source->textFormat(),
+        );
         if ($translated === null) {
             Log::error('Translation of a target file failed', $ctx + ['step' => 'translate_failed', 'key_count' => count($task->keys)]);
 

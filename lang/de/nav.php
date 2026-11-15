@@ -7,6 +7,6 @@ return [
     'blog' => 'Blog',
     'main_label' => 'Hauptnavigation',
     'menu' => 'Menü',
-    'admin_panel' => 'Verwaltungsbereich',
+    'admin_panel' => 'Administrationsbereich',
     'logout' => 'Abmelden',
 ];

@@ -1,25 +1,25 @@
 {
     "language_switcher": {
-        "aria_label": "Promjena jezika",
+        "aria_label": "Promijeni jezik",
         "filter_placeholder": "Filtriraj…",
-        "filter_aria_label": "Pretraži jezik",
+        "filter_aria_label": "Pretraži jezike",
         "no_results": "Nema rezultata"
     },
     "theme_switcher": {
-        "aria_label": "Promjena teme",
+        "aria_label": "Promijeni temu",
         "current_aria": "Trenutna tema: {theme}",
         "themes": {
             "sprawl": {
                 "label": "Sprawl",
-                "hint": "Cyberpunk terminal"
+                "hint": "Kiberpunk terminal"
             },
             "steampunk": {
                 "label": "Steam",
-                "hint": "Bakar & viktorijanski"
+                "hint": "Bakar i viktorijansko doba"
             },
             "neon-noir": {
                 "label": "Neon Noir",
-                "hint": "Kiša & neonska svjetla"
+                "hint": "Kiša i neon"
             }
         }
     },
@@ -29,47 +29,47 @@
         "off": "isključene"
     },
     "boot": {
-        "skip": "[ KLIKNITE ILI PRITISNITE TIPKU ZA PRESKAKANJE ]"
+        "skip": "[ KLIKNITE ILI PRITISNITE TIPKU ZA PRESKOK ]"
     },
     "skills_editor": {
         "icon_aria": "Ikona kategorije {n}",
         "name_aria": "Naziv kategorije {n}",
-        "remove_category": "Ukloniti kategoriju {n}",
+        "remove_category": "Ukloni kategoriju {n}",
         "tech_aria": "Tehnologija {t} kategorije {n}",
-        "remove_tech": "Ukloniti tehnologiju {t}",
+        "remove_tech": "Ukloni tehnologiju {t}",
         "add_tech": "+ Dodaj tehnologiju",
         "add_category": "+ Dodaj kategoriju",
-        "drag_category": "Povucite za ponovno uređivanje kategorije",
-        "drag_tech": "Povucite za ponovno uređivanje tehnologije",
+        "drag_category": "Povucite za promjenu redoslijeda kategorije",
+        "drag_tech": "Povucite za promjenu redoslijeda tehnologije",
         "icons": {
-            "hexagone_creux": "Šuplji šesterokut",
+            "hexagone_creux": "Šesterokut bez ispune",
             "hexagone_plein": "Puni šesterokut",
-            "carre_pointe": "Točkasti kvadrat",
-            "cible": "Cilj",
+            "carre_pointe": "Kvadrat s točkom",
+            "cible": "Meta",
             "double_cercle": "Dvostruki krug",
-            "cercle_croix": "Krug-križ",
-            "cercle_x": "Krug-X",
-            "cercle_point": "Krug-točka",
+            "cercle_croix": "Krug s križem",
+            "cercle_x": "Krug s X",
+            "cercle_point": "Krug s točkom",
             "losange_plein": "Puni romb",
-            "losange_creux": "Šuplji romb",
+            "losange_creux": "Romb bez ispune",
             "petit_losange": "Mali romb",
             "triangle_plein": "Puni trokut",
-            "triangle_creux": "Šuplji trokut",
+            "triangle_creux": "Trokut bez ispune",
             "delta": "Delta",
-            "etoile_4": "Zvijezda s 4 grana",
-            "etoile_creuse": "Šuplja zvijezda",
+            "etoile_4": "Zvijezda s 4 kraka",
+            "etoile_creuse": "Zvijezda bez ispune",
             "etoile_apl": "APL zvijezda",
             "etoile_operateur": "Zvijezda operatora",
             "hexagone_apl": "APL šesterokut",
-            "anneau_benzene": "Benzenski prsten",
-            "marqueur_terminal": "Marker terminala",
+            "anneau_benzene": "Benzenov prsten",
+            "marqueur_terminal": "Oznaka terminala",
             "therefore": "Therefore",
             "reference": "Referenca",
             "trigramme": "Trigram",
             "engrenage": "Zupčanik",
             "eclair": "Munja",
-            "chevron": "Ševron",
-            "double_chevron": "Dvostruki ševron"
+            "chevron": "Strelica",
+            "double_chevron": "Dvostruka strelica"
         }
     }
 }

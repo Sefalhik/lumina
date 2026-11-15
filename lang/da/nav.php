@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'home' => 'Hjem',
+    'home' => 'Forside',
     'cv' => 'CV',
     'projects' => 'Projekter',
     'blog' => 'Blog',

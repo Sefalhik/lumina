@@ -77,12 +77,11 @@ the application's job, not the database's.
 
 ## The application's own settings, the same everywhere
 
-These are this project's knobs rather than the framework's. None is secret, and none differs between
-environments — a value that never varies has no business being decided per environment.
-
-| Variable | Default | What it does |
-|---|---|---|
-| `ANTHROPIC_MODEL` | `claude-haiku-4-5-20251001` | Model used by `i18n:translate` and `cms:translate`. Only ever read on a developer's machine, like the key beside it |
+These would be this project's knobs rather than the framework's: none secret, none differing between
+environments. **There is none left**, and that is the rule this section states — a value that never
+varies has no business being decided per environment. The last one, `ANTHROPIC_MODEL`, went to
+`config/i18n.php` with LUMN-33: the translation models are chosen by a measure, one per kind of
+text, and that choice belongs to the repository — [Two trades, two prompts, two models](i18n.md#two-trades-two-prompts-two-models).
 
 ## Left at Laravel's default, on purpose
 
