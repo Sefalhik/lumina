@@ -157,6 +157,7 @@ npm run test:e2e:ui             # Playwright — interactive UI mode
 composer test                   # Full test suite (Unit + Feature)
 composer test:unit              # Unit suite only
 composer test:coverage          # Unit suite + line coverage enforcement (≥ 80%)
+# Branch coverage, on demand with Xdebug: docs/testing-conventions.md, "Branches — Xdebug, on demand"
 ```
 
 The pre-commit hook (Husky + lint-staged) runs lint-staged, JS coverage, and PHP coverage
