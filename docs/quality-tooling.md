@@ -115,20 +115,20 @@ largest value the code had on 2026-11-14: a ratchet, like the 400-line ceiling o
 same failure output. Cognitive complexity measures how hard code is to *follow* — nesting, breaks
 in the flow — and ignores comments and blank lines.
 
-| Measure, `app/` | Largest on 2026-11-14 | Threshold |
-|---|---|---|
-| One method | 14 (`SecurityHeaders::validated()`) | **15** |
-| One class (sum of its methods) | 37 (`CmsTranslate`) | **40** |
+| Measure, `app/` | Largest on 2026-11-14 | Largest on 2026-11-15, after LUMN-110 | Threshold |
+|---|---|---|---|
+| One method | 14 (`SecurityHeaders::validated()`) | 14, the same | **15** |
+| One class (sum of its methods) | 37 (`CmsTranslate`) | 34 (`SecurityHeaders`) — `CmsTranslate` down to 29 | **40** |
 
 **PHPMD was measured too, and set aside.** It counts length in lines, comments included:
 `TranslationCache` came out at 385 lines, next to the real outlier, because it is documented. In a
 repository that documents its code at length, a length threshold would push to delete
 explanations.
 
-**One exception, dated and named.** `I18nTranslate` measures 29 for `translatePhpFiles()` and 62
-for the class — far above everything else. LUMN-110 rewrites that command next, and must remove the
-two `ignoreErrors` entries of `phpstan.neon`: one of its acceptance criteria. Each entry matches
-once, and only in that file: a second excess anywhere fails the analysis.
+**No exception.** `I18nTranslate` measured 29 for `translatePhpFiles()` and 62 for the class, far
+above everything else, and sat in `phpstan.neon` as the one dated exception. LUMN-110 rewrote it on
+2026-11-15: its logic moved into `app/Services/Translation/`, the command now measures 28, and the
+two `ignoreErrors` entries are gone. `ComplexityThresholdsTest` fails the day one comes back.
 
 **`tests/` is not held to it yet.** Three test methods measure 17 to 21, and
 `DocumentationIndexTest` 85 as a class: it carries a real Markdown link resolver. That is logic

@@ -13,7 +13,8 @@ use Tests\TestCase;
  * extension is loaded, so a lost include fails here too.
  *
  * Not the rule itself: it is the extension's, tested by its maintainers. What is tested is that it
- * is plugged in, at the measured thresholds, with its one dated exception and no other.
+ * is plugged in, at the measured thresholds, and that nothing escapes them: the one dated exception,
+ * I18nTranslate, went with its rewrite (LUMN-110).
  */
 class ComplexityThresholdsTest extends TestCase
 {
@@ -46,19 +47,8 @@ class ComplexityThresholdsTest extends TestCase
         $this->assertSame(['class' => 40, 'function' => 15], $this->parameters()['cognitive_complexity'] ?? null);
     }
 
-    public function test_the_only_exception_is_i18n_translate_once_per_rule_until_lumn_110(): void
+    public function test_no_code_is_exempted_from_the_thresholds(): void
     {
-        /** @var list<array{identifier?: string, path?: string, count?: int}> $ignored */
-        $ignored = $this->parameters()['ignoreErrors'];
-
-        $this->assertCount(2, $ignored);
-        $this->assertEqualsCanonicalizing(
-            ['complexity.functionLike', 'complexity.classLike'],
-            array_column($ignored, 'identifier'),
-        );
-        foreach ($ignored as $entry) {
-            $this->assertSame(base_path('app/Console/Commands/I18nTranslate.php'), $entry['path'] ?? null);
-            $this->assertSame(1, $entry['count'] ?? null);
-        }
+        $this->assertSame([], $this->parameters()['ignoreErrors']);
     }
 }

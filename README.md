@@ -57,20 +57,22 @@ After editing content in the CMS, run `php artisan cms:translate` to propagate F
 Two Artisan commands translate content from French (source of truth) to all 23 other EU locales via the Anthropic API. Both require `ANTHROPIC_API_KEY` in `.env`.
 
 ```bash
-php artisan i18n:translate              # Translate lang/fr/*.php + resources/js/i18n/fr.json
+php artisan i18n:translate              # Translate lang/fr/*.php + resources/js/i18n/fr.json — shows the plan, asks once
 php artisan i18n:translate --locale=de  # Single locale
-php artisan i18n:translate --dry-run    # Preview without API calls or file writes
-php artisan i18n:translate --force      # Bypass checksum cache
+php artisan i18n:translate --dry-run    # The plan only: no API call, no file written
+php artisan i18n:translate --yes        # Accept the plan without asking — required outside a terminal
+php artisan i18n:translate --force      # Translate every key again, not only those that need it
 
-php artisan cms:translate               # Translate CMS DB content (HomepageContent…)
+php artisan cms:translate               # Translate CMS DB content (HomepageContent, Experience)
 php artisan cms:translate --locale=de   # Single locale
 php artisan cms:translate --dry-run     # Preview without API calls or DB writes
-php artisan cms:translate --force       # Bypass translation cache
+php artisan cms:translate --force       # Translate every field again
 ```
 
-Both commands use a two-level cache in `storage/app/i18n/` (gitignored):
-1. **File/value checksum** — skips files or DB fields that haven't changed since the last run
-2. **Per-key TTL cache** (6 months) — only sends new/changed keys to the API
+Only what needs it is translated: a missing key, a key whose French changed, or one a failed run
+left owed. The translations in the repository — and, for CMS content, in the database — are the
+reference: nothing expires, and a correction made by hand survives. Details, and the registry
+`lang/.translation-sources.json` to commit with the files: [docs/i18n.md](docs/i18n.md).
 
 The list of CMS models to translate is declared in `config/i18n.php` under `cms_models`.
 

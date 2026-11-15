@@ -4,54 +4,45 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Contracts\TranslatableContent;
 use App\Services\AnthropicTranslator;
-use App\Services\TranslationCache;
+use App\Services\Translation\TranslationPlanner;
+use App\Services\Translation\TranslationSources;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Translates the French of every CMS record into the other locales — the fields that need it and
+ * no others (LUMN-110).
+ *
+ * **The database is the reference**, as the files are for `i18n:translate`: a field is translated
+ * when its translation is missing, its French changed, or a previous run failed for it — never
+ * because of its age. The same {@see TranslationPlanner} decides it, from a registry kept beside
+ * the local database.
+ */
 class CmsTranslate extends Command
 {
     protected $signature = 'cms:translate
                             {--locale= : Target locale (default: all non-French EU locales)}
-                            {--force   : Bypass cache and retranslate all fields}
+                            {--force   : Translate every field again, not only those that need it}
                             {--dry-run : Show what would be translated without writing to DB}';
 
     protected $description = 'Translate CMS content from French (source of truth) to EU locales using the Anthropic API';
 
-    /** @var list<string> */
-    private array $targetLocales;
-
     public function __construct(
         private readonly AnthropicTranslator $translator,
-        private readonly TranslationCache $cache,
+        private readonly TranslationPlanner $planner,
+        private readonly TranslationSources $sources,
     ) {
         parent::__construct();
     }
 
     public function handle(): int
     {
-        $apiKey = (string) config('services.anthropic.api_key', '');
-        if (empty($apiKey) && ! $this->option('dry-run')) {
-            $this->error('ANTHROPIC_API_KEY is not set. Add it to your .env file.');
-
-            return self::FAILURE;
-        }
-
-        $allLocales = config('i18n.supported_locales', []);
-        $resolved = $this->resolveTargetLocales($allLocales);
-
-        if ($resolved === null) {
-            return self::FAILURE;
-        }
-
-        $this->targetLocales = $resolved;
-
-        if (empty($this->targetLocales)) {
-            $this->warn('No target locales to process.');
-
-            return self::SUCCESS;
+        $locales = $this->targetLocales();
+        if ($locales === null || $locales === []) {
+            return $locales === null ? self::FAILURE : self::SUCCESS;
         }
 
         /** @var list<class-string<Model>> $cmsModels */
@@ -63,225 +54,169 @@ class CmsTranslate extends Command
             return self::SUCCESS;
         }
 
-        $this->info('Source of truth: <fg=cyan>fr</> (French)');
-        $this->info('Target locales : <fg=cyan>'.implode(', ', $this->targetLocales).'</>');
-        $this->newLine();
+        $this->info('Target locales : <fg=cyan>'.implode(', ', $locales).'</>');
+        Log::info('cms:translate started', $this->logContext(__FUNCTION__, 'start', ['target_locales' => $locales, 'model_count' => count($cmsModels)]));
 
-        Log::info('cms:translate started', [
-            'service' => self::class,
-            'method' => 'handle',
-            'step' => 'start',
-            'target_locales' => $this->targetLocales,
-            'model_count' => count($cmsModels),
-            'dry_run' => (bool) $this->option('dry-run'),
-            'force' => (bool) $this->option('force'),
-        ]);
-
-        $exitCode = self::SUCCESS;
-
+        $succeeded = true;
         foreach ($cmsModels as $modelClass) {
-            if ($this->translateModel($modelClass) === self::FAILURE) {
-                $exitCode = self::FAILURE;
-            }
+            $succeeded = $this->translateModel($modelClass, $locales) && $succeeded;
         }
 
         $this->newLine();
-        $this->info($exitCode === self::SUCCESS ? 'All CMS translations completed.' : 'Completed with errors.');
+        $succeeded ? $this->info('All CMS translations completed.') : $this->error('Completed with errors: what failed is left to translate.');
+        Log::info('cms:translate completed', $this->logContext(__FUNCTION__, 'complete', ['success' => $succeeded]));
 
-        Log::info('cms:translate completed', [
-            'service' => self::class,
-            'method' => 'handle',
-            'step' => 'complete',
-            'success' => $exitCode === self::SUCCESS,
-        ]);
-
-        return $exitCode;
+        return $succeeded ? self::SUCCESS : self::FAILURE;
     }
 
     /**
-     * Returns null on validation error, empty array when intentionally skipped, list otherwise.
-     *
-     * @param  list<string>  $allLocales
-     * @return list<string>|null
+     * @return list<string>|null null when the run must not go further
      */
-    private function resolveTargetLocales(array $allLocales): ?array
+    private function targetLocales(): ?array
     {
+        if ((string) config('services.anthropic.api_key', '') === '' && ! $this->option('dry-run')) {
+            $this->error('ANTHROPIC_API_KEY is not set. Add it to your .env file.');
+
+            return null;
+        }
+
         $requested = $this->option('locale');
-        if ($requested !== null) {
-            if (! in_array($requested, $allLocales, true)) {
-                $this->error("Locale '{$requested}' is not in the supported locales list.");
+        if ($requested === 'fr') {
+            $this->warn('French is the source of truth — skipping.');
 
-                return null;
-            }
-            if ($requested === 'fr') {
-                $this->warn('French is the source of truth — skipping.');
-
-                return [];
-            }
-
-            return [$requested];
+            return [];
         }
 
-        return array_values(array_filter($allLocales, fn (string $l) => $l !== 'fr'));
+        if ($requested !== null && ! in_array($requested, $this->allTargetLocales(), true)) {
+            $this->error("Locale '{$requested}' is not in the supported locales list.");
+
+            return null;
+        }
+
+        return $requested === null ? $this->allTargetLocales() : [$requested];
     }
 
     /**
-     * @param  class-string<Model>  $modelClass
+     * @return list<string>
      */
-    private function translateModel(string $modelClass): int
+    private function allTargetLocales(): array
     {
-        if (! class_exists($modelClass)) {
-            $this->error("Model class {$modelClass} does not exist.");
-            Log::error('cms:translate model class not found', [
-                'service' => self::class,
-                'method' => 'translateModel',
-                'step' => 'class_not_found',
-                'model' => $modelClass,
-            ]);
+        /** @var list<string> $supported */
+        $supported = config('i18n.supported_locales', []);
 
-            return self::FAILURE;
+        return array_values(array_diff($supported, ['fr']));
+    }
+
+    /**
+     * @param  list<string>  $locales
+     */
+    private function translateModel(string $modelClass, array $locales): bool
+    {
+        if (! is_subclass_of($modelClass, Model::class) || ! is_subclass_of($modelClass, TranslatableContent::class)) {
+            // A model that cannot store a translation would be translated, billed, and thrown away.
+            $this->error("{$modelClass} is not a model implementing TranslatableContent.");
+            Log::error('cms:translate refused a model that cannot hold translations', $this->logContext(__FUNCTION__, 'not_translatable', ['model' => $modelClass]));
+
+            return false;
         }
 
-        $shortName = class_basename($modelClass);
-        /** @var Collection<int, Model&object{translatable: array<int, string>}> $records */
+        /** @var class-string<Model&TranslatableContent> $modelClass */
         $records = $modelClass::all();
-
         if ($records->isEmpty()) {
-            $this->line("  <fg=cyan>{$shortName}</> — no records found, skipping");
-            Log::info('cms:translate model has no records', [
-                'service' => self::class,
-                'method' => 'translateModel',
-                'step' => 'skip_empty',
-                'model' => $shortName,
-            ]);
-
-            return self::SUCCESS;
+            $this->line('  <fg=cyan>'.class_basename($modelClass).'</> — no records found, skipping');
         }
 
-        $exitCode = self::SUCCESS;
-
+        $succeeded = true;
         foreach ($records as $record) {
-            if ($this->translateRecord($record, $shortName) === self::FAILURE) {
-                $exitCode = self::FAILURE;
-            }
+            $succeeded = $this->translateRecord($record, $locales) && $succeeded;
         }
 
-        return $exitCode;
+        return $succeeded;
     }
 
     /**
-     * @param  Model&object{translatable: array<int, string>}  $record
+     * @param  list<string>  $locales
      */
-    private function translateRecord(Model $record, string $shortName): int
+    private function translateRecord(Model&TranslatableContent $record, array $locales): bool
     {
-        /** @var array<int, string> $translatableFields */
-        $translatableFields = $record->translatable ?? [];
-        $id = $record->getKey();
-        $cacheKey = 'cms_'.$shortName.'_'.$id;
+        $source = 'cms_'.class_basename($record).'_'.$record->getKey();
+        $french = $this->translations($record, 'fr');
+        $owed = [];
 
-        $frValues = [];
-        foreach ($translatableFields as $field) {
-            /** @var mixed $val */
-            $val = method_exists($record, 'getTranslation')
-                ? $record->getTranslation($field, 'fr', false)
-                : $record->getAttribute($field);
-            $frValues[$field] = is_string($val) ? $val : '';
-        }
-        $frValues = array_filter($frValues, fn (string $v) => $v !== '');
+        $this->line('  <fg=yellow>'.class_basename($record).' #'.$record->getKey().'</>');
 
-        $changedFields = $this->option('force')
-            ? $frValues
-            : $this->cache->getChangedCmsFields($cacheKey, $frValues);
-
-        $this->line("  <fg=yellow>{$shortName} #{$id}</>");
-
-        $exitCode = self::SUCCESS;
-
-        foreach ($this->targetLocales as $locale) {
-            if ($this->translateRecordForLocale($record, $frValues, $changedFields, $cacheKey, $locale) === self::FAILURE) {
-                $exitCode = self::FAILURE;
-            }
+        foreach ($locales as $locale) {
+            $owed[$locale] = $this->translateForLocale($record, $source, $french, $locale);
         }
 
         if (! $this->option('dry-run')) {
-            $this->cache->snapshotCmsRecord($cacheKey, $frValues);
+            $this->sources->record($source, $french, $owed, $this->allTargetLocales());
         }
 
-        return $exitCode;
+        return array_merge(...array_values($owed)) === [];
     }
 
     /**
-     * @param  Model&object{translatable: array<int, string>}  $record
-     * @param  array<string, string>  $frValues
-     * @param  array<string, string>  $changedFields
+     * @param  array<string, string>  $french
+     * @return list<string> the fields this locale still owes after the run
      */
-    private function translateRecordForLocale(
-        Model $record,
-        array $frValues,
-        array $changedFields,
-        string $cacheKey,
-        string $locale,
-    ): int {
-        $fieldKeys = array_keys($frValues);
-        $missingKeys = $this->cache->getMissingKeys($locale, $cacheKey, $fieldKeys);
-
-        $toTranslate = array_merge(
-            $changedFields,
-            array_intersect_key($frValues, array_flip($missingKeys)),
+    private function translateForLocale(Model&TranslatableContent $record, string $source, array $french, string $locale): array
+    {
+        $fields = $this->planner->keysToTranslate(
+            $french,
+            $this->sources->fingerprints($source),
+            $this->translations($record, $locale),
+            $this->sources->pending($source, $locale),
+            (bool) $this->option('force'),
         );
 
-        $this->line("    → <fg=green>{$locale}</>");
+        $this->line("    → <fg=green>{$locale}</> ".count($fields).' to translate');
 
-        if ($this->option('dry-run')) {
-            return self::SUCCESS;
+        if ($fields === [] || $this->option('dry-run')) {
+            return [];
         }
 
-        $logCtx = [
-            'service' => self::class,
-            'method' => 'translateRecordForLocale',
-            'model' => get_class($record),
-            'record_id' => $record->getKey(),
-            'locale' => $locale,
-            'cache_key' => $cacheKey,
-        ];
+        $translated = $this->translator->translate(array_intersect_key($french, array_flip($fields)), $locale);
+        if ($translated === null) {
+            $this->error("      Translation failed for locale {$locale}");
+            Log::error('cms:translate left a record untranslated', $this->logContext(__FUNCTION__, 'translate_failed', ['source' => $source, 'locale' => $locale]));
 
-        if (! empty($toTranslate)) {
-            $translated = $this->translator->translate($toTranslate, $locale);
-            if ($translated === null) {
-                $this->error("      Translation failed for locale {$locale}");
-                Log::error('cms:translate API call failed', $logCtx + ['step' => 'api_failure']);
-
-                return self::FAILURE;
-            }
-            $this->cache->putTranslations($locale, $cacheKey, $translated);
+            return $fields;
         }
 
-        $cached = $this->cache->getCachedTranslations($locale, $cacheKey, $fieldKeys);
-
-        if (count($cached) !== count($frValues)) {
-            $this->error("      Incomplete translation for locale {$locale}");
-            Log::error('cms:translate incomplete translation', $logCtx + [
-                'step' => 'incomplete',
-                'cached_count' => count($cached),
-                'expected_count' => count($frValues),
-            ]);
-
-            return self::FAILURE;
-        }
-
-        foreach ($cached as $field => $value) {
-            if (method_exists($record, 'setTranslation')) {
-                $record->setTranslation($field, $locale, $value);
-            }
+        foreach ($translated as $field => $value) {
+            $record->setTranslation($field, $locale, $value);
         }
         $record->save();
 
-        Log::info('cms:translate record translated', $logCtx + [
-            'step' => 'record_saved',
-            'field_count' => count($cached),
-            'api_called' => ! empty($toTranslate),
-        ]);
+        return [];
+    }
 
-        return self::SUCCESS;
+    /**
+     * The values of every translatable field, in one locale. An empty French value is the
+     * planner's to handle: it never sends one, and takes an empty translation of it as done.
+     *
+     * @return array<string, string>
+     */
+    private function translations(TranslatableContent $record, string $locale): array
+    {
+        $values = [];
+        foreach ($record->getTranslatableAttributes() as $field) {
+            $value = $record->getTranslation($field, $locale, false);
+            if (is_string($value)) {
+                $values[$field] = $value;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @param  array<string, mixed>  $extra
+     * @return array<string, mixed>
+     */
+    private function logContext(string $method, string $step, array $extra): array
+    {
+        return ['service' => self::class, 'method' => $method, 'step' => $step] + $extra;
     }
 }
