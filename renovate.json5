@@ -1,161 +1,76 @@
-// Renovate — dependency updates for Lumina (LUMN-21).
-// JSON5 rather than JSON so each decision carries its reason next to it.
-// Documentation: https://docs.renovatebot.com/configuration-options/
 {
-    $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-
-    extends: [
-        // Adds to config:recommended: action and Docker digest pinning, a 3-day release age on
-        // npm, weekly lockfile maintenance, abandoned-package warnings, config migration.
-        'config:best-practices',
-        // One PR per major version, never two majors bundled together.
-        ':separateMultipleMajorReleases',
-    ],
-
-    // config:best-practices pins devDependencies to exact versions. This project keeps every npm
-    // constraint on ^: the committed lockfile and `npm ci` already guarantee what gets installed.
-    ignorePresets: [':pinDevDependencies'],
-
-    timezone: 'Europe/Paris',
-    // Routine updates arrive on Mondays. The window is the whole day on purpose: the free hosted
-    // app visits an active repository every 4 hours and an inactive one once a day, at a time it
-    // chooses. A narrower window would be missed, and no PR would ever be opened.
-    // Vulnerability fixes ignore the schedule (see below).
-    schedule: ['* * * * 1'],
-    // :maintainLockFilesWeekly, from config:best-practices, opens a 4-hour window (0-4am): the
-    // same trap, so it gets the same day.
+    $schema: "https://docs.renovatebot.com/renovate-schema.json",
+    extends: ["config:best-practices", ":separateMultipleMajorReleases"],
+    ignorePresets: [":pinDevDependencies"],
+    timezone: "Europe/Paris",
+    schedule: ["* * * * 1"],
     lockFileMaintenance: {
-        schedule: ['* * * * 1'],
+        schedule: ["* * * * 1"],
     },
     prConcurrentLimit: 3,
     prHourlyLimit: 2,
-
-    // Both are Renovate 42 defaults, restated so the intent survives a change of default:
-    // a release with no publication date is treated as too young, and no branch is created
-    // before the release age is met.
-    minimumReleaseAgeBehaviour: 'timestamp-required',
-    internalChecksFilter: 'strict',
-
-    // npm 12 cannot rebuild package-lock.json without installing. With its default
-    // allow-remote=none, `npm install --package-lock-only` rejects a registry tarball as soon as
-    // a package declares bundleDependencies — @tailwindcss/oxide-wasm32-wasi here (npm/cli#9800).
-    // Renovate logs that at debug level, commits nothing and exits 0: no branch, no PR, no error.
-    // A full install is not affected, so Renovate is told to run one. Remove once #9800 is fixed;
-    // the first PR afterwards adds six bundled entries to the lockfile, which is expected.
+    minimumReleaseAgeBehaviour: "timestamp-required",
+    internalChecksFilter: "strict",
     skipInstalls: false,
-
-    // The repository .npmrc holds min-release-age for installs typed by hand. Renovate must not
-    // inherit it: npm would apply that delay to security fixes too, which Renovate deliberately
-    // exempts, and a fix published yesterday would fail to lock — silently, as above. Any string
-    // here replaces the repository file for Renovate's own npm runs (npmrcMerge is false by
-    // default), and Renovate keeps passing --before itself for routine updates.
-    // A setting added to .npmrc later, a registry for instance, has to be repeated here.
-    npmrc: '# Renovate ignores the repository .npmrc on purpose: see renovate.json5',
-
+    npmrc: "# Renovate ignores the repository .npmrc on purpose: see renovate.json5",
     packageRules: [
         {
-            description: 'npm routine updates: one grouped PR per week.',
-            matchManagers: ['npm'],
-            matchUpdateTypes: ['minor', 'patch'],
-            groupName: 'npm (minor and patch)',
+            description: "npm routine updates: one grouped PR per week.",
+            matchManagers: ["npm"],
+            matchUpdateTypes: ["minor", "patch"],
+            groupName: "npm (minor and patch)",
         },
         {
-            description: 'Composer routine updates: one grouped PR per week.',
-            matchManagers: ['composer'],
-            matchUpdateTypes: ['minor', 'patch'],
-            groupName: 'composer (minor and patch)',
+            description: "Composer routine updates: one grouped PR per week.",
+            matchManagers: ["composer"],
+            matchUpdateTypes: ["minor", "patch"],
+            groupName: "composer (minor and patch)",
         },
         {
-            // config:best-practices already sets this. It is restated because the delay was once
-            // documented as 14 days without anyone reading it in a job log. 14 days is what
-            // Renovate recommends for automerged updates, and nothing is automerged here.
-            // .npmrc carries the same number for installs typed by hand, and
-            // ReleaseAgeParityTest fails when the two disagree. Composer has no delay: Packagist
-            // exposes no publication date, so timestamp-required would hold every PHP update
-            // forever.
-            // github-tags is where actions come from. A compromised release of an action runs with
-            // access to the repository and its secrets, and CI cannot tell: only waiting can. For
-            // a tag Renovate reads the commit date, not the day the tag was pushed, and cannot see
-            // a tag that was moved — pinning by SHA is what covers that.
-            description: 'npm and GitHub Actions releases wait 3 days before being proposed.',
-            matchDatasources: ['npm', 'github-tags'],
-            minimumReleaseAge: '3 days',
+            description: "npm and GitHub Actions releases wait 3 days before being proposed.",
+            matchDatasources: ["npm", "github-tags"],
+            minimumReleaseAge: "3 days",
         },
         {
-            description: 'Majors call for a decision: held until approved from the Dependency Dashboard.',
-            matchUpdateTypes: ['major'],
+            description: "Majors call for a decision: held until approved from the Dependency Dashboard.",
+            matchUpdateTypes: ["major"],
             dependencyDashboardApproval: true,
         },
         {
-            // An action runs nowhere but in CI, and the pull request that updates it runs the new
-            // version: a breaking change is a red check before the merge. A major is therefore no
-            // more of a decision than a patch — LUMN-68 read the five that were pending and none
-            // changed anything here. What CI cannot see is a compromised release, which is what
-            // the release age above is for.
-            // This holds only while every action is exercised by a pull request. An action used by
-            // a deployment workflow alone would not be: narrow this rule the day one exists.
-            // deploy.yml (LUMN-50) uses no action at all, and deploy-workflow.test.js keeps it so.
-            // `action` leaves out the postgres service image and the Node version, which the next
-            // rule keeps disabled.
-            description: 'GitHub Actions: one grouped PR for every update, majors included, without approval.',
-            matchManagers: ['github-actions'],
-            matchDepTypes: ['action'],
-            groupName: 'github actions',
+            description: "GitHub Actions: one grouped PR for every update, majors included, without approval.",
+            matchManagers: ["github-actions"],
+            matchDepTypes: ["action"],
+            groupName: "github actions",
             dependencyDashboardApproval: false,
             separateMajorMinor: false,
             separateMultipleMajor: false,
         },
         {
-            // Renovate would move the CI alone to PostgreSQL 19, while the developer machine and
-            // alwaysdata stay behind: CI would then test a runtime production does not run.
-            // PostgreSQL has no LTS to wait for — each major is supported five years — and the
-            // version this project runs is the one of the latest Ubuntu LTS (LUMN-55): a decision,
-            // never a Renovate PR. Patches, minors and image digests still flow.
-            description: 'PostgreSQL majors in CI are coordinated changes, never a Renovate PR.',
-            matchManagers: ['github-actions'],
-            matchDepNames: ['postgres'],
-            matchUpdateTypes: ['major'],
+            description: "PostgreSQL majors in CI are coordinated changes, never a Renovate PR.",
+            matchManagers: ["github-actions"],
+            matchDepNames: ["postgres"],
+            matchUpdateTypes: ["major"],
             enabled: false,
         },
         {
-            // The Node version is written once, in .nvmrc: every setup-node step reads it with
-            // node-version-file, nvm reads it on the developer machine. Its majors are proposed
-            // once they reach LTS, and only then: Renovate's node versioning treats a major as
-            // unstable until its line is LTS, and ignoreUnstable keeps it out (LUMN-97). It is
-            // still a coordinated change — alwaysdata's panel, where `npm ci` and `npm run build`
-            // run on every deployment, follows by hand under a ticket. Hence approval, stated here
-            // even though the rule for every major already asks for it.
-            description: 'Node majors: on the Dependency Dashboard once they are LTS, held for approval.',
-            matchManagers: ['nvm'],
-            matchDepNames: ['node'],
-            matchUpdateTypes: ['major'],
+            description: "Node majors: on the Dependency Dashboard once they are LTS, held for approval.",
+            matchManagers: ["nvm"],
+            matchDepNames: ["node"],
+            matchUpdateTypes: ["major"],
             dependencyDashboardApproval: true,
         },
         {
-            // composer.json's "php" constraint is the runtime, not a library. ^8.5 already admits
-            // 8.6, so the default strategy proposes nothing today — but that is a side effect of the
-            // range strategy, not a guarantee. Moving PHP is a coordinated change across every
-            // environment, like the rule above.
-            description: 'The PHP runtime constraint is never a Renovate PR.',
-            matchManagers: ['composer'],
-            matchDepNames: ['php'],
+            description: "The PHP runtime constraint is never a Renovate PR.",
+            matchManagers: ["composer"],
+            matchDepNames: ["php"],
             enabled: false,
         },
     ],
-
-    // Security fixes bypass the release age and the schedule, and are raised at the next run — which
-    // an alert does not trigger (LUMN-85, docs/dependency-updates.md).
-    // Renovate learns of a flaw from an *open* Dependabot alert and nowhere else: an alert GitHub
-    // dismissed on its own, or never raised, produces no fix — LUMN-73 met both in one week.
     vulnerabilityAlerts: {
-        labels: ['security'],
-        schedule: ['at any time'],
+        labels: ["security"],
+        schedule: ["at any time"],
     },
-
-    // Lists the known vulnerabilities on the Dependency Dashboard, read from OSV.dev rather than
-    // from GitHub's alerts: a second source, in the one place that is read every week.
-    // Two limits, both Renovate's own: direct dependencies only, and the option is experimental.
-    // An empty section therefore does not mean a clean tree — the two advisories of LUMN-73 were
-    // transitive and would not have appeared. scripts/audit-advisories.js is what covers the tree.
-    dependencyDashboardOSVVulnerabilitySummary: 'all',
+    dependencyDashboard: {
+        osvVulnerabilitySummary: "all",
+    },
 }
