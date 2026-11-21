@@ -30,7 +30,7 @@ class ComplexityThresholdsTest extends TestCase
 
         // The local .env points PHP_INI_SCAN_DIR at FrankenPHP's configuration, without phar: PHPStan,
         // a phar, would not start. Unset for this one process, PHP falls back on its own default —
-        // on a developer's machine and in CI alike (docs/quality-tooling.md, PHP_INI_SCAN_DIR).
+        // on a developer's machine and in CI alike (docs/quality/README.md, PHP_INI_SCAN_DIR).
         $result = Process::path(base_path())
             ->env(['PHP_INI_SCAN_DIR' => false])
             ->run(['vendor/bin/phpstan', 'dump-parameters', '-c', 'phpstan.neon', '--json']);

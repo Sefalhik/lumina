@@ -43,7 +43,7 @@ describe('the workflows', () => {
 describe('the documentation', () => {
     it('sends the alwaysdata panel to .nvmrc instead of naming a version', () => {
         // The one copy that cannot read the file: a person sets it by hand, from this row.
-        const row = read('docs/deployment.md')
+        const row = read('docs/deployment/server.md')
             .split('\n')
             .find((line) => line.startsWith('| Node.js |'));
 

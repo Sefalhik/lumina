@@ -31,7 +31,7 @@ Security — Dependency review
 (LUMN-65). It fails when the PR brings in a package with a known vulnerability of high severity or
 worse; a flaw already present is reported by Dependabot alerts instead. That split is deliberate:
 on 2026-10-03 an advisory with no fixed version would have blocked every merge had the gate been a
-plain `npm audit`. See [Known vulnerabilities](quality-tooling.md#known-vulnerabilities).
+plain `npm audit`. See [Known vulnerabilities](quality/ci-and-vulnerabilities.md#known-vulnerabilities).
 
 **A check can only be required once its job exists on `main`.** Requiring it earlier leaves every
 pull request opened before it waiting for a check its own workflow never runs. Merge the job first,
@@ -79,7 +79,7 @@ Amending a commit already on `main` is not an option here and never will be: the
 The rule binds work that has a ticket. Four kinds of pull request reach `main` without one, each on
 purpose:
 
-- **Routine Renovate updates** — see [Dependency updates](dependency-updates.md).
+- **Routine Renovate updates** — see [Dependency updates](dependencies/README.md).
 - **Session brain dumps**, when no ticket is in flight — see
   [Session brain dumps](#session-brain-dumps).
 - **Documentation-only changes**, since 2026-10-07: a pull request from a `docs/…` branch. A

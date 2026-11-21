@@ -15,7 +15,7 @@
 # The second is not a failure: nothing is wrong, the release is waiting its turn. It is applied to
 # every release, not to the latest alone (LUMN-98): when the latest is too young, the highest
 # version that is old enough is installed, as npm and Renovate do with the same delay.
-# See docs/dependency-updates.md, "The FrankenPHP binary".
+# See docs/dependencies/README.md, "The FrankenPHP binary".
 
 set -euo pipefail
 

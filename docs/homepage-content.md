@@ -28,7 +28,7 @@ Two traps this sequence exists to avoid:
   before the export, or the file freezes new French next to stale locales.
 - **`cms:translate` needs its registry on this machine.** Without one it adopts the translations it
   finds, stale ones included: run it once, before editing the French — see
-  [The trap of a machine without that registry](i18n.md#php-artisan-cmstranslate).
+  [The trap of a machine without that registry](i18n/translation.md#php-artisan-cmstranslate).
 
 ## `php artisan cms:export-seed`
 

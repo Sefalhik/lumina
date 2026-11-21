@@ -14,7 +14,7 @@ use RuntimeException;
  * target language, named with its variant ("British English"), and the glossary filled in.
  *
  * The prompts are files so that they read as text and change in a diff of their own; the bench of
- * docs/i18n.md reads the same files, and measures what ships.
+ * docs/i18n/README.md reads the same files, and measures what ships.
  */
 final readonly class TranslationPrompt
 {

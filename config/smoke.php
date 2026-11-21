@@ -5,7 +5,7 @@
 | Smoke tests — php artisan deploy:smoke (LUMN-49)
 |--------------------------------------------------------------------------
 |
-| See docs/smoke-tests.md. The credentials are those of the HTTP Basic
+| See docs/smoke-tests/README.md. The credentials are those of the HTTP Basic
 | authentication in front of preprod; production has none.
 |
 */

@@ -22,7 +22,7 @@ use Tests\TestCase;
  * `phpunit.xml`, a test that checks nothing, and has to fail. A twin that checks something has to
  * pass, so the failure cannot come from a run that breaks for another reason.
  *
- * @see docs/testing-conventions.md
+ * @see docs/testing/README.md
  */
 class RiskyTestsFailTest extends TestCase
 {

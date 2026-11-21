@@ -11,7 +11,7 @@ use Tests\TestCase;
 /**
  * /up has no rate limit, by decision (LUMN-92): it is the cheapest route of the site in database
  * queries, so a ceiling on it alone would protect nothing a loop on a page does not reach — see
- * docs/deployment.md, "What protects the site from a flood of requests".
+ * docs/deployment/README.md, "What protects the site from a flood of requests".
  *
  * That decision holds only while /up stays this cheap. Put it in the `web` group and it reads and
  * writes a session; give it a limiter counting in the default cache and it reads and writes that

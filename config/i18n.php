@@ -47,7 +47,7 @@ return [
     /*
     | The model and the effort for each kind of text (LUMN-33): interface labels
     | for `i18n:translate`, the author's prose for `cms:translate`. Chosen on a
-    | bench run on 2026-11-15 — protocol, results and reasons in docs/i18n.md. A
+    | bench run on 2026-11-15 — protocol, results and reasons in docs/i18n/README.md. A
     | model chosen by a measure is a decision of the project, not a setting of a
     | machine: it lives here, not in .env.
     |

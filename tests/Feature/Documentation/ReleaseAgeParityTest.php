@@ -12,7 +12,7 @@ use Tests\TestCase;
  * The npm release age is written in three files, and nothing but this test makes them agree.
  *
  * `renovate.json5` decides what Renovate proposes, `.npmrc` decides what an install typed by hand
- * resolves, and `docs/dependency-updates.md` tells a reader which number is in force. Renovate
+ * resolves, and `docs/dependencies/renovate.md` tells a reader which number is in force. Renovate
  * cannot read the delay from the package manager's configuration — its own documentation says so —
  * so the number cannot live in one place.
  *
@@ -24,7 +24,7 @@ use Tests\TestCase;
  * accept and refuse beyond it is pinned on fixed strings below (LUMN-149): a reformatting by
  * Renovate's own config migration once read as a removed override.
  *
- * @see docs/dependency-updates.md
+ * @see docs/dependencies/renovate.md
  */
 class ReleaseAgeParityTest extends TestCase
 {
@@ -35,20 +35,20 @@ class ReleaseAgeParityTest extends TestCase
             $this->daysInRenovate($this->read('renovate.json5')),
             "The npm release age differs between .npmrc and renovate.json5.\n".
             "  → One of them was changed alone. Decide which number is meant, write it in both,\n".
-            '    and in docs/dependency-updates.md.',
+            '    and in docs/dependencies/renovate.md.',
         );
     }
 
     public function test_the_document_quotes_both_settings_with_the_number_in_force(): void
     {
         $days = $this->daysInNpmrc();
-        $documentation = $this->read('docs/dependency-updates.md');
+        $documentation = $this->read('docs/dependencies/renovate.md');
 
         foreach (["`min-release-age={$days}`", "`minimumReleaseAge: '{$days} days'`"] as $setting) {
             $this->assertStringContainsString(
                 $setting,
                 $documentation,
-                "docs/dependency-updates.md does not quote {$setting}.\n".
+                "docs/dependencies/renovate.md does not quote {$setting}.\n".
                 '  → Its "Release age" section has to show both settings as they are configured.',
             );
         }

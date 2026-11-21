@@ -5,7 +5,7 @@
 //   node scripts/mutate-lines.js scripts/update-frankenphp.sh -- \
 //       npx vitest run scripts/__tests__/update-frankenphp.test.js --bail=1
 //
-// docs/testing-conventions.md asks that a test be trusted only once breaking the code has turned
+// docs/testing/README.md asks that a test be trusted only once breaking the code has turned
 // it red. Mutations chosen by hand are chosen by whoever wrote the tests, and share their blind
 // spots: on 2026-10-10, 97 of them left update-frankenphp.sh "fully tested" while 36 of its lines
 // could be deleted without a test failing. This pass chooses nothing. It is a floor, not a method:

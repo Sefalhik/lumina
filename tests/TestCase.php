@@ -18,7 +18,7 @@ abstract class TestCase extends BaseTestCase
         // through with withDeprecationHandling() in that test, and the reason in a comment.
         $this->withoutDeprecationHandling();
 
-        // No test reaches the network (docs/testing-conventions.md): a request no fake answers
+        // No test reaches the network (docs/testing/README.md): a request no fake answers
         // throws instead of leaving the machine. A test fakes what it calls; one that calls
         // nothing needs nothing.
         Http::preventStrayRequests();

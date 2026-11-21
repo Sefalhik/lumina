@@ -40,7 +40,7 @@ import {
 // a release made for the test, never run from this repository.
 const inRepository = (path) => fileURLToPath(new URL(`../../${path}`, import.meta.url));
 
-// What a deployment runs, in order. docs/deployment.md lists the same lines, and a test below
+// What a deployment runs, in order. docs/deployment/deploying.md lists the same lines, and a test below
 // keeps the two from drifting apart.
 const SEQUENCE = [
     'composer install --no-dev --optimize-autoloader --no-interaction',
@@ -243,13 +243,13 @@ describe('deploy.sh — the sequence', () => {
         expect(result.stdout).toContain(`Deployed ${NEW}`);
     });
 
-    it('is the sequence docs/deployment.md announces, line for line', () => {
-        const documentation = readFileSync(inRepository('docs/deployment.md'), 'utf8');
+    it('is the sequence docs/deployment/deploying.md announces, line for line', () => {
+        const documentation = readFileSync(inRepository('docs/deployment/deploying.md'), 'utf8');
         const listing = documentation.match(
             /^`scripts\/deploy\.sh` runs, in this order:\n\n```bash\n([\s\S]*?)\n```$/m,
         );
 
-        expect(listing, 'docs/deployment.md no longer lists what scripts/deploy.sh runs').not.toBeNull();
+        expect(listing, 'docs/deployment/deploying.md no longer lists what scripts/deploy.sh runs').not.toBeNull();
         expect(listing[1].split('\n')).toEqual(SEQUENCE);
     });
 

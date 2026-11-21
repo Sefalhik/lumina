@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  * On 2026-11-12 a line-deletion pass ran this file for real, through Playwright. Deleting the line
  * that passed the environment let `migrate:fresh --force` read .env, and wiped the developer's
  * database — while the suite stayed green. These tests are what notices that deletion now, and the
- * only place this file may be mutated (docs/testing-conventions.md, "The mechanical pass").
+ * only place this file may be mutated (docs/testing/README.md, "The mechanical pass").
  */
 vi.mock('child_process', () => ({ execFileSync: vi.fn() }));
 

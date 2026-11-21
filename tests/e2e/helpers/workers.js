@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url';
  * global-setup.js creates the databases from it, auth.setup.js and the fixtures read it.
  */
 
-/** Workers, servers and databases: always the same number. Chosen by measurement — see docs/testing-conventions.md. */
+/** Workers, servers and databases: always the same number. Chosen by measurement — see docs/testing/README.md. */
 export const E2E_WORKERS = 4;
 
 const FIRST_PORT = 8001;

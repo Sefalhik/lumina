@@ -28,13 +28,13 @@ the development server runs, and where the fonts come from.
 | `app/Console/Concerns/TranslatesFromFrench.php` | What `i18n:translate` and `cms:translate` share as commands: the locales of a run, and the one question asked before spending — the work itself is in their services |
 | `app/Console/Commands/CmsExportSeed.php` | Writes that file from the DB row; third step of the content pipeline |
 | `app/Services/AnthropicTranslator.php` | The Anthropic API call, shared by both translation commands: a system prompt and a model per context, every key or nothing, a translation that breaks its format refused |
-| `app/Services/Translation/` | `i18n:translate` and `cms:translate`'s logic (LUMN-110, LUMN-33): `TranslationPlanner` decides which keys need a translation, `TranslationSources` records which French each was made from, `LangFiles` reads and writes `lang/` and the islands' JSON, `LangFileTranslation` and `CmsTranslation` plan, price and apply a run of each command (`CmsPlan`, `CmsTask`, `CmsSource`, `TranslationEstimate`); `TranslationPrompt` builds the system prompt, `TranslationContext` (interface, prose), `TextFormat` (Laravel, vue-i18n, plain) and `TranslationModel` name what each request is — see [i18n](i18n.md#translation-commands--shared-infrastructure) |
-| `resources/prompts/translation/` | The translation prompts, as text: one per trade (`interface.md`, `prose.md`), one per file syntax (`formats/`), and the rules of every text (`rules.md`) — [Two trades, two prompts, two models](i18n.md#two-trades-two-prompts-two-models) |
+| `app/Services/Translation/` | `i18n:translate` and `cms:translate`'s logic (LUMN-110, LUMN-33): `TranslationPlanner` decides which keys need a translation, `TranslationSources` records which French each was made from, `LangFiles` reads and writes `lang/` and the islands' JSON, `LangFileTranslation` and `CmsTranslation` plan, price and apply a run of each command (`CmsPlan`, `CmsTask`, `CmsSource`, `TranslationEstimate`); `TranslationPrompt` builds the system prompt, `TranslationContext` (interface, prose), `TextFormat` (Laravel, vue-i18n, plain) and `TranslationModel` name what each request is — see [i18n](i18n/translation.md#translation-commands--shared-infrastructure) |
+| `resources/prompts/translation/` | The translation prompts, as text: one per trade (`interface.md`, `prose.md`), one per file syntax (`formats/`), and the rules of every text (`rules.md`) — [Two trades, two prompts, two models](i18n/translation.md#two-trades-two-prompts-two-models) |
 | `app/Models/Contracts/TranslatableContent.php` | What a model of `config('i18n.cms_models')` implements; `HasTranslations` fulfils it |
 | `lang/.translation-sources.json` | The committed registry of where each translation of `lang/` and the islands comes from |
 | `app/Services/Seo/LocalizedUrlService.php` | Canonical + `hreflang` alternate URLs — no Request dependency |
 | `app/Services/Http/SecurityHeaders.php` | Decides the security headers from the configuration and two facts of the request — HTTPS or not, the nonce. Refuses any value that would add a directive to a header (LUMN-37) |
-| `app/Services/Smoke/` | `deploy:smoke` — probes a deployed environment from the outside; see `docs/smoke-tests.md` |
+| `app/Services/Smoke/` | `deploy:smoke` — probes a deployed environment from the outside; see `docs/smoke-tests/README.md` |
 | `app/Services/SiteIdentityService.php` | Filters the `SiteIdentity` row into renderable links — footer and homepage hero today, `sameAs` next |
 | `app/Services/CvService.php` | **CV read side** — shapes `Experience` records into renderable rows. Takes a collection rather than querying, so it stays unit-testable without a database |
 | `app/Services/ExperienceService.php` | **CV write side** — applies a validated admin submission onto an `Experience` without saving. Reads `$translatable` from the model rather than repeating the list. Also shapes the admin index (`adminRows()`), borrowing `CvService::period()` so the period rule has one home |
@@ -55,10 +55,11 @@ the development server runs, and where the fonts come from.
 | `config/security-headers.php` | HSTS duration and the content security policy (LUMN-37) |
 | `lang/fr/` | PHP translation files — French source of truth for Blade `__()` |
 | `storage/app/i18n/` | `cms-sources.json`, the registry of where each CMS translation comes from, beside the local database it describes (gitignored) |
-| `docs/` | Technical documentation |
+| `docs/` | Technical documentation: `CLAUDE.md` is the map, `docs/rules/` the rules each loaded by Claude Code when a file of its domain is read or written, the rest the references — [Rules](rules/README.md) |
+| `.claude/rules/` | Symbolic links to the rules of `docs/rules/`, which Claude Code reads there — never copies; checked by `scripts/claude-rules.js` |
 | `docs/blog-prep/` | Session brain dumps — raw material for the blog, one file per session |
-| `renovate.json5` | Renovate configuration — see `docs/dependency-updates.md` |
-| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update, the deployment scripts `release.sh` → `deploy.sh`, `rollback.sh` and their SSH gate `deploy-gate.sh`, the probe of the key `check-deploy-key.sh`, `watch-switch.sh`, the theme contrast arithmetic `palette-contrast.js`, the RIPEstat check of the boot sequence's origins `verify-boot-origins.js`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
+| `renovate.json5` | Renovate configuration — see `docs/dependencies/README.md` |
+| `scripts/` | Dev tooling scripts (coverage check, audit, E2E preflight, advisory audit against `accepted-advisories.json`, verified FrankenPHP update, the deployment scripts `release.sh` → `deploy.sh`, `rollback.sh` and their SSH gate `deploy-gate.sh`, the probe of the key `check-deploy-key.sh`, `watch-switch.sh`, the theme contrast arithmetic `palette-contrast.js`, the RIPEstat check of the boot sequence's origins `verify-boot-origins.js`, the binding of Claude Code's rules `claude-rules.js`) — linted by ESLint, tested by Vitest in `scripts/__tests__/` |
 | `app/Enums/` | PHP backed enums — single source of truth for constrained value sets, optionally shared with JS via a `forJs()` method (e.g., `SkillIcon`) |
 | `app/Rules/` | Custom Laravel validation rules — framework-agnostic, fully unit-tested (e.g., `ValidSkillsJson`, `ProfileUrl`) |
 
@@ -93,7 +94,7 @@ project (LUMN-88).
 
 Worker mode keeps the application booted between requests: state kept in a static property or a
 singleton outlives the request that set it. Production does not run Octane — Apache serves PHP over
-FastCGI ([Deployment](deployment.md)) — so a bug of that kind shows in development only, and is
+FastCGI ([Deployment](deployment/README.md)) — so a bug of that kind shows in development only, and is
 still a bug.
 
 ## Fonts

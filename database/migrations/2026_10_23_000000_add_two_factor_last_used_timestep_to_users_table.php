@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
  * within its own window. Null means no code has been accepted yet.
  *
  * Nullable and unread by the release before it, so a rollback can still run against this schema
- * (docs/deployment.md, "Migrations run before the switch"). An integer holds the step comfortably:
+ * (docs/deployment/README.md, "Migrations run before the switch"). An integer holds the step comfortably:
  * Unix time divided by 30 stays under 2^31 for another two thousand years.
  */
 return new class extends Migration
