@@ -99,6 +99,31 @@ files, and `eslint-config.test.js` checks each side knows its own globals and no
 ### Pre-commit integration
 `lint-staged` runs `eslint` (check only, no `--fix`) after `prettier --write` on staged `.js` and `.vue` files. The commit is blocked if ESLint reports errors.
 
+## Linting — Stylelint
+
+Config file: `stylelint.config.mjs` — a module rather than JSON, so that each rule turned off carries
+its reason next to it (LUMN-152). Scope: `resources/css/**/*.scss`, through `npm run lint:scss`.
+
+**A rule is off only when it was measured to contradict Prettier**, which formats the SCSS on every
+commit (lint-staged). The fourteen formatting rules `stylelint-config-prettier-scss` turned off until
+LUMN-152 were measured one by one on 2026-11-21 — a breaking input, formatted, fixed, formatted again:
+
+| Verdict | Rules | Here |
+|---|---|---|
+| contradicts Prettier | `scss/operator-no-newline-after`: Prettier wraps a long expression after its operator | off |
+| checks what Prettier leaves as written | `at-rule-empty-line-before`, `scss/at-else-if-parentheses-space-before`, `scss/operator-no-unspaced` | on |
+| restates what Prettier writes | the ten others | on: they guard what reaches the repository without the hook |
+
+`no-descending-specificity` and `scss/no-global-function-names`, off since the first commit with no
+reason, are on; the code had nothing to fix. `custom-property-empty-line-before` stays off, for the
+blank line between the palette and the typography of each theme.
+
+`scripts/__tests__/stylelint-config.test.js` holds each of these claims on fixed SCSS: every quality
+rule refuses its defect, every formatting rule but one is on, the one that is off still contradicts
+Prettier — the day Prettier wraps differently, the test fails and the rule has no reason to stay off —
+and SCSS formatted by Prettier passes the whole configuration. One limit, the SCSS plugin's: a bare
+`@foo;`, without parameter or block, is not reported; `@foo bar;` and `@includ foo;` are.
+
 ## Formatting PHP — Pint
 
 `laravel/pint`, Laravel's preset, no `pint.json`. It was installed and run by **nobody** until

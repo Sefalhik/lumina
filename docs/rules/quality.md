@@ -4,7 +4,7 @@ paths:
   - "phpstan-tests.neon"
   - "phpstan-stubs.php"
   - "eslint.config.js"
-  - ".stylelintrc.json"
+  - "stylelint.config.mjs"
   - "scripts/check.sh"
   - "scripts/check-coverage.php"
   - "scripts/audit-advisories.js"
