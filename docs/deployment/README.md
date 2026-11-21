@@ -16,6 +16,7 @@ value *comes from*, so that a new environment can be rebuilt without hunting.
 | [deploying.md](deploying.md) | Deploying |
 | [candidates-and-switches.md](candidates-and-switches.md) | Candidates and switches |
 | [pipeline.md](pipeline.md) | The pipeline's access to the server |
+| [postgresql-version.md](postgresql-version.md) | The PostgreSQL version: production is the reference, and how a major changes |
 | [history.md](history.md) | What the first deployments taught |
 
 

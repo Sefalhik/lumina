@@ -24,7 +24,7 @@ from the Actions tab, or with `gh workflow run ci.yml --ref <branch>`.
 | `E2E — Playwright` | setup-php 8.5 + Node from `.nvmrc` → composer + npm install → `npm run build` → Playwright Chromium → key:generate → `npm run test:e2e` |
 | `Security — Dependency review` | pull requests only → fails when the PR introduces a package with a known vulnerability, severity high or worse |
 
-**PostgreSQL** : each PHP-dependent job spins up its own `postgres:16` service. The PHP job uses `cardascia_it_test`; the E2E job uses `cardascia_it_e2e`. The workflow sets `DB_PORT: 5432` which overrides the phpunit.xml default (5433).
+**PostgreSQL** : each PHP-dependent job spins up its own `postgres:18` service — the version production runs, see [The PostgreSQL version](../deployment/postgresql-version.md). The PHP job uses `cardascia_it_test`; the E2E job uses `cardascia_it_e2e`. The workflow sets `DB_PORT: 5432` which overrides the phpunit.xml default (5433).
 
 **`PHP_INI_SCAN_DIR`** : set to `/etc/php/8.5/cli/conf.d` in the PHP job env — same issue as local. GitHub Actions runners use Ubuntu with an APT PHP install (`conf.d` layout); PHPStan workers fail with `Class "Phar" not found` without this variable. Not needed in the E2E job (PHPStan doesn't run there).
 

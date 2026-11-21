@@ -6,7 +6,7 @@ Personal website and portfolio of **Laurent Bernard-Cardascia** — Lead Develop
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Laravel 13, PHP 8.5, PostgreSQL 16 |
+| Backend | Laravel 13, PHP 8.5, PostgreSQL 18 (production; 19 accepted on a developer machine) |
 | Server | FrankenPHP via Laravel Octane (worker mode) |
 | Auth | Laravel Sanctum (session-based) + TOTP 2FA enforced for admin |
 | Roles | `spatie/laravel-permission` — `admin`, `maintainer`, `member`, `public` |
@@ -18,7 +18,7 @@ Personal website and portfolio of **Laurent Bernard-Cardascia** — Lead Develop
 ## Requirements
 
 - PHP 8.5+
-- PostgreSQL 16 (local port: 5433)
+- PostgreSQL 18 or later (local port: 5433) — production runs 18
 - Node.js 24+ (`engines` in `package.json`)
 - [mkcert](https://github.com/FiloSottile/mkcert) for local HTTPS
 

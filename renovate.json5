@@ -106,11 +106,11 @@
             separateMultipleMajor: false,
         },
         {
-            // Renovate would move the CI alone to PostgreSQL 19, while the developer machine and
-            // alwaysdata stay behind: CI would then test a runtime production does not run.
-            // PostgreSQL has no LTS to wait for — each major is supported five years — and the
-            // version this project runs is the one of the latest Ubuntu LTS (LUMN-55): a decision,
-            // never a Renovate PR. Patches, minors and image digests still flow.
+            // Renovate would move the CI alone to PostgreSQL 19, while production stays on the
+            // version its host offers: CI would then test a runtime production does not run.
+            // The version this project runs is the one production runs, and production takes the
+            // latest major the host offers, under a ticket (LUMN-55): a decision, never a Renovate
+            // PR. Patches, minors and image digests still flow.
             description: 'PostgreSQL majors in CI are coordinated changes, never a Renovate PR.',
             matchManagers: ['github-actions'],
             matchDepNames: ['postgres'],
