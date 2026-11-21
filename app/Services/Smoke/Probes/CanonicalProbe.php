@@ -45,7 +45,7 @@ final class CanonicalProbe implements SmokeProbe
                 $this->id(),
                 $this->label(),
                 implode('; ', $wrong),
-                'Laravel builds absolute URLs from the request: check APP_URL, and that no proxy rewrites the scheme or the host (docs/deployment.md, trustProxies).',
+                'Laravel builds absolute URLs from the request: check APP_URL, and that no proxy rewrites the scheme or the host (docs/deployment/README.md, trustProxies).',
             );
     }
 }

@@ -45,7 +45,7 @@ its one-hour ceiling.
 **Why email + IP, and why that is enough here.** The caller is not identified yet, so there is no
 better key. On alwaysdata the IP is a real barrier: `mod_remoteip` sets `REMOTE_ADDR` upstream
 and no proxy is trusted, so a forged `X-Forwarded-For` changes nothing — see
-[`trustProxies` was configured, and had to be removed](deployment.md#trustproxies-was-configured-and-had-to-be-removed). `AuthThrottleTest` checks it, and fails the
+[`trustProxies` was configured, and had to be removed](deployment/history.md#trustproxies-was-configured-and-had-to-be-removed). `AuthThrottleTest` checks it, and fails the
 day `trustProxies` comes back. On another host, re-measure before relying on it.
 
 **Why a second counter on the email alone.** Guesses spread over many addresses never reach a
@@ -65,7 +65,7 @@ logs a `warning` (`login_throttled`, `two_factor_throttled`); the failure that s
 logs one `alert` (`login_lockout`, `two_factor_lockout`) — brute force is its likeliest reading.
 
 These limits cap attempts, not load: the health route `/up` has no ceiling, by decision —
-[What protects the site from a flood of requests](deployment.md#what-protects-the-site-from-a-flood-of-requests).
+[What protects the site from a flood of requests](deployment/environments.md#what-protects-the-site-from-a-flood-of-requests).
 
 ## A code is accepted once
 

@@ -17,7 +17,7 @@ use Tests\TestCase;
  * that call is removed, which nothing else would notice: a suite that sends real requests passes
  * as long as the services answer.
  *
- * @see docs/testing-conventions.md
+ * @see docs/testing/README.md
  */
 class StrayRequestsAreRefusedTest extends TestCase
 {

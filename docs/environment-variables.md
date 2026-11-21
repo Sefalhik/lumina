@@ -11,9 +11,9 @@ must **never** exist on a server — a group rather than a footnote.
 `tests/Feature/Documentation/EnvironmentVariablesTest.php` fails on a variable declared in
 `.env.example` and missing here, and on a credential carrying a value in the example file.
 
-Related: [Deployment](deployment.md) for the sequence and the server settings,
-[the preprod `.env` ready to fill](deployment.md#the-preprod-env-ready-to-fill), and
-[One driver everywhere](deployment.md#one-driver-everywhere) for why session, cache and queue are
+Related: [Deployment](deployment/README.md) for the sequence and the server settings,
+[the preprod `.env` ready to fill](deployment/environments.md#the-preprod-env-ready-to-fill), and
+[One driver everywhere](deployment/environments.md#one-driver-everywhere) for why session, cache and queue are
 the same in every environment that serves a browser.
 
 ## Decided per environment
@@ -25,7 +25,7 @@ the same in every environment that serves a browser.
 | `APP_URL` | the site's own https URL | Used by every generated absolute URL and by the sitemap |
 | `LOG_LEVEL` | `warning` | `debug` on a public site writes a lot, and writes things worth not writing |
 | `SESSION_DOMAIN` | the site's hostname | A mismatch here is a silent "login does nothing" |
-| `SESSION_SECURE_COOKIE` | `true` | The host sets `HTTPS=on` itself; no trusted proxy is needed — see [Traps](deployment.md#traps-this-file-exists-because-of) |
+| `SESSION_SECURE_COOKIE` | `true` | The host sets `HTTPS=on` itself; no trusted proxy is needed — see [Traps](deployment/history.md#traps-this-file-exists-because-of) |
 | `SITE_INDEXABLE` | absent, or `false` | Whether search engines may index the site: `false` sends `X-Robots-Tag: noindex, nofollow` on every response. **Absent or misspelt reads as `false`**, so preprod needs nothing. Production goes live without it too, and gets `true` the day its content deserves an index — one line, no deployment of code. Never deduced from `APP_ENV`. See [SEO conventions](seo-conventions.md#indexing-is-decided-by-one-variable) |
 
 > ⚠️ **`APP_ENV` must be `production` on every internet-facing host, preprod included.**
@@ -63,7 +63,7 @@ the application's job, not the database's.
 
 | Variable | Value | Why |
 |---|---|---|
-| `SESSION_DRIVER` | `database` | See [One driver everywhere](deployment.md#one-driver-everywhere) |
+| `SESSION_DRIVER` | `database` | See [One driver everywhere](deployment/environments.md#one-driver-everywhere) |
 | `CACHE_STORE` | `database` | Same |
 | `QUEUE_CONNECTION` | `sync` | There is not one job in this application |
 | `APP_MAINTENANCE_DRIVER` | `file` | Maintenance mode is often engaged *because* the database is unavailable. A maintenance page that needs the database to render is a maintenance page that will not render |
@@ -81,7 +81,7 @@ These would be this project's knobs rather than the framework's: none secret, no
 environments. **There is none left**, and that is the rule this section states — a value that never
 varies has no business being decided per environment. The last one, `ANTHROPIC_MODEL`, went to
 `config/i18n.php` with LUMN-33: the translation models are chosen by a measure, one per kind of
-text, and that choice belongs to the repository — [Two trades, two prompts, two models](i18n.md#two-trades-two-prompts-two-models).
+text, and that choice belongs to the repository — [Two trades, two prompts, two models](i18n/translation.md#two-trades-two-prompts-two-models).
 
 ## Left at Laravel's default, on purpose
 
@@ -101,7 +101,7 @@ Two of them are worth a sentence anyway:
   something rendered outside a request, such as a console command.
 - **`MAIL_MAILER=log` is the current state of the mail story**: nothing is sent, and mail is written
   to the log. The day it changes, `SmokeCoverageTest` fails and asks for a probe — see
-  [Smoke tests](smoke-tests.md#when-a-new-capability-needs-a-probe).
+  [Smoke tests](smoke-tests/probes.md#when-a-new-capability-needs-a-probe).
 
 ## Deliberately absent from preprod and production
 

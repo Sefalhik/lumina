@@ -123,7 +123,7 @@ function run(box, script, args, env) {
     return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
 
-// The first release of a site, as docs/deployment.md has a human make it: the scripts of the
+// The first release of a site, as docs/deployment/README.md has a human make it: the scripts of the
 // commit are extracted into a directory of releases/, and they do the rest.
 function firstRelease(box, sha, minute) {
     const bootstrap = join(box.site, 'releases', 'bootstrap');

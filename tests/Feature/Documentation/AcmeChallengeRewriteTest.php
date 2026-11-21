@@ -19,7 +19,7 @@ use Tests\TestCase;
  * pointing at the hosting panel, for a defect that lives in this repository. That happened on
  * 2026-09-20 and cost a wrong diagnosis (LUMN-61).
  *
- * @see docs/deployment.md
+ * @see docs/deployment/README.md
  */
 class AcmeChallengeRewriteTest extends TestCase
 {

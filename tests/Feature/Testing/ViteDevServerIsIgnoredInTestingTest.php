@@ -21,7 +21,7 @@ use Tests\TestCase;
  * Tests\TestCase's fake is put back: the fake answers anything, and would pass with the provider's
  * line deleted. The real `public/hot` is never touched: it exists while a developer's Vite runs.
  *
- * @see docs/testing-conventions.md
+ * @see docs/testing/README.md
  */
 class ViteDevServerIsIgnoredInTestingTest extends TestCase
 {

@@ -23,7 +23,7 @@ use Tests\TestCase;
  *
  * Requests address an explicit http:// or https:// root. $this->get('/path') builds its URL from
  * APP_URL, which is https:// — a test of the HTTP case written that way would pass with the
- * middleware deleted (docs/testing-conventions.md, boot-time decisions).
+ * middleware deleted (docs/testing/README.md, boot-time decisions).
  */
 class SecurityHeadersTest extends TestCase
 {

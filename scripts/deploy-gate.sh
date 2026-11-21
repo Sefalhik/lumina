@@ -14,7 +14,7 @@
 #
 # A stolen key can therefore move the server forward along main, or take back the step it has just
 # made, and do nothing else: no shell, no file transfer, no .env, no way back to a commit whose
-# flaw was fixed last week. See docs/deployment.md, "What the pipeline's key can do".
+# flaw was fixed last week. See docs/deployment/README.md, "What the pipeline's key can do".
 #
 # "One of main's" matters as much as the shape of the SHA. The repository is public, and GitHub
 # serves the commit of any fork by its SHA from this repository's address: a SHA that merely

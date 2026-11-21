@@ -339,7 +339,7 @@ describe('deploy-gate.sh — going back', () => {
     });
 
     it('refuses the base of a candidate being served, and lets main take the site back', () => {
-        // A human put the unmerged branch in service, as docs/deployment.md allows. c1, which the
+        // A human put the unmerged branch in service, as docs/deployment/README.md allows. c1, which the
         // branch starts from, is behind it; the head of main is not.
         const box = sandbox({ serving: commit.c3 });
 

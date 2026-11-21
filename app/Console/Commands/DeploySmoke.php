@@ -14,7 +14,7 @@ use InvalidArgumentException;
 
 /**
  * Smoke-tests a deployed environment from the outside (LUMN-49). Exit code 1 when a blocking check
- * fails, 0 otherwise — warnings are printed, never fatal. See docs/smoke-tests.md.
+ * fails, 0 otherwise — warnings are printed, never fatal. See docs/smoke-tests/README.md.
  *
  * Basic credentials come from SMOKE_BASIC_USER / SMOKE_BASIC_PASSWORD, never from an option: an
  * option ends up in shell history and in CI logs.

@@ -3,7 +3,7 @@
 # Usage: bash scripts/check-deploy-key.sh <user@host> <private key file> <known hosts file>
 #
 # Run it from your own machine with the key about to be handed to the pipeline, and again after
-# every rotation — docs/deployment.md, "Setting it up".
+# every rotation — docs/deployment/README.md, "Setting it up".
 #
 # The tests of scripts/deploy-gate.sh prove what the gate does with a request. They cannot prove
 # that sshd hands it every request: that is the work of `restrict` and of the forced command in

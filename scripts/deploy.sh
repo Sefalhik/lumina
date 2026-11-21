@@ -2,7 +2,7 @@
 # Build the release this file sits in, put it in service, and let the oldest ones go (LUMN-51).
 # Usage: none by hand — scripts/release.sh <commit> makes the directory and ends here.
 #
-# The sequence is the one of docs/deployment.md, "Deploying": it was typed by hand from 2026-09-14
+# The sequence is the one of docs/deployment/README.md, "Deploying": it was typed by hand from 2026-09-14
 # until LUMN-50, and every command here is one that was typed. What LUMN-51 changed is where it
 # runs: in a directory nobody is being served from. The site moves to it at the very end, when one
 # link changes, and a release that fails before that is removed as if it had never been started.
@@ -36,7 +36,7 @@ if [[ ! "$NAME" =~ $RELEASE_NAME_PATTERN || "$(dirname "$RELEASE_DIR")" != "${SI
 fi
 
 if [[ ! -f "${SITE}/shared/.env" || ! -d "${SITE}/shared/storage" ]]; then
-  printf 'Error: %s/shared has no .env or no storage/: see docs/deployment.md, "Setting up a site".\n' "$SITE" >&2
+  printf 'Error: %s/shared has no .env or no storage/: see docs/deployment/README.md, "Setting up a site".\n' "$SITE" >&2
   exit 1
 fi
 

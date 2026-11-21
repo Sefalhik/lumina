@@ -5,7 +5,9 @@
 .env.production
 .phpactor.json
 .phpunit.result.cache
-/.claude
+# Local Claude Code state stays out; the rules are shared, as links to docs/rules/ (LUMN-150).
+/.claude/*
+!/.claude/rules/
 /.fleet
 /.idea
 /.nova

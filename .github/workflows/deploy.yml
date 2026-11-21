@@ -5,7 +5,7 @@ name: Deploy
 # commit while the gate still allows it. Started by hand only, for now: the deployment on every
 # merge is LUMN-53.
 #
-# What keeps this safe is written in docs/deployment.md, "What the pipeline's key can do". In short:
+# What keeps this safe is written in docs/deployment/README.md, "What the pipeline's key can do". In short:
 #
 # - No action is used here, not even one of GitHub's. `ssh` is already on the runner, so no
 #   third-party code ever runs next to the key — and renovate.json5 may go on merging action

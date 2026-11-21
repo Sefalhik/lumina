@@ -20,7 +20,7 @@ use Tests\TestCase;
  * A deprecation is the only notice a package gives before removing something. It is worth more
  * before a major upgrade than after.
  *
- * @see docs/testing-conventions.md
+ * @see docs/testing/README.md
  */
 class DeprecationsAreErrorsTest extends TestCase
 {

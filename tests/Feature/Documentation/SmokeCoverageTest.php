@@ -16,7 +16,7 @@ use Tests\TestCase;
  *
  * Nothing sends mail, queues a job on a broker or writes a file yet, so none of those is probed —
  * deliberately, because probing a transport nothing uses proves nothing. The risk is not the gap,
- * it is the day the gap closes and `docs/smoke-tests.md` is never reopened: the capability ships,
+ * it is the day the gap closes and `docs/smoke-tests/README.md` is never reopened: the capability ships,
  * the deployment gains a way to fail, and the report stays green.
  *
  * So each capability is paired with the probe it will need, and the pairing is checked from the
@@ -25,9 +25,9 @@ use Tests\TestCase;
  * **Its limit, stated rather than discovered.** It only sees capabilities that leave a mechanical
  * trace — a directory, a committed environment value, a call. "We now depend on someone else's API"
  * leaves none: that one stays a question to ask, and the three questions to ask it with are in
- * `docs/smoke-tests.md` (§ When a new capability needs a probe).
+ * `docs/smoke-tests/README.md` (§ When a new capability needs a probe).
  *
- * @see docs/smoke-tests.md
+ * @see docs/smoke-tests/README.md
  */
 class SmokeCoverageTest extends TestCase
 {
@@ -76,7 +76,7 @@ class SmokeCoverageTest extends TestCase
             "The deployment now uses {$capability}, and no smoke probe watches it.\n".
             "  → Add a '{$probeId}' probe to app/Services/Smoke/Probes/ and list it in SmokeCatalogue.\n".
             "  → {$what}\n".
-            '  → The reasoning is in docs/smoke-tests.md, section "When a new capability needs a probe".',
+            '  → The reasoning is in docs/smoke-tests/README.md, section "When a new capability needs a probe".',
         );
     }
 

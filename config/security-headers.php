@@ -16,7 +16,7 @@ return [
     | with includeSubDomains it refuses it on every subdomain — ftp.cardascia-it.org
     | already exists in the zone. Nothing takes it back before it expires. So
     | the duration climbs by steps: one day at launch, one year once every
-    | subdomain is known to serve HTTPS. See docs/deployment.md.
+    | subdomain is known to serve HTTPS. See docs/deployment/README.md.
     */
     'hsts' => [
         'max_age' => 86400,

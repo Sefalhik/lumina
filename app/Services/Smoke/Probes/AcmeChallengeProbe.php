@@ -59,7 +59,7 @@ final class AcmeChallengeProbe implements SmokeProbe
             $status === 401
                 ? 'The challenge path answered 401: Basic auth covers it, and the next renewal will fail.'
                 : 'The challenge path answered '.($status ?? 'nothing').' instead of 404.',
-            'Exempt /.well-known/acme-challenge/ from Basic auth (docs/deployment.md, "Preprod is behind HTTP Basic authentication").',
+            'Exempt /.well-known/acme-challenge/ from Basic auth (docs/deployment/README.md, "Preprod is behind HTTP Basic authentication").',
         );
     }
 }

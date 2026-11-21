@@ -26,7 +26,7 @@ use Throwable;
  *
  * The catch below is the only one of its kind in the suite, and it lives here on purpose: a probe's
  * own unit test calls check() directly and must keep seeing raw exceptions, or a bug becomes
- * invisible in the one place it is looked for. See docs/smoke-tests.md.
+ * invisible in the one place it is looked for. See docs/smoke-tests/README.md.
  */
 final class SmokeTestService
 {

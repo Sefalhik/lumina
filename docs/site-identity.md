@@ -179,7 +179,7 @@ LinkedIn and Mastodon, in place of the calls to action withdrawn until their pag
 (LUMN-104). A new network reaches the hero only if it is added there too.
 
 Then add it to the admin view, and extend the E2E seeder (`E2eSiteIdentitySeeder`) — otherwise the
-axe-core scan will never see the new link. See `docs/testing-conventions.md`, Playwright sections.
+axe-core scan will never see the new link. See `docs/testing/README.md`, Playwright sections.
 
 ## Tests
 
