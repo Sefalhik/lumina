@@ -34,6 +34,9 @@ export default defineConfig({
             //
             // scripts/postgres-version.js reads the PostgreSQL major of CI and of the documentation
             // (LUMN-55): a line it skipped would leave a version unchecked. 100%.
+            //
+            // scripts/loads-module.js holds the premise of two tolerated advisories (LUMN-152): a load
+            // it missed would leave a reason standing on a fact that stopped being true. 100%.
             include: [
                 'resources/js/utils/**/*.js',
                 'scripts/audit-advisories.js',
@@ -42,6 +45,7 @@ export default defineConfig({
                 'scripts/palette-contrast.js',
                 'scripts/verify-boot-origins.js',
                 'scripts/postgres-version.js',
+                'scripts/loads-module.js',
             ],
             thresholds: {
                 statements: 80,
@@ -79,6 +83,12 @@ export default defineConfig({
                     lines: 100,
                 },
                 'scripts/postgres-version.js': {
+                    statements: 100,
+                    branches: 100,
+                    functions: 100,
+                    lines: 100,
+                },
+                'scripts/loads-module.js': {
                     statements: 100,
                     branches: 100,
                     functions: 100,

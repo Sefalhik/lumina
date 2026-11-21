@@ -147,6 +147,12 @@ exactly as the audit prints it — `GHSA-vfj7-8cjw-p6xm`, not a URL and not in a
 spelled differently would accept nothing while looking as if it did, so it is refused. Both dates
 are real calendar dates, and the review cannot come before the acceptance.
 
+**A reason that rests on a fact gets a test of that fact.** The two acceptances of 2026-11 rest on
+`@vue/test-utils` bundling the code of `js-beautify` and never loading the installed package, whose
+dependencies carry the flaws. `scripts/__tests__/advisory-premises.test.js` reads every built file of
+`@vue/test-utils` and fails the day one loads `js-beautify` — so the update that breaks the premise
+also says the reasons need reviewing (LUMN-152).
+
 **`reviewBy` is the last day the acceptance holds.** Until then the advisory is silent; from the
 next day the audit fails on it every morning, until the entry is removed — the flaw is fixed — or
 given a new date, which means someone looked again. It is what keeps the list from becoming the

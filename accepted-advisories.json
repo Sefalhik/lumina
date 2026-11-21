@@ -2,14 +2,14 @@
     {
         "id": "GHSA-3g3m-2fjr-6pw4",
         "package": "glob",
-        "reason": "Fixed in 14.0.2 only; js-beautify 2.0.3, its latest release, requires ^13.0.6, and is reached through @vue/test-utils. It runs in the Vitest suite alone, over the files of this repository: deploy.sh installs it on the server, but nothing in npm run build calls it, and nothing an attacker controls reaches it.",
+        "reason": "Fixed in 14.0.2 only; js-beautify 2.0.3, its latest release, requires ^13.0.6, and is reached through @vue/test-utils. Never loaded: @vue/test-utils bundles the code of js-beautify in its own dist and never requires the installed package — with that package made unfindable, the component tests passed, 21 of 21 (2026-11-21, LUMN-152) — and glob is required by the js-beautify command line alone, which nothing runs. Not called by npm run build. Tracked upstream: beautifier/js-beautify#2561, #2562, and the pull request #2414.",
         "acceptedOn": "2026-11-05",
         "reviewBy": "2026-12-05"
     },
     {
         "id": "GHSA-g3hv-75wg-m249",
         "package": "minimatch",
-        "reason": "Fixed in 11.0.1 only; eslint 10.14.0, @eslint/config-array 0.23.5, editorconfig 3.0.2 and glob 13, all at their latest release, require ^10. It only matches patterns written in this repository (the ESLint configuration, .editorconfig): the flaw is a denial of service on a crafted pattern, and nobody else can hand it one. Not called by npm run build.",
+        "reason": "Fixed in 11.0.1 only; reached through js-beautify 2.0.3 alone, whose editorconfig ^3.0.2 and glob ^13 both require ^10. ESLint left the chain with 10.15.0, on minimatch 11.0.9 (2026-11-21). Never loaded, for the reason given for glob: @vue/test-utils bundles js-beautify, and only the js-beautify command line, which nothing runs, requires editorconfig and glob. Not called by npm run build. Tracked upstream: beautifier/js-beautify#2569, #2570.",
         "acceptedOn": "2026-11-05",
         "reviewBy": "2026-12-05"
     }
