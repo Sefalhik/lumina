@@ -273,6 +273,21 @@ comment — never in `Tests\TestCase`, which would switch the whole suite back t
 Runtime deprecations are half of it: code merely annotated `@deprecated` raises nothing, and is
 caught by static analysis instead — see [Deprecated code is an error](quality-tooling.md#deprecated-code-is-an-error).
 
+## PHP — a test that checks nothing fails the suite
+
+PHPUnit calls a test that performs no assertion *risky*: it prints a line about it and exits 0.
+Delete the one line of a test that checks something, and the test stays green. The mechanical pass
+of LUMN-149 met three such lines in a single file — each deletion survived, reported as risky and
+noticed by nothing.
+
+`phpunit.xml` sets `failOnRisky="true"`. `Tests\Feature\Testing\RiskyTestsFailTest` runs a nested
+PHPUnit, under this same configuration, on a test that checks nothing, and fails the day the setting
+is removed. A twin that checks something has to pass, so the failure cannot come from a run broken
+for another reason.
+
+A test whose only purpose is to run without throwing says so: `$this->expectNotToPerformAssertions()`,
+or `$this->addToAssertionCount(1)` after the call, as `DeprecationsAreErrorsTest` does.
+
 ## Boot-time decisions — `Tests\Concerns\RebootsInEnvironment`
 
 `bootstrap/app.php` decides at boot which routes exist and which providers are registered. Those

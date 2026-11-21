@@ -157,5 +157,9 @@
     // Two limits, both Renovate's own: direct dependencies only, and the option is experimental.
     // An empty section therefore does not mean a clean tree — the two advisories of LUMN-73 were
     // transitive and would not have appeared. scripts/audit-advisories.js is what covers the tree.
-    dependencyDashboardOSVVulnerabilitySummary: 'all',
+    // Migrated by hand from its deprecated top-level name (LUMN-149): Renovate's own migration PR
+    // rewrites the whole file and drops every comment, so it is never merged.
+    dependencyDashboard: {
+        osvVulnerabilitySummary: 'all',
+    },
 }
