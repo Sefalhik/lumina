@@ -23,11 +23,38 @@ const FIRST_PORT = 8001;
 /** Migrated and seeded once per run; every slot's database is a copy of it. No server points at it. */
 export const TEMPLATE_DATABASE = 'cardascia_it_e2e';
 
-/** Overrides shared by every artisan command and every server of the suite. */
+/**
+ * Overrides shared by every artisan command and every server of the suite.
+ *
+ * TELESCOPE_ENABLED: the package's provider is discovered in every environment, and recorded about
+ * 3,400 entries per slot database in one run, measured on 2026-11-21 (LUMN-106) — seeding included,
+ * copied into every slot. phpunit.xml switches it off the same way.
+ */
 const SHARED_ENV = {
     SESSION_DOMAIN: 'localhost',
     SESSION_SECURE_COOKIE: 'false',
+    TELESCOPE_ENABLED: 'false',
 };
+
+/**
+ * What the end-to-end servers serve (LUMN-106): the compiled build by default — what a visitor
+ * receives — or, when E2E_DEV_SERVER=1 asks for it, the Vite dev server, to iterate without
+ * rebuilding. Any other value is refused: a misspelt mode would test one thing while its author
+ * believes it tests the other.
+ *
+ * @param {Record<string, string | undefined>} [env]
+ * @returns {'build' | 'dev-server'}
+ */
+export function e2eMode(env = process.env) {
+    const value = env.E2E_DEV_SERVER;
+    if (value === undefined || value === '') {
+        return 'build';
+    }
+    if (value === '1') {
+        return 'dev-server';
+    }
+    throw new Error(`E2E_DEV_SERVER is "${value}": set it to 1 to test against the Vite dev server, or leave it unset.`);
+}
 
 /** @returns {number[]} every slot, 0 to E2E_WORKERS - 1 */
 export function slots() {
@@ -63,9 +90,32 @@ export function databaseFor(slot) {
     return `${TEMPLATE_DATABASE}_${slot}`;
 }
 
-/** Environment of the server serving a slot. @param {number} slot */
-export function serverEnv(slot) {
-    return { ...SHARED_ENV, DB_DATABASE: databaseFor(slot), APP_URL: urlFor(slot) };
+/**
+ * What to tell whoever runs the suite about the mode, or null when there is nothing to say: the build
+ * is what the suite is for, the dev server a choice that must never pass for it.
+ *
+ * @param {'build' | 'dev-server'} mode
+ * @returns {string | null}
+ */
+export function modeNotice(mode) {
+    return mode === 'dev-server'
+        ? 'E2E_DEV_SERVER=1: the pages are tested against the Vite dev server, not against the compiled build a visitor receives.'
+        : null;
+}
+
+/**
+ * Environment of the server serving a slot.
+ *
+ * `testing` by default: the application then ignores public/hot and serves the build
+ * (AppServiceProvider), and nothing meant for a developer's machine runs. `local` in the dev-server
+ * mode only, because the content security policy lets a dev server in on a developer's machine alone.
+ *
+ * @param {number} slot
+ * @param {Record<string, string | undefined>} [env]
+ */
+export function serverEnv(slot, env = process.env) {
+    const appEnv = e2eMode(env) === 'build' ? 'testing' : 'local';
+    return { ...SHARED_ENV, APP_ENV: appEnv, DB_DATABASE: databaseFor(slot), APP_URL: urlFor(slot) };
 }
 
 /** Environment of the artisan commands that prepare the template. */

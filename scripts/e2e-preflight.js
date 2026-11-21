@@ -6,8 +6,9 @@
 // one that answers wrong — see LUMN-12.
 //
 // Three preconditions:
-//   1. public/hot exists      → the Vite dev server it names must be listening
-//   2. public/hot is absent   → public/build/manifest.json must be newer than every build input
+//   1. by default             → public/build/manifest.json must be newer than every build input,
+//                               whether or not a Vite dev server runs: the build is what is tested (LUMN-106)
+//   2. E2E_DEV_SERVER=1       → the Vite dev server public/hot names must be listening
 //   3. always                 → the Chromium build the installed Playwright expects must be on disk
 
 import { spawnSync } from 'node:child_process';
@@ -15,6 +16,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { e2eMode } from '../tests/e2e/helpers/workers.js';
 
 // Everything Vite reads when it builds. Blade views belong here: Tailwind scans them for class
 // names, so editing a view can change the compiled CSS. package-lock.json belongs here too: a
@@ -107,32 +109,56 @@ export function isListening(url, timeoutMs = LISTEN_TIMEOUT_MS) {
 }
 
 /**
- * Checks preconditions 1 and 2. Returns the problems found, empty when the assets are current.
+ * Checks the assets the suite is about to test. Returns the problems found, empty when they can be
+ * trusted.
+ *
+ * The mode decides what is tested, never a file (LUMN-106). In the default mode the build is
+ * tested — what a visitor receives — and public/hot is ignored, as the servers themselves ignore it:
+ * a dev server left running by `npm start` must not stand in for a build that is out of date. Only
+ * E2E_DEV_SERVER=1 tests against the dev server, which must then be running.
  *
  * @param {string} root
+ * @param {'build' | 'dev-server'} [mode]
  * @param {(url: string) => Promise<boolean>} [probe]
  * @returns {Promise<string[]>}
  */
-export async function checkAssets(root, probe = isListening) {
-    const hotFile = join(root, 'public', 'hot');
+export async function checkAssets(root, mode = 'build', probe = isListening) {
+    return mode === 'dev-server' ? checkDevServer(root, probe) : checkBuild(root);
+}
 
-    if (existsSync(hotFile)) {
-        const url = readFileSync(hotFile, 'utf8').trim();
-        if (await probe(url)) {
-            return [];
-        }
+/**
+ * @param {string} root
+ * @param {(url: string) => Promise<boolean>} probe
+ * @returns {Promise<string[]>}
+ */
+async function checkDevServer(root, probe) {
+    const hotFile = join(root, 'public', 'hot');
+    if (!existsSync(hotFile)) {
         return [
-            `public/hot points at ${url}, but nothing is listening there.\n` +
-                '  Laravel would serve every page against a dead dev server, so the pages would be tested without CSS.\n' +
-                '  → start Vite with `npm run dev`, or delete public/hot to test the compiled build instead.',
+            'E2E_DEV_SERVER=1 asks for the Vite dev server, but public/hot is absent: none is running.\n' +
+                '  → start it with `npm run dev`, or unset E2E_DEV_SERVER to test the compiled build.',
         ];
     }
 
+    const url = readFileSync(hotFile, 'utf8').trim();
+    if (await probe(url)) {
+        return [];
+    }
+    return [
+        `public/hot points at ${url}, but nothing is listening there.\n` +
+            '  Laravel would serve every page against a dead dev server, so the pages would be tested without CSS.\n' +
+            '  → start Vite with `npm run dev`, or unset E2E_DEV_SERVER to test the compiled build.',
+    ];
+}
+
+/**
+ * @param {string} root
+ * @returns {string[]}
+ */
+function checkBuild(root) {
     const manifest = join(root, 'public', 'build', 'manifest.json');
     if (!existsSync(manifest)) {
-        return [
-            'No Vite dev server and no compiled build (public/build/manifest.json is missing).\n  → run `npm run build`, or start Vite with `npm run dev`.',
-        ];
+        return ['No compiled build: public/build/manifest.json is missing.\n  → run `npm run build`.'];
     }
 
     const stale = findStaleInputs(statSync(manifest).mtimeMs, listInputs(root, BUILD_INPUTS));
@@ -145,10 +171,10 @@ export async function checkAssets(root, probe = isListening) {
         shown.push(`    … and ${stale.length - MAX_LISTED_FILES} more`);
     }
     return [
-        `The compiled build is older than ${stale.length} of its inputs, and no Vite dev server is running.\n` +
+        `The compiled build is older than ${stale.length} of its inputs.\n` +
             "  The suite would test yesterday's assets and could pass while today's are broken.\n" +
             `${shown.join('\n')}\n` +
-            '  → run `npm run build`, or start Vite with `npm run dev`.',
+            '  → run `npm run build`.',
     ];
 }
 
@@ -186,15 +212,25 @@ export function checkBrowsers(dryRunOutput, exists = existsSync) {
  * Runs every check. Returns the problems found, empty when the E2E suite can be trusted.
  *
  * @param {string} root
+ * @param {Record<string, string | undefined>} [env]
  * @returns {Promise<string[]>}
  */
-export async function preflight(root) {
+export async function preflight(root, env = process.env) {
+    // The mode the servers will run in, read by the same function (tests/e2e/helpers/workers.js):
+    // the preflight checking one kind of assets while the servers serve the other is the seam to avoid.
+    let mode;
+    try {
+        mode = e2eMode(env);
+    } catch (error) {
+        return [error.message];
+    }
+
     const dryRun = spawnSync(join(root, 'node_modules', '.bin', 'playwright'), ['install', '--dry-run', 'chromium'], {
         cwd: root,
         encoding: 'utf8',
     });
 
-    return [...(await checkAssets(root)), ...checkBrowsers(`${dryRun.stdout ?? ''}${dryRun.stderr ?? ''}`)];
+    return [...(await checkAssets(root, mode)), ...checkBrowsers(`${dryRun.stdout ?? ''}${dryRun.stderr ?? ''}`)];
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

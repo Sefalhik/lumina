@@ -397,7 +397,36 @@ static file and not `/up`: `/up` reads the database, the slots' databases do not
 servers start, and Playwright only accepts a status from 200 to 403 as "ready".
 
 Each server gets `DB_DATABASE` and `APP_URL` of its slot, plus `SESSION_DOMAIN=localhost` and
-`SESSION_SECURE_COOKIE=false` (HTTP — not HTTPS like the dev server).
+`SESSION_SECURE_COOKIE=false` (HTTP — not HTTPS like the dev server), `APP_ENV=testing` and
+`TELESCOPE_ENABLED=false` — see [What the suite tests: the build](#what-the-suite-tests-the-build).
+
+### What the suite tests: the build
+**The pages under test are the compiled build, served by an application that knows it is under
+test** (LUMN-106) — locally as in CI, whether or not `npm start` keeps a Vite dev server running.
+
+| Setting | Where | What it does |
+|---|---|---|
+| `APP_ENV=testing` | `serverEnv()`, `helpers/workers.js` | the application ignores `public/hot` (`AppServiceProvider`, a hot file that never exists) and serves `public/build/`; nothing meant for a developer's machine runs |
+| `TELESCOPE_ENABLED=false` | the environment shared by the servers and the commands that prepare the databases | Telescope's own provider is discovered in every environment: `testing` alone does not stop it |
+| `reuseExistingServer: false` | `playwright.config.js` | a server already on a slot's port keeps the environment it was started with; a busy port now stops the run instead |
+
+**Why.** Until 2026-11-21 the servers ran in `local`. Wherever a Vite dev server ran, the pages
+loaded their scripts from it, module by module, over the network. A single import lost to
+`net::ERR_NETWORK_CHANGED` — Chromium drops requests in flight when a network interface changes,
+which Docker does all day — failed the whole of `app.js`, and no Vue island mounted. Two specs
+failed that way, at random, for no fault of the code they test (`refused-storage`, `motion`); taken
+alone they passed 40 times out of 40. CI, which has no dev server, never saw it. Telescope, on the
+same servers, recorded about 3,400 entries per slot database in one run; now none.
+
+**The dev server, on purpose only.** `E2E_DEV_SERVER=1` runs the servers in `local` against the dev
+server, to iterate without rebuilding, and says so at the start of the run. Any other value is
+refused. `tests/e2e/tested-build.spec.js` proves the default from the browser — the environment
+through `/e2e/environment`, every script and stylesheet from `/build/` — and skips itself in that
+mode.
+
+The cost is a build: the preflight asks for `npm run build` whenever the build is older than its
+sources — see [E2E preflight](quality-tooling.md#e2e-preflight--the-audit-refuses-rather-than-lies-lumn-12).
+`npm run test:e2e` runs no preflight: after changing the front end, build first.
 
 ### Why the template is seeded
 **`E2eSiteIdentitySeeder`**: with an empty `site_identities` table the footer renders no links, so
@@ -478,6 +507,7 @@ Naming an environment after its role rather than its exposure is how the backdoo
 | `POST /e2e/homepage-content` | Restores FR homepage content from JSON body (for test teardown) |
 | `GET /e2e/site-identity` | Returns the current site identity as JSON (for test snapshot) |
 | `POST /e2e/site-identity` | Restores the site identity from JSON body (for test teardown) |
+| `GET /e2e/environment` | The server's environment, how many entries Telescope has recorded in its database — the effect, not the setting — and whether it serves the Vite dev server. Read by `tested-build.spec.js` (LUMN-106) |
 
 **The two `POST` routes are exempt from CSRF**, route by route (`withoutMiddleware(PreventRequestForgery::class)`). Playwright's `request` fixture holds no CSRF token: until 2026-11-12 both answered **419**, and every restore the suite ran was refused — silently, since no spec looked at the response. PHPUnit could not have caught it: Laravel skips CSRF verification under unit tests. **Every write to an `/e2e/` route is asserted** — `expect((await request.post(…)).ok()).toBe(true)` — and the Vitest guard counts them.
 

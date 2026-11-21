@@ -1,5 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
-import { E2E_WORKERS, portFor, serverEnv, slots, urlFor } from './tests/e2e/helpers/workers.js';
+import { E2E_WORKERS, e2eMode, modeNotice, portFor, serverEnv, slots, urlFor } from './tests/e2e/helpers/workers.js';
+
+// Said once, by the runner: its workers load this file too (LUMN-106). Read here rather than in the
+// preflight, so that `npm run test:e2e`, which runs no preflight, announces it as well.
+if (process.env.TEST_WORKER_INDEX === undefined) {
+    const notice = modeNotice(e2eMode());
+    if (notice !== null) {
+        console.warn(notice);
+    }
+}
 
 export default defineConfig({
     testDir: './tests/e2e',
@@ -21,7 +30,10 @@ export default defineConfig({
         command: `php artisan serve --port=${portFor(slot)} --no-interaction`,
         url: `${urlFor(slot)}/favicons/favicon-sprawl.svg`,
         env: serverEnv(slot),
-        reuseExistingServer: !process.env.CI,
+        // Never reused, locally either (LUMN-106): a server already on the port keeps the environment
+        // it was started with, and would serve the build or the dev server whatever this run asks for.
+        // A busy port now stops the run instead.
+        reuseExistingServer: false,
         timeout: 30_000,
     })),
 

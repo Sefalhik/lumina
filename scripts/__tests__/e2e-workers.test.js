@@ -1,11 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
+import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
     databaseFor,
     E2E_WORKERS,
+    e2eMode,
+    modeNotice,
     portFor,
     serverEnv,
     sessionFileFor,
@@ -77,6 +80,50 @@ describe('the slot mapping', () => {
     );
 });
 
+describe('what the servers serve (LUMN-106)', () => {
+    it.each([[{}], [{ E2E_DEV_SERVER: '' }]])('tests the compiled build unless asked otherwise: %j', (env) => {
+        expect(e2eMode(env)).toBe('build');
+        for (const slot of slots()) {
+            // `testing` is what makes the application ignore public/hot (AppServiceProvider).
+            expect(serverEnv(slot, env).APP_ENV).toBe('testing');
+        }
+    });
+
+    it('serves the Vite dev server only when E2E_DEV_SERVER=1 asks for it', () => {
+        const env = { E2E_DEV_SERVER: '1' };
+
+        expect(e2eMode(env)).toBe('dev-server');
+        for (const slot of slots()) {
+            // `local`: the content security policy lets a dev server in on a developer's machine alone.
+            expect(serverEnv(slot, env).APP_ENV).toBe('local');
+        }
+    });
+
+    it.each([['true'], ['0'], ['yes'], [' 1'], ['1 '], ['2']])(
+        'refuses E2E_DEV_SERVER=%j rather than guess which mode was meant',
+        (value) => {
+            const env = { E2E_DEV_SERVER: value };
+
+            expect(() => e2eMode(env)).toThrow(/E2E_DEV_SERVER/);
+            expect(() => serverEnv(0, env)).toThrow(/E2E_DEV_SERVER/);
+        },
+    );
+
+    it('announces the dev-server mode, and says nothing when the build is tested', () => {
+        expect(modeNotice('dev-server')).toContain('Vite dev server');
+        expect(modeNotice('dev-server')).toContain('not against the compiled build');
+        expect(modeNotice('build')).toBeNull();
+    });
+
+    it('switches Telescope off for the servers and for the commands that prepare the databases', () => {
+        // Its provider is discovered in every environment: `testing` alone does not stop it.
+        for (const env of [{}, { E2E_DEV_SERVER: '1' }]) {
+            expect(serverEnv(0, env).TELESCOPE_ENABLED).toBe('false');
+        }
+        expect(templateEnv().TELESCOPE_ENABLED).toBe('false');
+    });
+});
+
 describe('playwright.config.js', () => {
     it('prepares the databases before every run', () => {
         // Without it, each run reuses the slot databases the previous one left — stale schema,
@@ -94,6 +141,52 @@ describe('playwright.config.js', () => {
             expect(server.command).toContain(`--port=${portFor(slot)}`);
             expect(server.env).toEqual(serverEnv(slot));
         });
+    });
+
+    // The announcement lives in the config's top level, run by the real runner: tested as a process.
+    // `--list` loads the config and the specs, and starts no server — under a second.
+    describe('run by Playwright', () => {
+        /** @param {Record<string, string>} mode */
+        function listWith(mode) {
+            // Neither inherited: the mode is the one this test sets, and the runner is the main process.
+            const env = { ...process.env };
+            delete env.TEST_WORKER_INDEX;
+            delete env.E2E_DEV_SERVER;
+            Object.assign(env, mode);
+            return spawnSync(path.join(root, 'node_modules/.bin/playwright'), ['test', '--list'], {
+                cwd: root,
+                env,
+                encoding: 'utf8',
+            });
+        }
+
+        it('announces the dev-server mode before anything else runs', () => {
+            const run = listWith({ E2E_DEV_SERVER: '1' });
+
+            expect(run.status).toBe(0);
+            expect(run.stderr).toContain(modeNotice('dev-server'));
+        }, 30_000);
+
+        it('says nothing about a mode when the build is tested', () => {
+            const run = listWith({});
+
+            expect(run.status).toBe(0);
+            expect(run.stderr).not.toContain('E2E_DEV_SERVER');
+            expect(run.stdout).toMatch(/tested-build\.spec\.js/);
+        }, 30_000);
+
+        it('refuses to start with a misspelt mode', () => {
+            const run = listWith({ E2E_DEV_SERVER: 'true' });
+
+            expect(run.status).not.toBe(0);
+            expect(run.stderr).toContain('E2E_DEV_SERVER is "true"');
+        }, 30_000);
+    });
+
+    it('never reuses a server already on a port, which would keep the mode it was started in', () => {
+        for (const server of config.webServer) {
+            expect(server.reuseExistingServer).toBe(false);
+        }
     });
 
     it('waits on a static file, never on /up — the databases are created after the servers start', () => {

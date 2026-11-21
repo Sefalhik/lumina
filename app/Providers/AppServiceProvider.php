@@ -102,6 +102,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // The end-to-end servers run in `testing` (LUMN-106) and test the compiled build — what a
+        // visitor receives — never the Vite dev server a developer may have running: its modules
+        // load over the network, and a single failed import left every Vue island unmounted, at
+        // random. A hot file that never exists makes Laravel read the build manifest whatever
+        // public/hot says. PHPUnit, the other `testing` run, never reads Vite (Tests\TestCase).
+        if ($this->app->environment('testing')) {
+            Vite::useHotFile(storage_path('framework/testing-never-uses-the-vite-dev-server/hot'));
+        }
+
         // Feed canonical/hreflang data to the main layout so no controller has
         // to wire it. Glue only — the URL logic lives in LocalizedUrlService.
         ViewFacade::composer('layouts.app', function (View $view): void {
