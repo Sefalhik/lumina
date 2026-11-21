@@ -82,6 +82,12 @@ for another reason.
 A test whose only purpose is to run without throwing says so: `$this->expectNotToPerformAssertions()`,
 or `$this->addToAssertionCount(1)` after the call, as `DeprecationsAreErrorsTest` does.
 
+**Vitest, the same** (LUMN-55): `vitest.config.js` sets `expect: { requireAssertions: true }`, and a
+test without an `expect` fails with "expected any number of assertion, but got none". Its witness,
+`scripts/__tests__/require-assertions.test.js`, runs a nested Vitest under this configuration on an
+empty test and its twin. The 3 412 tests of the suite already all asserted something when it was
+switched on; the mechanical pass of a new test is what showed the gap.
+
 ## Boot-time decisions — `Tests\Concerns\RebootsInEnvironment`
 
 `bootstrap/app.php` decides at boot which routes exist and which providers are registered. Those

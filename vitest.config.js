@@ -6,6 +6,7 @@ export default defineConfig({
     test: {
         environment: 'happy-dom',
         globals: true,
+        expect: { requireAssertions: true },
         include: ['resources/js/**/*.test.js', 'scripts/**/*.test.js'],
         coverage: {
             provider: 'v8',
@@ -30,6 +31,9 @@ export default defineConfig({
             //
             // scripts/verify-boot-origins.js is the proof behind the boot sequence's table of origins
             // (LUMN-122): a check that reads an answer wrong would vouch for a false table. 100%.
+            //
+            // scripts/postgres-version.js reads the PostgreSQL major of CI and of the documentation
+            // (LUMN-55): a line it skipped would leave a version unchecked. 100%.
             include: [
                 'resources/js/utils/**/*.js',
                 'scripts/audit-advisories.js',
@@ -37,6 +41,7 @@ export default defineConfig({
                 'tests/e2e/helpers/workers.js',
                 'scripts/palette-contrast.js',
                 'scripts/verify-boot-origins.js',
+                'scripts/postgres-version.js',
             ],
             thresholds: {
                 statements: 80,
@@ -68,6 +73,12 @@ export default defineConfig({
                     lines: 100,
                 },
                 'scripts/verify-boot-origins.js': {
+                    statements: 100,
+                    branches: 100,
+                    functions: 100,
+                    lines: 100,
+                },
+                'scripts/postgres-version.js': {
                     statements: 100,
                     branches: 100,
                     functions: 100,

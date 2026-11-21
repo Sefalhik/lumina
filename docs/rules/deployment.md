@@ -24,8 +24,9 @@ paths:
 - Leave the first lines of `public/index.php` alone: they are not boilerplate — OPcache does not
   follow the release link.
 - `config:cache` freezes `.env`: after it, `env()` outside a configuration file returns `null`.
-- Back up the databases of the hosting account before any change of database version: the host
-  migrates a whole account at once.
+- Run on CI and preprod the PostgreSQL major production runs; a developer machine may be one ahead,
+  never behind. Back up every database of the hosting account before changing it: the host migrates
+  a whole account at once — [The PostgreSQL version](../deployment/postgresql-version.md).
 - Never touch a server, a secret or a `.env` file without Laurent's explicit go.
 
 References: [deployment](../deployment/README.md), [environment variables](../environment-variables.md),

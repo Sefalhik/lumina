@@ -41,7 +41,8 @@ however small the change: three lines of regex are not exempt.
 
 - PHP tests run on PostgreSQL, database `cardascia_it_test`; never SQLite, never `cardascia_it`.
 - Never reach the network: `Http::preventStrayRequests()` is on for the whole suite.
-- A deprecation fails the suite; so does a test that checks nothing (`failOnRisky`).
+- A deprecation fails the suite; so does a test that checks nothing — `failOnRisky` for PHPUnit,
+  `expect.requireAssertions` for Vitest.
 - Coverage: 80% enforced, 99% targeted, 100% for logic. Never exclude code to pass a threshold: a
   guard that cannot fire is deleted.
 - Playwright: import `test` and `expect` from `tests/e2e/helpers/test.js`. The suite tests the

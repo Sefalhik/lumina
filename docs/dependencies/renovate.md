@@ -141,12 +141,13 @@ npm 12.
 ### Runtime majors
 
 Renovate can only change the version written in the repository. Accepting "postgres 19" would
-move CI alone while the developer machine and alwaysdata stay behind — CI would then test a runtime
+move CI alone while production stays on the version its host offers — CI would then test a runtime
 production does not run. A runtime major is a coordinated change across every environment, with its
 own ticket (LUMN-55 for PostgreSQL 18). Patches and image digests still flow.
 
-PostgreSQL majors stay disabled: PostgreSQL has no LTS — each major is supported five years — and
-the version this project runs is the one of the latest Ubuntu LTS, a rule Renovate cannot express.
+PostgreSQL majors stay disabled: the version this project runs is the one production runs, and
+production takes the latest major its host offers — a rule Renovate cannot express. See
+[The PostgreSQL version](../deployment/postgresql-version.md).
 
 The `"php"` constraint is disabled for the same reason. `^8.5` already admits 8.6, so nothing would
 be proposed today — but only as a side effect of the range strategy, which is not a guarantee.
