@@ -28,13 +28,21 @@ each refusal names the exact command to run, and the suite does not start.
 
 | Precondition | Refused when | Fix it names |
 |---|---|---|
-| `public/hot` exists | nothing listens at the URL it holds — a Vite that died leaves the file behind, and every page would be tested without CSS | `npm run dev`, or delete `public/hot` |
-| `public/hot` absent | `public/build/manifest.json` is missing, or older than any file in `resources/`, `vite.config.js` or `package-lock.json` | `npm run build` |
+| by default — whether or not Vite runs | `public/build/manifest.json` is missing, or older than any file in `resources/`, `vite.config.js` or `package-lock.json` | `npm run build` |
+| `E2E_DEV_SERVER=1` | `public/hot` is absent, or nothing listens at the URL it holds — a Vite that died leaves the file behind, and every page would be tested without CSS | `npm run dev`, or unset `E2E_DEV_SERVER` |
+| `E2E_DEV_SERVER` set to anything but `1` | always: a misspelt mode would test one thing while its author believes it tests the other | set it to `1`, or unset it |
 | always | the browser build the installed Playwright expects is not in `~/.cache/ms-playwright` | `npx playwright install chromium` |
 
 Why those inputs: **Blade views** change the compiled CSS, because Tailwind scans them; the
 **lockfile** changes the bundle without touching a source file — which is what every dependency
 update, Renovate's included, does.
+
+Why the build by default, since LUMN-106: the suite tests what a visitor receives, and the servers
+ignore `public/hot` in that mode — see
+[What the suite tests: the build](testing-conventions.md#what-the-suite-tests-the-build). Until then a
+running Vite was enough to pass this check, and it hid a build older than 29 of its sources on
+2026-11-21. The dev server mode is the explicit `E2E_DEV_SERVER=1`, announced at the start of every
+run.
 
 Why the browser check: nothing ties Playwright's npm version to the binary on disk. A dependency
 PR that moves Playwright passes CI — whose E2E job installs the browser itself — and breaks the

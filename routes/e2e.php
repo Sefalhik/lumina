@@ -12,8 +12,10 @@ use App\Models\SiteIdentity;
 use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Vite;
 use Spatie\Permission\Models\Role;
 
 Route::get('/e2e/admin-auth', function () {
@@ -85,6 +87,16 @@ Route::post('/e2e/homepage-content', function () {
 
     return response()->json(['ok' => true]);
 })->middleware('web')->withoutMiddleware(PreventRequestForgery::class);
+
+// What the server under test is (LUMN-106): its environment, what Telescope has recorded in its
+// database — the effect, not the setting — and whether it serves the Vite dev server rather than the
+// compiled build. tests/e2e/tested-build.spec.js reads it: a server started in the wrong mode is
+// otherwise invisible from a browser.
+Route::get('/e2e/environment', fn () => response()->json([
+    'environment' => app()->environment(),
+    'telescope_entries' => DB::table('telescope_entries')->count(),
+    'vite_dev_server' => Vite::isRunningHot(),
+]))->middleware('web');
 
 // Returns the current site identity as JSON so tests can snapshot and restore it.
 // Form-submission specs mutate this row, and it feeds the footer of every page —

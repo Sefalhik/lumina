@@ -12,6 +12,7 @@ import {
     isListening,
     listInputs,
     parseInstallLocations,
+    preflight,
 } from '../e2e-preflight.js';
 
 const DAY = 24 * 60 * 60;
@@ -84,25 +85,27 @@ describe('findStaleInputs', () => {
     });
 });
 
-// Criteria 1, 2 and 3 of LUMN-12 — the stale build.
-describe('checkAssets without a Vite dev server', () => {
+// Criteria 1, 2 and 3 of LUMN-12 — the stale build. Since LUMN-106 the build is what is tested by
+// default, so these hold whether or not a Vite dev server runs.
+describe('checkAssets, by default: the compiled build', () => {
     it('passes when the build is newer than every input', async () => {
         touch(root, 'resources/css/app.css', NOW - DAY);
         touch(root, 'public/build/manifest.json', NOW);
 
-        expect(await checkAssets(root, dead)).toEqual([]);
+        expect(await checkAssets(root)).toEqual([]);
     });
 
-    it('refuses when a Blade view changed after the build, and says to rebuild', async () => {
+    it('refuses when a Blade view changed after the build, and says to rebuild — only to rebuild', async () => {
         touch(root, 'public/build/manifest.json', NOW - DAY);
         touch(root, 'resources/views/home.blade.php', NOW);
 
-        const problems = await checkAssets(root, dead);
+        const problems = await checkAssets(root);
 
         expect(problems).toHaveLength(1);
         expect(problems[0]).toContain('resources/views/home.blade.php');
         expect(problems[0]).toContain('npm run build');
-        expect(problems[0]).toContain('npm run dev');
+        // Starting Vite no longer makes a stale build acceptable: the servers would not use it.
+        expect(problems[0]).not.toContain('npm run dev');
     });
 
     it('refuses when only the lockfile changed — a dependency update', async () => {
@@ -110,7 +113,7 @@ describe('checkAssets without a Vite dev server', () => {
         touch(root, 'public/build/manifest.json', NOW - DAY);
         touch(root, 'package-lock.json', NOW);
 
-        const problems = await checkAssets(root, dead);
+        const problems = await checkAssets(root);
 
         expect(problems).toHaveLength(1);
         expect(problems[0]).toContain('package-lock.json');
@@ -122,7 +125,7 @@ describe('checkAssets without a Vite dev server', () => {
             touch(root, `resources/js/i18n/l${i}.json`, NOW - i);
         }
 
-        const [problem] = await checkAssets(root, dead);
+        const [problem] = await checkAssets(root);
 
         expect(problem).toContain('older than 8 of its inputs');
         expect(problem).toContain('… and 3 more');
@@ -131,31 +134,67 @@ describe('checkAssets without a Vite dev server', () => {
     it('refuses when there is no build at all', async () => {
         touch(root, 'resources/css/app.css', NOW);
 
-        const [problem] = await checkAssets(root, dead);
+        const [problem] = await checkAssets(root);
 
         expect(problem).toContain('manifest.json is missing');
         expect(problem).toContain('npm run build');
     });
+
+    // LUMN-106: a dev server left running by `npm start` stood in for a stale build, and the pages
+    // it served lost Vue islands at random. The servers now ignore it; so does the preflight.
+    it('refuses a stale build even while a Vite dev server is listening, without asking it', async () => {
+        touch(root, 'public/build/manifest.json', NOW - DAY);
+        touch(root, 'resources/views/home.blade.php', NOW);
+        writeFileSync(join(root, 'public/hot'), 'https://dev.cardascia-it.org:5173\n');
+        const probed = [];
+
+        const problems = await checkAssets(root, 'build', async (url) => {
+            probed.push(url);
+            return true;
+        });
+
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain('npm run build');
+        expect(probed).toEqual([]);
+    });
+
+    it('passes on a current build whatever a hot file says, even one left by a dead Vite', async () => {
+        touch(root, 'resources/css/app.css', NOW - DAY);
+        touch(root, 'public/build/manifest.json', NOW);
+        writeFileSync(join(root, 'public/hot'), 'https://dev.cardascia-it.org:5173');
+
+        expect(await checkAssets(root, 'build', dead)).toEqual([]);
+    });
 });
 
-// Criterion 3 — Vite running means the assets are served live, whatever the build's age.
-describe('checkAssets with public/hot', () => {
+// LUMN-106 criterion 3 — the dev server is tested only when E2E_DEV_SERVER=1 asks for it.
+describe('checkAssets, with E2E_DEV_SERVER=1: the Vite dev server', () => {
     it('passes when the dev server is listening, even over a stale build', async () => {
         touch(root, 'public/build/manifest.json', NOW - DAY);
         touch(root, 'resources/views/home.blade.php', NOW);
         writeFileSync(join(root, 'public/hot'), 'https://dev.cardascia-it.org:5173\n');
 
-        expect(await checkAssets(root, alive)).toEqual([]);
+        expect(await checkAssets(root, 'dev-server', alive)).toEqual([]);
     });
 
     it('refuses a hot file left behind by a Vite that has died', async () => {
         mkdirSync(join(root, 'public'), { recursive: true });
         writeFileSync(join(root, 'public/hot'), 'https://dev.cardascia-it.org:5173');
 
-        const [problem] = await checkAssets(root, dead);
+        const [problem] = await checkAssets(root, 'dev-server', dead);
 
         expect(problem).toContain('nothing is listening');
-        expect(problem).toContain('delete public/hot');
+        expect(problem).toContain('unset E2E_DEV_SERVER');
+    });
+
+    it('refuses when no dev server runs at all, rather than test the build in its place', async () => {
+        touch(root, 'resources/css/app.css', NOW - DAY);
+        touch(root, 'public/build/manifest.json', NOW);
+
+        const [problem] = await checkAssets(root, 'dev-server', alive);
+
+        expect(problem).toContain('public/hot is absent');
+        expect(problem).toContain('npm run dev');
     });
 
     it('probes the URL the hot file names, trimmed', async () => {
@@ -163,12 +202,32 @@ describe('checkAssets with public/hot', () => {
         writeFileSync(join(root, 'public/hot'), '  https://example.test:5173\n');
         const probed = [];
 
-        await checkAssets(root, async (url) => {
+        await checkAssets(root, 'dev-server', async (url) => {
             probed.push(url);
             return true;
         });
 
         expect(probed).toEqual(['https://example.test:5173']);
+    });
+});
+
+// The seam: the preflight checks the assets of the mode the servers run in, read by the same function.
+describe('preflight', () => {
+    it('refuses a misspelt E2E_DEV_SERVER before checking anything', async () => {
+        expect(await preflight(root, { E2E_DEV_SERVER: 'true' })).toEqual([
+            expect.stringContaining('E2E_DEV_SERVER is "true"'),
+        ]);
+    });
+
+    it('checks the dev server when E2E_DEV_SERVER=1, and the build otherwise', async () => {
+        touch(root, 'resources/css/app.css', NOW - DAY);
+        touch(root, 'public/build/manifest.json', NOW);
+
+        const withDevServer = await preflight(root, { E2E_DEV_SERVER: '1' });
+        const withBuild = await preflight(root, {});
+
+        expect(withDevServer.some((problem) => problem.includes('public/hot is absent'))).toBe(true);
+        expect(withBuild.some((problem) => problem.includes('public/hot is absent'))).toBe(false);
     });
 });
 
